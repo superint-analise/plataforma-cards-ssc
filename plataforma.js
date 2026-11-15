@@ -258,33 +258,57 @@ $('su-funcao').addEventListener('change',ajustarSolicitacao);
 $('su-regional').addEventListener('change',ajustarSolicitacao);
 ajustarSolicitacao();
 $('su-solicitacao').addEventListener('submit',async e=>{
- e.preventDefault();
- const f=$('su-funcao').value,r=$('su-regional').value,c=$('su-coordenacao').value;
- if(!['gerente','coordenador','superint'].includes(f)||f!=='superint'&&!REGIONAIS.includes(r)||f==='coordenador'&&!coordsDaRegional(r).includes(c)){
-   msg.textContent='Informe corretamente função, regional e coordenação.';return;
- }
- const form=e.currentTarget;
- const button=form.querySelector('button[type="submit"]');
- button.disabled=true;
- msg.textContent='Enviando solicitação...';
- try {
-   const signup=db.auth.signUp({email:$('su-email-novo').value.trim(),password:$('su-pass-novo').value,options:{data:{
-     nome:$('su-nome').value.trim(),funcao:f,regional:f==='superint'?null:r,coordenacao:f==='coordenador'?c:null
-   }}});
-   const result=await Promise.race([
-     signup,
-     new Promise((_,reject)=>setTimeout(()=>reject(new Error('A solicitação demorou mais que o esperado. Confira se sua conta já existe antes de tentar novamente.')),20000))
-   ]);
-   if(result.error)throw result.error;
-   form.reset();
-   ajustarSolicitacao();
-   msg.textContent='Solicitação processada. Se sua conta já existir, utilize Entrar em vez de reenviar. Caso seja nova, confirme o e-mail se solicitado e aguarde aprovação.';
- } catch(ex) {
-   console.error('Cadastro:',ex);
-   msg.textContent=ex?.message||'Não foi possível concluir a solicitação. Tente novamente.';
- } finally {
-   button.disabled=false;
- }
+  e.preventDefault();
+  const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
+  if(button.disabled)return;
+  const f=$('su-funcao').value, r=$('su-regional').value, c=$('su-coordenacao').value;
+  if(!['gerente','coordenador','superint'].includes(f)||
+    (f!=='superint'&&!REGIONAIS.includes(r))||
+    (f==='coordenador'&&!coordsDaRegional(r).includes(c))){
+    msg.textContent='Confira a função, a regional e a coordenação.';return;
+  }
+  const email=$('su-email-novo').value.trim();
+  button.disabled=true;
+  msg.textContent='Verificando solicitação...';
+  let timerId;
+  try {
+    const timeout=new Promise((_,reject)=>{
+      timerId=setTimeout(()=>reject(new Error('Não foi possível concluir a verificação. Confira sua conexão e tente entrar, caso já possua cadastro.')),15000);
+    });
+    const response=await Promise.race([
+      db.auth.signUp({
+        email,password:$('su-pass-novo').value,
+        options:{data:{
+          nome:$('su-nome').value.trim(),
+          funcao:f,
+          regional:f==='superint'?null:r,
+          coordenacao:f==='coordenador'?c:null
+        }}
+      }),
+      timeout
+    ]);
+    if(response.error) {
+      const reason=String(response.error.message||'');
+      if(/already registered|already exists|user already/i.test(reason)){
+        msg.textContent='Este e-mail já possui cadastro. Clique em Voltar ao login e utilize Entrar. Se necessário, recupere sua senha.';
+        return;
+      }
+      throw response.error;
+    }
+    if(response.data?.user && Array.isArray(response.data.user.identities) && response.data.user.identities.length===0){
+      msg.textContent='Este e-mail já possui cadastro. Clique em Voltar ao login e utilize Entrar. Não é necessário solicitar acesso novamente.';
+      return;
+    }
+    msg.textContent='Solicitação recebida. Confirme seu e-mail, se solicitado, e aguarde aprovação. Caso já tenha cadastro, utilize Entrar.';
+    form.reset();
+    ajustarSolicitacao();
+  }catch(ex){
+    console.error('Solicitação de acesso:',ex);
+    msg.textContent=ex?.message||'Não foi possível enviar a solicitação. Tente entrar se você já possui cadastro.';
+  }finally{
+    if(timerId!==undefined)clearTimeout(timerId);
+    button.disabled=false;
+  }
 });
 $('su-sair').addEventListener('click',async()=>{await db.auth.signOut();document.body.classList.remove('auth-ok');auth.style.display='grid';location.reload()});
 const {data:{session}}=await db.auth.getSession();
