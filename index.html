@@ -1,0 +1,4190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise - Superintendência</title>
+
+<style>
+:root{
+  --primary:#009B91;
+  --secondary:#F5AA41;
+  --gray:#7F7F7F;
+
+  --primary-dark:#005852;
+  --secondary-dark:#EB8C0A;
+  --gray-dark:#414141;
+
+  --primary-light:#50EBE1;
+  --secondary-light:#FACD91;
+  --gray-light:#CDCDCD;
+
+  --bg:#f5f7f7;
+  --card:#ffffff;
+  --text:#263433;
+  --muted:#74817f;
+  --line:#dfe8e7;
+
+  --green:#009B91;
+  --red:#ef5350;
+  --yellow:#F5AA41;
+}
+
+*{box-sizing:border-box}
+
+html{background:var(--bg)}
+
+body{
+  margin:0;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 43% 4%,rgba(0,155,145,.07),transparent 24%),
+    linear-gradient(180deg,#f8fbfb 0%,#f2f6f5 100%);
+  font-family:"Segoe UI",Inter,Arial,sans-serif;
+}
+
+button,select{font:inherit}
+
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:224px minmax(0,1fr);
+}
+
+.sidebar{
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:hidden;
+  color:#fff;
+  background:
+    radial-gradient(circle at 15% 3%,rgba(80,235,225,.16),transparent 19%),
+    linear-gradient(180deg,var(--primary-dark) 0%,#006e67 47%,var(--primary) 100%);
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.07);
+}
+
+.side-brand{
+  min-height:108px;
+  display:flex;
+  align-items:center;
+  padding:23px 22px 20px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.brand-copy{min-width:0}
+
+.brand-copy strong{
+  display:block;
+  font-size:18px;
+  line-height:1.15;
+  letter-spacing:-.4px;
+  font-weight:800;
+  color:#fff;
+}
+
+.brand-copy small{
+  display:block;
+  margin-top:7px;
+  font-size:10px;
+  color:rgba(255,255,255,.72);
+}
+
+.side-nav{margin-top:9px}
+
+.nav-item{
+  height:54px;
+  padding:0 23px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:13px;
+  color:rgba(255,255,255,.88);
+  border-left:5px solid transparent;
+}
+
+.nav-item.active{
+  border-left-color:var(--secondary);
+  background:linear-gradient(90deg,rgba(245,170,65,.24),rgba(255,255,255,.08));
+  font-weight:700;
+}
+
+.nav-icon{
+  width:22px;
+  display:inline-grid;
+  place-items:center;
+}
+
+.nav-icon svg{
+  width:20px;
+  height:20px;
+  stroke:currentColor;
+  stroke-width:2.2;
+  fill:none;
+}
+
+.side-message{
+  position:absolute;
+  left:24px;
+  right:24px;
+  bottom:24px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.35);
+  color:rgba(255,255,255,.68);
+  font-size:12px;
+  line-height:1.5;
+}
+
+
+.export-wrap{
+  position:relative;
+}
+.export-button{
+  height:34px;
+  text-decoration:none;
+  padding:0 13px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #c8ddda;
+  border-radius:8px;
+  background:#fff;
+  color:#005852;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 2px 7px rgba(0,88,82,.05);
+}
+.export-button:hover{
+  border-color:#009B91;
+  background:#f2fbfa;
+}
+.export-button svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+}
+.export-status{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:200;
+  display:none;
+  padding:10px 14px;
+  border-radius:9px;
+  background:#005852;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+.export-status.show{display:block}
+
+@media print{
+  .sidebar,.topbar,.export-wrap,.detail-link{display:none!important}
+  .app{display:block!important}
+  .content{width:100%!important}
+  .main{padding:0!important}
+  .view-section{display:none!important}
+  .view-section.active{display:block!important}
+  body{background:#fff!important}
+  .card{box-shadow:none!important}
+}
+
+.content{min-width:0}
+
+.topbar{
+  height:48px;
+  padding:0 28px;
+  border-bottom:1px solid #dce7e5;
+  background:rgba(255,255,255,.72);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.welcome{
+  font-size:11px;
+  color:#6d7c79;
+}
+
+.top-right{
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+
+.bell{
+  position:relative;
+  color:var(--primary-dark);
+  display:grid;
+  place-items:center;
+}
+
+.bell svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+}
+
+.bell-dot{
+  position:absolute;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--secondary);
+  top:-1px;
+  right:-2px;
+  border:1px solid #fff;
+}
+
+.user-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding-left:14px;
+  border-left:1px solid #e1e7e6;
+}
+
+.avatar{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:var(--primary-dark);
+  font-weight:800;
+  font-size:11px;
+}
+
+.user-copy strong{
+  display:block;
+  font-size:10px;
+  color:#193b38;
+}
+
+.user-copy small{
+  display:block;
+  font-size:8px;
+  margin-top:1px;
+  color:#75837f;
+}
+
+.main{padding:24px 28px 30px}
+
+.page-head{
+  display:grid;
+  grid-template-columns:minmax(320px,1fr) minmax(410px,620px);
+  align-items:end;
+  gap:34px;
+  margin-bottom:19px;
+}
+
+.page-title h1{
+  margin:0;
+  font-size:28px;
+  letter-spacing:-.7px;
+  color:#173c39;
+}
+
+.page-title p{
+  margin:6px 0 0;
+  font-size:12px;
+  color:#74849a;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:17px;
+}
+
+.filter label{
+  display:block;
+  margin:0 0 5px 2px;
+  font-size:9px;
+  font-weight:800;
+  color:#24423f;
+}
+
+.filter select{
+  width:100%;
+  height:39px;
+  padding:0 13px;
+  border-radius:6px;
+  border:1px solid #cbdedb;
+  background:#fff;
+  color:#203d3a;
+  font-size:12px;
+  outline:none;
+}
+
+.filter select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(0,155,145,.10);
+}
+
+.card{
+  background:rgba(255,255,255,.97);
+  border:1px solid #e0e9e7;
+  border-radius:12px;
+  box-shadow:0 8px 28px rgba(37,88,82,.055);
+}
+
+.manager-card{padding:13px 13px 11px}
+
+.manager-head{
+  display:grid;
+  grid-template-columns:minmax(270px,1fr) minmax(420px,610px);
+  gap:18px;
+  align-items:center;
+  padding:1px 7px 13px;
+}
+
+.manager-title h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:-.4px;
+  color:#173c39;
+}
+
+.manager-title p{
+  margin:5px 0 0;
+  font-size:11px;
+  color:#76869a;
+}
+
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.kpi-card{
+  min-height:91px;
+  border:1px solid #dce8e6;
+  border-radius:8px;
+  padding:12px 15px;
+  display:grid;
+  grid-template-columns:43px 1fr;
+  align-items:center;
+  background:linear-gradient(180deg,#fff,#fbfefe);
+}
+
+.kpi-icon{
+  color:var(--primary);
+  display:grid;
+  place-items:center;
+}
+
+.kpi-icon svg{
+  width:29px;
+  height:29px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.9;
+}
+
+.kpi-copy small{
+  display:block;
+  font-size:9px;
+  font-weight:700;
+  color:#314f4b;
+}
+
+.kpi-value{
+  display:block;
+  margin-top:1px;
+  font-size:23px;
+  line-height:1;
+  font-weight:900;
+  color:#143d39;
+}
+
+.kpi-sub{
+  margin-top:6px;
+  font-size:9px;
+  color:#637a76;
+}
+
+
+.table-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px}
+.table-card-actions{display:flex;align-items:center;gap:10px}
+ .table-total-score{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 12px;
+  border:1px solid #83cfc8;
+  border-radius:10px;
+  background:linear-gradient(135deg,#e5f7f4,#ffffff);
+  box-shadow:0 4px 12px rgba(0,88,82,.09);
+  font-size:10px;font-weight:900;color:#31524e;
+  text-transform:uppercase;letter-spacing:.35px
+}
+.table-total-score::before{content:"★";font-size:14px;color:#F5AA41}
+.table-total-score strong{
+  display:inline-grid;place-items:center;
+  min-width:48px;height:30px;padding:0 10px;
+  border-radius:8px;background:#005852;color:#fff;
+  font-size:18px;line-height:1;font-weight:900;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)
+}
+.toggle-calc{border:1px solid #b9d9d5;background:#fff;color:#006b63;border-radius:7px;padding:6px 10px;font-size:9px;font-weight:800;cursor:pointer}
+.calc-col{display:none}
+.show-calc .calc-col{display:table-cell}
+
+.table-wrap{
+  overflow-x:auto;
+  border:1px solid #dce7e5;
+  border-radius:7px;
+}
+
+table{
+  width:100%;
+  min-width:1120px;
+  border-collapse:collapse;
+}
+
+thead th{
+  height:39px;
+  padding:0 10px;
+  background:linear-gradient(180deg,var(--primary),#008d84);
+  border-right:1px solid rgba(255,255,255,.17);
+  border-bottom:1px solid var(--primary-dark);
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  text-transform:uppercase;
+  text-align:center;
+  white-space:nowrap;
+}
+
+thead th:first-child,
+thead th:nth-child(2){
+  text-align:left;
+}
+
+thead th:last-child{border-right:0}
+
+tbody td{
+  height:38px;
+  padding:0 10px;
+  border-right:1px solid #e1e8e7;
+  border-bottom:1px solid #e1e8e7;
+  font-size:10px;
+  text-align:center;
+  color:#314541;
+  white-space:nowrap;
+}
+
+tbody td:last-child{border-right:0}
+tbody tr:last-child td{border-bottom:0}
+
+tbody td:first-child,
+tbody td:nth-child(2){
+  text-align:left;
+}
+
+.block-label{
+  font-weight:900;
+  color:#fff;
+  font-size:9px;
+  background:linear-gradient(180deg,var(--primary),#008d84)!important;
+  text-align:left!important;
+  vertical-align:middle!important;
+}
+
+.indicator-name{color:#354b47;font-weight:800}
+
+.planned-cell{
+  background:#f1f3f3;
+  color:#4d5b58;
+  font-weight:700;
+  text-align:center!important;
+}
+
+.point-cell,
+.weight-cell,
+.score-cell{
+  font-weight:800;
+  background:#e5f5f3;
+  color:#00675f;
+}
+
+.total-row td{
+  background:#edf4f3;
+  font-weight:800;
+  color:#213b38;
+}
+
+.total-row td.total-score{
+  background:#ccebe7;
+  font-size:14px;
+  color:#005852;
+}
+
+.performance{
+  display:inline-grid;
+  width:26px;
+  height:24px;
+  place-items:center;
+}
+
+.performance svg{
+  width:17px;
+  height:17px;
+  stroke:currentColor;
+  stroke-width:2.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  fill:none;
+}
+
+.performance.up{color:var(--primary)}
+.performance.down{color:#ef5350}
+
+.performance.equal{
+  color:var(--gray);
+  font-size:18px;
+  font-weight:900;
+}
+
+.eff{
+  display:inline-grid;
+  width:22px;
+  height:22px;
+  place-items:center;
+  border-radius:50%;
+  font-size:14px;
+  font-weight:900;
+  color:white;
+}
+
+.eff.ok{background:var(--primary)}
+.eff.warn{background:var(--secondary)}
+.eff.bad{background:#ef5350}
+
+.advance-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:52px;
+  height:23px;
+  padding:0 8px;
+  border-radius:13px;
+  font-size:9px;
+  font-weight:900;
+}
+
+.advance-ok{
+  background:#d9f2ef;
+  color:#00675f;
+  border:1px solid #81cfc7;
+}
+
+.advance-bad{
+  background:#fde7e7;
+  color:#c83535;
+  border:1px solid #f3aaaa;
+}
+
+.irl{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:66px;
+  height:23px;
+  padding:0 8px;
+  border-radius:13px;
+  font-size:8px;
+  font-weight:900;
+  border:1px solid transparent;
+}
+
+.irl-seguro{
+  background:#dff5ef;
+  color:#007b72;
+  border-color:#a4dcd6;
+}
+
+.irl-aceitavel{
+  background:#e7f7f5;
+  color:#278d85;
+  border-color:#b9e3df;
+}
+
+.irl-toleravel{
+  background:#fff1dc;
+  color:#a5690b;
+  border-color:#f3cf95;
+}
+
+.irl-critico,
+.irl-zero{
+  background:#fde6e6;
+  color:#c83f3a;
+  border-color:#f3aaaa;
+}
+
+.coord-section{
+  margin-top:17px;
+  padding:15px 15px 14px;
+}
+
+.coord-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 3px 12px;
+}
+
+.coord-head h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:-.4px;
+  color:#173c39;
+}
+
+.coord-head p{
+  margin:4px 0 0;
+  font-size:11px;
+  color:#77879a;
+}
+
+.detail-link{
+  border:0;
+  padding:4px 0;
+  background:transparent;
+  color:var(--primary);
+  cursor:pointer;
+  font-size:10px;
+  font-weight:700;
+}
+
+.coord-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:13px;
+}
+
+.coord-card{
+  min-height:143px;
+  padding:14px 15px 12px;
+  border-radius:8px;
+  border:1px solid #dce7e5;
+  background:linear-gradient(180deg,#fff 0%,#fbfefd 100%);
+}
+
+.coord-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.coord-name{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:10px;
+  font-weight:800;
+  color:#203f3b;
+}
+
+.coord-name svg{
+  width:20px;
+  height:20px;
+  flex:0 0 auto;
+  color:var(--primary);
+  stroke:currentColor;
+  stroke-width:2;
+  fill:none;
+}
+
+.chevron{
+  font-size:21px;
+  color:var(--primary-dark);
+  line-height:1;
+}
+
+.coord-main{
+  margin-top:17px;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:11px;
+  align-items:end;
+}
+
+.coord-score{
+  font-size:24px;
+  font-weight:900;
+  color:#143d39;
+}
+
+.spark{
+  height:36px;
+  width:100%;
+}
+
+.spark svg{
+  width:100%;
+  height:100%;
+}
+
+.spark path.line{
+  fill:none;
+  stroke:var(--primary);
+  stroke-width:2;
+}
+
+.coord-foot{
+  margin-top:9px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.coord-foot small{
+  font-size:9px;
+  color:#7d8999;
+}
+
+.pill{
+  padding:5px 10px;
+  border-radius:14px;
+  background:#dff5ef;
+  color:#007b72;
+  font-size:8px;
+  font-weight:800;
+}
+
+.details{
+  display:none;
+  margin-top:16px;
+}
+
+.details.open{display:block}
+
+.detail-panel{
+  margin-top:12px;
+  padding:13px;
+}
+
+.detail-panel h3{
+  margin:0 0 10px;
+  font-size:14px;
+  color:#153b37;
+}
+
+
+.view-section{display:none}
+.view-section.active{display:block}
+
+.ranking-section{
+  margin-bottom:17px;
+  padding:15px;
+}
+
+.ranking-section h2,
+.chart-section h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:-.4px;
+  color:#173c39;
+}
+
+.section-subtitle{
+  margin:4px 0 12px;
+  font-size:11px;
+  color:#77879a;
+}
+
+.ranking-main{
+  overflow:auto;
+  border:1px solid #dce7e5;
+  border-radius:8px;
+}
+
+.ranking-main table{
+  min-width:800px;
+}
+
+.ranking-main thead th{
+  background:linear-gradient(180deg,var(--primary),#008d84);
+}
+
+.ranking-main tbody td{
+  height:36px;
+}
+
+.ranking-main tbody tr{
+  transition:background .18s ease, box-shadow .18s ease;
+}
+
+.ranking-main tbody tr.rank-1 td{
+  background:#FFF4D6;
+}
+
+.ranking-main tbody tr.rank-2 td{
+  background:#F0F2F3;
+}
+
+.ranking-main tbody tr.rank-3 td{
+  background:#F7E1CF;
+}
+
+.ranking-main tbody tr:not(.rank-1):not(.rank-2):not(.rank-3) td,
+.mini-ranking tbody tr:not(.rank-1):not(.rank-2):not(.rank-3) td{
+  background:#fff;
+}
+
+.ranking-main tr.selected-region td,
+.mini-ranking tr.selected-region td{
+  color:#123f3b;
+  font-weight:900;
+}
+
+.ranking-main tr.selected-region:not(.rank-1):not(.rank-2):not(.rank-3) td,
+.mini-ranking tr.selected-region:not(.rank-1):not(.rank-2):not(.rank-3) td{
+  background:#e7fbf9!important;
+}
+
+.ranking-main tr.selected-region{
+  box-shadow:inset 3px 0 0 var(--primary), inset -3px 0 0 var(--primary);
+}
+
+.mini-ranking tr.selected-region{
+  box-shadow:inset 3px 0 0 var(--primary);
+}
+
+.rank-pos{
+  font-weight:900;
+  color:var(--primary-dark);
+  width:84px;
+}
+
+.rank-score{
+  font-weight:900;
+  color:#173c39;
+  font-size:12px;
+}
+
+.mini-rankings{
+  margin-top:13px;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(190px,1fr));
+  gap:12px;
+  align-items:start;
+}
+
+.mini-ranking{
+  overflow:hidden;
+  border:1px solid #dce7e5;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 5px 18px rgba(0,88,82,.05);
+}
+
+.mini-ranking h3{
+  margin:0;
+  padding:11px 12px;
+  background:#fff;
+  color:#17433f;
+  font-size:11px;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  border-bottom:1px solid #e7efee;
+}
+
+.coord-rank-icon{
+  width:30px;
+  height:30px;
+  border-radius:8px;
+  display:inline-grid;
+  place-items:center;
+  color:#fff;
+  background:linear-gradient(180deg,var(--primary),var(--primary-dark));
+  flex:0 0 auto;
+}
+
+.coord-rank-icon svg{
+  width:17px;
+  height:17px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2;
+}
+
+.coord-rank-copy strong{
+  display:block;
+  font-size:10px;
+}
+
+.coord-rank-copy small{
+  display:block;
+  margin-top:2px;
+  font-size:7.5px;
+  font-weight:500;
+  color:#83908e;
+}
+
+.mini-ranking table{
+  min-width:0;
+  width:100%;
+}
+
+.mini-ranking thead{
+  display:none;
+}
+
+.mini-ranking tbody td{
+  height:34px;
+  padding:0 8px;
+  font-size:9px;
+}
+
+.mini-ranking tbody tr:not(:last-child) td{
+  border-bottom:1px solid #edf2f1;
+}
+
+.rank-display{
+  min-width:34px;
+}
+
+.nav-item{cursor:pointer}
+.nav-item:hover{background:rgba(255,255,255,.07)}
+
+.chart-section{
+  padding:16px;
+}
+
+.chart-toolbar{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(220px,320px));
+  gap:12px;
+  margin:14px 0;
+}
+
+.chart-box{
+  border:1px solid #dce7e5;
+  border-radius:10px;
+  background:#fff;
+  padding:10px 12px 8px;
+  overflow:hidden;
+}
+
+.chart-title{
+  margin:0 0 3px;
+  font-size:14px;
+  color:#173c39;
+}
+
+.chart-note{
+  margin:0 0 10px;
+  font-size:10px;
+  color:#788783;
+}
+
+.chart-svg{
+  width:100%;
+  height:275px;
+  display:block;
+}
+
+.evolution-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+}
+
+.evolution-controls{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(220px,320px));
+  gap:12px;
+  margin:14px 0;
+}
+
+.empty-state{
+  padding:34px 18px;
+  text-align:center;
+  color:#7a8885;
+  font-size:12px;
+}
+
+.chart-legend{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin:2px 0 8px;
+  font-size:10px;
+  color:#53635f;
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.legend-swatch{
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  display:inline-block;
+}
+
+.legend-prev{background:var(--gray-light)}
+.legend-current{background:var(--primary)}
+
+
+.comparison-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-top:14px;
+}
+
+.comparison-card{min-width:0}
+
+.sector-section{
+  margin-bottom:16px;
+}
+
+.sector-subsection{
+  margin-top:18px;
+  padding-top:6px;
+}
+
+.sector-title{
+  margin:0 0 8px;
+  color:#173c39;
+  font-size:17px;
+}
+
+.evolution-filter-grid{
+  display:grid;
+  grid-template-columns:minmax(230px,1.35fr) minmax(150px,.75fr) minmax(150px,.75fr);
+  gap:14px;
+  align-items:end;
+}
+
+.evolution-filter-grid select[multiple]{
+  min-height:118px;
+  padding:8px 10px;
+}
+
+.filter-hint{
+  display:block;
+  margin-top:4px;
+  color:#7b8986;
+  font-size:9px;
+}
+
+
+/* PÓDIO E TOOLTIPS */
+.rank-display{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-weight:900;white-space:nowrap}
+.rank-icon{width:32px;height:32px;display:inline-block;vertical-align:middle;filter:drop-shadow(0 2px 2px rgba(0,0,0,.13))}
+.rank-icon.gold{color:#D99A00}.rank-icon.silver{color:#9CA4AA}.rank-icon.bronze{color:#B96832}
+.rank-number{
+  display:inline-grid;
+  place-items:center;
+  min-width:28px;
+  height:28px;
+  padding:0 7px;
+  border-radius:999px;
+  background:#e8eeee;
+  color:#52605e;
+  font-weight:900;
+  font-size:10px;
+}
+.rank-cell{white-space:nowrap;text-align:center!important}
+.chart-mark{cursor:pointer;transition:opacity .15s ease,filter .15s ease}
+.chart-mark:hover{opacity:.82;filter:brightness(.97)}
+.chart-tooltip{
+  position:fixed;z-index:9999;pointer-events:none;display:none;
+  min-width:150px;max-width:260px;padding:9px 11px;border-radius:8px;
+  background:#263433;color:#fff;font-size:11px;line-height:1.35;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);white-space:pre-line
+}
+
+
+/* Página Tabelas: sem notas, sem Pontos/Peso/Score e com limites claros por região */
+.tables-no-score .table-total-score,
+.tables-no-score .table-card-actions,
+.tables-no-score .calc-col{
+  display:none!important;
+}
+
+.region-boundary{
+  margin:18px 0 10px;
+  padding:11px 14px;
+  border-radius:8px;
+  font-weight:900;
+  letter-spacing:.35px;
+  font-size:11px;
+  text-transform:uppercase;
+}
+
+.region-boundary.start{
+  color:#fff;
+  background:linear-gradient(90deg,#005852,#009B91);
+  border-left:6px solid #F5AA41;
+}
+
+.region-boundary.end{
+  color:#435653;
+  background:#eef3f2;
+  border:1px solid #d9e4e2;
+  border-left:6px solid #7F7F7F;
+  margin-bottom:28px;
+}
+
+.region-table-title{
+  margin:10px 0 6px;
+  padding:8px 11px;
+  border-radius:8px 8px 0 0;
+  background:#f3f8f7;
+  border:1px solid #dce7e5;
+  border-bottom:0;
+  color:#173c39;
+  font-size:12px;
+  font-weight:900;
+}
+
+.all-tables-card{
+  padding:14px;
+  margin-bottom:14px;
+}
+
+@media(max-width:1180px){
+  .coord-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mini-rankings{grid-template-columns:repeat(3,minmax(170px,1fr))}
+  .comparison-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .page-head{grid-template-columns:1fr}
+  .manager-head{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:1fr}
+  .mini-rankings{grid-template-columns:1fr}
+  .chart-toolbar,.evolution-controls,.evolution-filter-grid{grid-template-columns:1fr}
+}
+
+/* ==========================================================
+   V22 - COMPARAÇÃO EXECUTIVA
+   Alteração isolada: Visão Geral, Tabelas e Evolução Temporal
+   continuam com o CSS/HTML original da V18 restaurada.
+   ========================================================== */
+.executive-comparison-view{
+  --exec-green:#009B91;
+  --exec-dark:#005852;
+  --exec-orange:#F5AA41;
+  --exec-gray:#7F7F7F;
+  --exec-soft:#F4F8F7;
+  --exec-line:#DCE8E6;
+}
+.executive-comparison-head{margin-bottom:8px}
+.comparison-period-pill{
+  border:1px solid var(--exec-line);
+  border-radius:9px;
+  background:#fff;
+  padding:8px 12px;
+  color:var(--exec-dark);
+  font-size:10px;
+  font-weight:800;
+}
+.exec-summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(220px,1fr));
+  gap:10px;
+  max-width:620px;
+  margin-left:auto;
+  margin-bottom:8px;
+}
+.exec-kpi{
+  background:#fff;
+  border:1px solid var(--exec-line);
+  border-radius:12px;
+  padding:10px 13px;
+  display:grid;
+  grid-template-columns:38px 1fr auto;
+  gap:10px;
+  align-items:center;
+  box-shadow:0 4px 14px rgba(0,88,82,.045);
+}
+.exec-kpi-icon{
+  width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#E4F6F3;color:var(--exec-green);
+  font-size:17px;font-weight:900;
+}
+.exec-kpi.pending .exec-kpi-icon{background:#FFF1DD;color:#C77A00}
+.exec-kpi-copy small{
+  display:block;color:#6E7E7B;font-size:8px;font-weight:700;margin-bottom:1px
+}
+.exec-kpi-copy strong{
+  display:block;color:#183B37;font-size:20px;line-height:1
+}
+.exec-kpi-rate{font-size:10px;font-weight:900;color:var(--exec-green)}
+.exec-kpi.pending .exec-kpi-rate{color:#C77A00}
+.exec-kpi-track{
+  grid-column:2/4;height:5px;border-radius:999px;background:#E8EFEE;overflow:hidden;margin-top:-2px
+}
+.exec-kpi-track i{display:block;height:100%;border-radius:inherit;background:var(--exec-green)}
+.exec-kpi.pending .exec-kpi-track i{background:var(--exec-orange)}
+
+.exec-legend{
+  display:flex;justify-content:flex-end;align-items:center;gap:18px;
+  color:#52635F;font-size:9px;font-weight:700;margin:0 2px 11px;
+}
+.exec-legend span{display:flex;align-items:center;gap:6px}
+.exec-target-line{width:20px;height:0;border-top:2px dashed #213B38;display:inline-block}
+.exec-real-swatch{width:15px;height:7px;border-radius:2px;display:inline-block}
+.exec-real-swatch.met{background:var(--exec-green)}
+.exec-real-swatch.missed{background:var(--exec-orange)}
+
+.exec-block-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.exec-block{
+  background:#fff;
+  border:1px solid var(--exec-line);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 7px 22px rgba(0,88,82,.055);
+  min-width:0;
+}
+.exec-block-head{
+  min-height:45px;
+  background:linear-gradient(90deg,var(--exec-dark),var(--exec-green));
+  color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:0 13px;
+}
+.exec-block-head-left{display:flex;align-items:center;gap:9px;min-width:0}
+.exec-block-icon{
+  width:27px;height:27px;border-radius:8px;
+  background:rgba(255,255,255,.12);
+  display:grid;place-items:center;font-weight:900;font-size:14px;flex:0 0 auto
+}
+.exec-block-title{font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exec-block-just-link{
+  border:0;background:transparent;color:#fff;
+  font-size:7.5px;font-weight:800;white-space:nowrap;cursor:pointer;opacity:.92
+}
+.exec-block-body{padding:10px}
+.exec-indicator + .exec-indicator{
+  border-top:1px solid #E7EFED;
+  margin-top:9px;padding-top:9px
+}
+.exec-indicator-head{
+  display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:7px;align-items:start;margin-bottom:5px
+}
+.exec-indicator-title{
+  font-size:10px;font-weight:800;line-height:1.25;color:#173D39;
+  min-height:26px
+}
+.exec-general{
+  background:#F2F8F7;border:1px solid #E0EBE9;border-radius:9px;
+  padding:6px 7px;
+}
+.exec-general-label{font-size:6.5px;color:#59706C;font-weight:900;margin-bottom:4px}
+.exec-general-values{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.exec-general-values small{display:block;color:#83918E;font-size:5.8px}
+.exec-general-values strong{display:block;font-size:9.5px;color:#193B37}
+.exec-general-status{
+  margin-top:4px;font-size:7px;font-weight:900;display:flex;align-items:center;gap:4px
+}
+.exec-general-status.met{color:#007C72}.exec-general-status.missed{color:#C67600}
+.exec-dot{width:13px;height:13px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-size:8px}
+.exec-general-status.met .exec-dot{background:var(--exec-green)}
+.exec-general-status.missed .exec-dot{background:var(--exec-orange)}
+
+.exec-vchart{
+  height:190px;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  align-items:end;
+  padding:8px 2px 0;
+}
+.exec-block.has-just .exec-vchart{height:145px}
+.exec-vcol{height:100%;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+.exec-vplot{height:calc(100% - 28px);position:relative;display:flex;align-items:flex-end;justify-content:center}
+.exec-vbar{
+  z-index:1;
+  width:min(30px,78%);
+  min-height:5px;border-radius:4px 4px 0 0;
+  position:relative;
+  box-shadow:inset 0 -1px 0 rgba(0,0,0,.06)
+}
+.exec-vbar.met{background:linear-gradient(180deg,#10B5A8,var(--exec-green))}
+.exec-vbar.missed{background:linear-gradient(180deg,#FFAC39,var(--exec-orange))}
+.exec-vbar-value{
+  position:absolute;left:50%;bottom:5px;transform:translateX(-50%);
+  color:#fff;font-size:6.5px;font-weight:900;white-space:nowrap
+}
+.exec-target-marker{
+  position:absolute;left:12%;right:12%;z-index:6;
+  border-top:2px dashed #203C38;height:1px;
+  pointer-events:none
+}
+.exec-target-value{
+  position:absolute;left:50%;bottom:5px;transform:translateX(-50%);
+  padding:2px 3px;border:1px solid #D6E2DF;border-radius:4px;
+  background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.07);
+  font-size:7px;font-weight:900;color:#203C38;white-space:nowrap;
+  z-index:7
+}
+.exec-vregion{
+  height:28px;display:flex;align-items:flex-end;justify-content:center;
+  text-align:center;font-size:6.2px;font-weight:800;color:#425753;line-height:1.1;
+  padding-top:4px
+}
+.exec-justifications{
+  margin-top:7px;padding:7px 8px;border-radius:8px;
+  background:#F3F7F6;border:1px solid #E1EAE8
+}
+.exec-just-title{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:7.5px;font-weight:900;color:#203E39;margin-bottom:5px
+}
+.exec-just-title button{
+  border:0;background:transparent;color:#008C82;font-size:6.7px;
+  text-decoration:underline;cursor:pointer;padding:0
+}
+.exec-just-line{
+  display:grid;grid-template-columns:7px minmax(0,1fr);gap:5px;
+  font-size:6.4px;line-height:1.25;color:#445955;margin-top:4px
+}
+.exec-just-line i{width:7px;height:7px;border-radius:50%;background:var(--exec-orange);margin-top:1px}
+.exec-just-line strong{color:#183E39}
+.exec-no-just{display:none}
+
+.exec-irl-main{
+  height:195px;display:grid;place-items:center
+}
+.exec-block.has-just .exec-irl-main{height:155px}
+.exec-irl-svg{width:210px;max-width:100%;height:150px;overflow:visible}
+.exec-irl-regions{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:0
+}
+.exec-irl-mini{text-align:center;min-width:0}
+.exec-irl-mini svg{width:42px;max-width:100%;height:28px}
+.exec-irl-mini strong{display:block;font-size:7.5px;color:#203E39}
+.exec-irl-mini span{display:block;font-size:5.7px;color:#586B67;margin-top:1px}
+
+.exec-modal-bg{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(11,31,29,.48);z-index:200;padding:18px
+}
+.exec-modal-bg.open{display:flex}
+.exec-modal{
+  width:min(760px,96vw);max-height:88vh;overflow:auto;
+  background:#fff;border-radius:14px;box-shadow:0 22px 60px rgba(0,0,0,.2)
+}
+.exec-modal-head{
+  background:var(--exec-dark);color:#fff;padding:13px 15px;
+  display:flex;justify-content:space-between;align-items:center
+}
+.exec-modal-head h3{margin:0;font-size:13px}
+.exec-modal-close{border:0;background:rgba(255,255,255,.15);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer}
+.exec-modal-body{padding:13px}
+.exec-just-editor{
+  border:1px solid #E0E9E7;border-radius:9px;padding:9px;margin-bottom:8px
+}
+.exec-just-editor h4{margin:0 0 4px;font-size:9px;color:#173D39}
+.exec-just-editor small{display:block;font-size:6.8px;color:#7D8C89;margin-bottom:5px}
+.exec-just-editor textarea{
+  width:100%;min-height:72px;border:1px solid #C9DCD9;border-radius:7px;
+  padding:7px;font-size:8px;resize:vertical
+}
+.exec-just-editor-footer{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.exec-charcount{font-size:6.7px;color:#7C8987}
+.exec-save{
+  border:0;border-radius:7px;background:var(--exec-dark);color:#fff;
+  padding:6px 9px;font-size:7px;font-weight:900;cursor:pointer
+}
+
+@media(max-width:1450px){
+  .exec-block-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:1120px){
+  .exec-block-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .exec-block-grid{grid-template-columns:1fr}
+  .exec-summary{grid-template-columns:1fr;max-width:none}
+  .exec-legend{justify-content:flex-start;flex-wrap:wrap}
+}
+
+
+/* V24 - comparação: painéis mais legíveis, meta individual e rótulos inteligentes */
+.executive-comparison-view .exec-block-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.executive-comparison-view .exec-block{border-radius:15px;border-color:#CEE2DE;box-shadow:0 11px 29px rgba(0,88,82,.085)}
+.executive-comparison-view .exec-block-head{min-height:48px}
+.executive-comparison-view .exec-block-body{padding:12px}
+.executive-comparison-view .exec-indicator-head{grid-template-columns:minmax(0,1fr) 135px;gap:10px;min-height:70px}
+.executive-comparison-view .exec-indicator-title{font-size:12px;line-height:1.28;min-height:0;overflow-wrap:anywhere}
+.executive-comparison-view .exec-general{padding:8px 9px;background:linear-gradient(135deg,#E8F7F4,#F5FBFA);border-color:#C8E7E1}
+.executive-comparison-view .exec-general-label{font-size:8px}
+.executive-comparison-view .exec-general-values strong{font-size:10.5px}
+.executive-comparison-view .exec-general-status{font-size:8px}
+.executive-comparison-view .exec-vchart{height:235px;padding:4px 3px 0;gap:8px}
+.executive-comparison-view .exec-block.has-just .exec-vchart{height:225px}
+.executive-comparison-view .exec-vplot{height:calc(100% - 37px);overflow:visible;border-bottom:1px solid #D9E6E3;background:linear-gradient(180deg,rgba(0,155,145,.035),transparent 60%)}
+.executive-comparison-view .exec-vbar{width:min(39px,72%);max-width:100%;border-radius:6px 6px 0 0;z-index:1}
+.executive-comparison-view .exec-vbar.met{background:linear-gradient(180deg,#13BEAF,#009B91)}
+.executive-comparison-view .exec-vbar.missed{background:linear-gradient(180deg,#FFBA55,#F5AA41)}
+.executive-comparison-view .exec-vbar-value{display:none}
+.executive-comparison-view .exec-target-marker{left:13%;right:13%;border-top:2px dashed #163F3A;z-index:5}
+.executive-comparison-view .exec-target-value{display:none}
+.executive-comparison-view .exec-label{position:absolute;left:50%;transform:translateX(-50%);z-index:9;min-width:45px;max-width:110%;padding:3px 4px;border-radius:5px;background:#fff;border:1px solid #CCDCD8;box-shadow:0 2px 5px rgba(0,65,58,.11);color:#1D433E;font-size:8px;font-weight:900;white-space:nowrap;text-align:center;line-height:1.12;pointer-events:none}
+.executive-comparison-view .exec-label b{font-size:7px;color:#546963;margin-right:2px}
+.executive-comparison-view .exec-label.real{border-color:#B6E2DA;color:#006E66}
+.executive-comparison-view .exec-label.real.missed{border-color:#F1CC92;color:#B36A00}
+.executive-comparison-view .exec-label.meta{border-style:dashed}
+.executive-comparison-view .exec-label.collision.real{left:74%}
+.executive-comparison-view .exec-label.collision.meta{left:26%}
+.executive-comparison-view .exec-vregion{height:36px;font-size:8px;align-items:center;line-height:1.13}
+.executive-comparison-view .exec-region-delta{font-size:8px;font-weight:900;text-align:center;margin-top:3px;white-space:nowrap}
+.executive-comparison-view .exec-region-delta.met{color:#00887E}
+.executive-comparison-view .exec-region-delta.missed{color:#AD6900}
+.executive-comparison-view .exec-indicator + .exec-indicator{margin-top:11px;padding-top:12px}
+.executive-comparison-view .exec-block.multi-indicator{grid-column:span 2}
+.executive-comparison-view .exec-block.multi-indicator>.exec-block-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.executive-comparison-view .exec-block.multi-indicator>.exec-block-body>.exec-indicator{border:1px solid #E0EBE8;border-radius:10px;padding:11px;min-width:0;margin:0}
+.executive-comparison-view .exec-block.multi-indicator>.exec-block-body>.exec-indicator:last-of-type:nth-child(odd){grid-column:1/-1}
+.executive-comparison-view .exec-block.multi-indicator>.exec-block-body>.exec-justifications{grid-column:1/-1;margin:0}
+.executive-comparison-view .exec-irl-main{height:205px}
+.executive-comparison-view .exec-block.has-just .exec-irl-main{height:190px}
+.executive-comparison-view .exec-irl-svg{width:240px;height:170px}
+.executive-comparison-view .exec-irl-mini strong{font-size:10px}
+.executive-comparison-view .exec-irl-mini span{font-size:8px}
+.executive-comparison-view .exec-irl-class{display:block;font-size:8px;font-weight:900;padding:3px 4px;margin:4px auto 0;border-radius:999px;background:#DFF4EF;color:#006F65;max-width:82px}
+.executive-comparison-view .exec-irl-class.aceitavel{background:#FFF0D4;color:#976000}
+.executive-comparison-view .exec-irl-class.toleravel{background:#FFE0B9;color:#945100}
+.executive-comparison-view .exec-irl-class.critico{background:#FCE0D9;color:#A3362B}
+.executive-comparison-view .exec-irl-general-class{text-align:center;font-size:10px;font-weight:900;color:#005852;margin:-13px 0 12px}
+.executive-comparison-view .exec-justifications{background:linear-gradient(135deg,#EDF7F5,#F8FBFA);border-color:#D0E7E2;padding:10px}
+.executive-comparison-view .exec-just-title{font-size:9px}
+.executive-comparison-view .exec-just-line{font-size:8px}
+@media(max-width:1450px){.executive-comparison-view .exec-block-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.executive-comparison-view .exec-block-grid{grid-template-columns:1fr}.executive-comparison-view .exec-block.multi-indicator{grid-column:auto}.executive-comparison-view .exec-block.multi-indicator>.exec-block-body{grid-template-columns:1fr}.executive-comparison-view .exec-block.multi-indicator>.exec-block-body>.exec-indicator:last-of-type:nth-child(odd){grid-column:auto}}
+
+
+/* V25 - gauge semicircular real, quadro compacto e ocupação adaptativa; só Comparação */
+.executive-comparison-view .exec-block-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;align-items:start}
+.executive-comparison-view .exec-block.multi-indicator{grid-column:span 2}
+.executive-comparison-view .exec-indicator-head{grid-template-columns:minmax(0,1fr);gap:7px;min-height:0}
+.executive-comparison-view .exec-indicator-title{font-size:12px;min-height:0}
+.executive-comparison-view .exec-general-with-gauge{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:8px;align-items:center;padding:7px 11px;min-height:100px;overflow:visible}
+.executive-comparison-view .exec-general-info{min-width:0;align-self:center}
+.executive-comparison-view .exec-general-values{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:5px}
+.executive-comparison-view .exec-general-values small{font-size:7px;white-space:nowrap}
+.executive-comparison-view .exec-general-values strong{font-size:13px;white-space:normal;overflow-wrap:anywhere}
+.executive-comparison-view .exec-general-label{font-size:8px;letter-spacing:.45px}
+.executive-comparison-view .exec-general-status{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:8px;margin-top:7px}
+.executive-comparison-view .exec-general-delta{margin-left:auto;font-weight:900;font-size:9px}
+.executive-comparison-view .exec-meta-gauge-wrap{width:148px;display:grid;place-items:center;align-self:center}
+.executive-comparison-view .exec-meta-gauge{width:144px;height:110px;display:block;overflow:visible}
+.executive-comparison-view .exec-vchart{height:263px;margin-top:5px;gap:8px}
+.executive-comparison-view .exec-block.has-just .exec-vchart{height:218px}
+.executive-comparison-view .exec-vplot{height:calc(100% - 39px)}
+.executive-comparison-view .exec-label{font-size:8.4px}
+@media(max-width:1100px){.executive-comparison-view .exec-block-grid{grid-template-columns:1fr}.executive-comparison-view .exec-block.multi-indicator{grid-column:auto}}
+@media(max-width:700px){.executive-comparison-view .exec-general-with-gauge{grid-template-columns:minmax(0,1fr) 116px}.executive-comparison-view .exec-meta-gauge-wrap{width:116px}.executive-comparison-view .exec-meta-gauge{width:116px;height:95px}}
+
+
+/* V26 - escala legível de origem ajustada e novo IRL semicircular; somente Comparação */
+.executive-comparison-view .exec-chart-shell{min-width:0;margin-top:5px}
+.executive-comparison-view .exec-scale-heading{color:#375A54;font-size:8px;font-weight:850;margin:0 3px 4px}
+.executive-comparison-view .exec-axis-note{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;color:#647A75;font-size:7px;margin:0 3px 4px}
+.executive-comparison-view .exec-vchart{height:295px;gap:10px;margin-top:0}
+.executive-comparison-view .exec-block.has-just .exec-vchart{height:264px}
+.executive-comparison-view .exec-vplot{height:calc(100% - 43px);min-height:184px}
+.executive-comparison-view .exec-vbar{min-height:10px;width:min(43px,75%)}
+.executive-comparison-view .exec-axis-break{position:absolute;left:4px;bottom:1px;z-index:8;color:#395B54;font-size:17px;font-weight:900;line-height:1}
+.executive-comparison-view .exec-label{z-index:12;max-width:120%;font-size:8.7px;padding:4px 5px}
+.executive-comparison-view .exec-label.real{z-index:13}
+.executive-comparison-view .exec-target-marker{z-index:8;left:8%;right:8%}
+.executive-comparison-view .exec-irl-main{height:225px;align-items:center}
+.executive-comparison-view .exec-block.has-just .exec-irl-main{height:205px}
+.executive-comparison-view .exec-irl-svg.exec-irl-v26{width:min(100%,270px);height:180px}
+.executive-comparison-view .exec-irl-mini svg.exec-irl-mini-v26{width:53px;height:39px;max-width:100%}
+.executive-comparison-view .exec-irl-general-class{margin:-8px 0 13px}
+
+
+.exec-modal-footer{display:flex;justify-content:flex-end;padding:10px 13px 13px;border-top:1px solid #E3ECE9}
+.exec-modal-footer-close{border:1px solid #C9DCD7;border-radius:7px;background:#fff;color:#005852;padding:8px 16px;font-size:10px;font-weight:800;cursor:pointer}
+.exec-modal-footer-close:hover{background:#EAF7F4}
+.table-just-not-required{color:#9BA9A5;font-weight:700;font-size:10px}
+
+/* V27: justificativas na Tabelas e rótulos de meta/realizado */
+.table-just-cell{white-space:nowrap;text-align:center;min-width:94px}
+.table-just-action{border:1px solid #A9D9D0;background:#EAF7F4;color:#005852;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:800;cursor:pointer;white-space:nowrap}
+.table-just-action:hover{background:#D7F2EC;border-color:#009B91}
+.executive-comparison-view .exec-target-marker{z-index:10}
+.executive-comparison-view .exec-label.meta{color:#465A56;background:#F5F8F7;border:1px solid #C7D6D2;font-size:7.6px;font-weight:800;min-width:0;padding:2px 4px}
+.executive-comparison-view .exec-label.meta b{font-size:6.5px;color:#526761}
+.executive-comparison-view .exec-label.real{font-size:8.7px}
+.executive-comparison-view .exec-label.v27-meta-above{transform:translate(-50%,0)}
+.executive-comparison-view .exec-label.v27-meta-below{transform:translate(-50%,-100%)}
+.executive-comparison-view .exec-label.v27-real-inside{transform:translate(-50%,0)}
+.executive-comparison-view .exec-label.v27-real-outside{transform:translate(-50%,0)}
+.executive-comparison-view .exec-label.v27-meta-above,.executive-comparison-view .exec-label.v27-meta-below{z-index:14}
+.executive-comparison-view .exec-label.v27-real-outside{z-index:15}
+
+
+/* V29 — Gestão exclusiva na página Tabelas, consulta nas demais. */
+.table-just-status-cell{text-align:center;white-space:nowrap;min-width:95px}
+.table-just-badge{display:inline-block;padding:4px 8px;border-radius:7px;font-size:9px;font-weight:900}
+.table-just-badge.pending{background:#FCE5E3;border:1px solid #EAB5B1;color:#B82724}
+.table-just-badge.saved{background:#DCF4EB;border:1px solid #A4DACA;color:#006B61}
+.table-just-toolbar{margin-left:auto}
+.table-just-management{display:none;text-align:center;white-space:nowrap;min-width:170px}
+#view-tables table.show-just-actions .table-just-management{display:table-cell}
+#view-tables .table-just-toolbar .toggle-just-management{border:1px solid #A8DAD1;background:#fff;color:#005852;border-radius:7px;padding:6px 10px;font-size:9px;font-weight:800;cursor:pointer}
+#view-tables .table-just-toolbar .toggle-just-management:hover{background:#EAF7F4}
+.table-just-row-actions{display:flex;justify-content:center;gap:5px}
+.table-just-row-actions button{border:1px solid #B8DBD6;background:#EAF7F4;color:#005852;border-radius:6px;padding:5px 7px;font-size:8px;font-weight:800;cursor:pointer}
+.table-just-row-actions button.delete{border-color:#ECC0BA;background:#FDEDEB;color:#AB3028}
+.table-just-readonly{border:0;background:transparent;color:#006D66;text-decoration:underline;cursor:pointer;font-size:9px;font-weight:800;padding:3px}
+.table-just-readonly:disabled{cursor:default;text-decoration:none;color:#9BA9A5}
+.exec-just-line button{border:0;background:transparent;cursor:pointer;color:#31534D;text-align:left;font:inherit;padding:0;line-height:inherit}
+.exec-readonly-text{white-space:pre-wrap;overflow-wrap:anywhere;background:#F4F8F7;border:1px solid #E0EBE8;border-radius:8px;padding:12px;font-size:11px;line-height:1.5}
+.exec-just-view-row{border-bottom:1px solid #E8EFED;padding:8px 0}
+.exec-just-view-row:last-child{border-bottom:0}
+.exec-just-view-row h4{font-size:10px;margin:0 0 5px;color:#005852}
+
+
+/* V30: Escala CSS e cálculo JS compartilham altura de plot; paleta idêntica ao PDF. */
+.executive-comparison-view .exec-vchart{height:auto!important;min-height:285px!important;align-items:stretch!important;gap:10px!important}
+.executive-comparison-view .exec-block.has-just .exec-vchart{min-height:285px!important}
+.executive-comparison-view .exec-vcol{min-width:0!important}
+.executive-comparison-view .exec-vplot{height:226px!important;min-height:226px!important;flex:none!important;overflow:visible!important}
+.executive-comparison-view .exec-vbar.met{background:linear-gradient(180deg,#17BFB1,#009B91)!important}
+.executive-comparison-view .exec-vbar.missed{background:linear-gradient(180deg,#FFBD5A,#F5AA41)!important}
+.executive-comparison-view .exec-label.meta{font-size:7.2px!important;color:#35534D!important;border-color:#AFCFC9!important;background:#FFFFFF!important;padding:2px 3px!important;z-index:21!important;white-space:nowrap!important}
+.executive-comparison-view .exec-label.meta b{font-size:6.3px!important;color:#345650!important}
+.executive-comparison-view .exec-label.real{font-size:8.8px!important;color:#005852!important;background:#fff!important;z-index:22!important}
+.executive-comparison-view .exec-label.real.missed{color:#A35C00!important}
+.executive-comparison-view .exec-target-marker{z-index:15!important}
+.executive-comparison-view .exec-label.collision.real{left:72%!important}
+.executive-comparison-view .exec-label.collision.meta{left:29%!important}
+.exec-modal-footer{position:sticky;bottom:0;background:#fff;z-index:5;gap:10px;align-items:center}
+.exec-modal-footer .exec-save-sticky{padding:9px 16px;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+.exec-modal-footer .exec-save-sticky:disabled{opacity:.6;cursor:wait}
+.exec-save-feedback{color:#006E65;font-size:9px;font-weight:800;margin-right:auto}
+
+
+/* V31: formulário de gestão só na Tabelas; botão de salvar explícito e persistente. */
+.exec-just-editor-footer{display:flex!important;justify-content:space-between;align-items:center;gap:12px;margin-top:10px}
+#execJustInlineSave{display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 auto;background:#005852;color:#fff;border:0;border-radius:8px;padding:10px 17px;font-size:11px;font-weight:850;cursor:pointer;box-shadow:0 3px 9px rgba(0,88,82,.16)}
+#execJustInlineSave:hover{background:#009B91}
+.exec-modal-footer{display:flex;position:sticky;bottom:0;background:#fff;z-index:8}
+.exec-modal-footer #execJustModalFooterSave{background:#005852;color:#fff;border:0;border-radius:8px}
+
+.exec-tolerance-rule{font-size:7px;white-space:nowrap;color:#526D65;font-weight:700}
+
+/* V32 - status de justificativa consultável e prévia sem mostrar ações */
+.table-just-preview{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:255px;margin:auto}
+.table-just-open{cursor:pointer;border:0;font:inherit}
+.table-just-snippet{display:block;max-width:250px;white-space:normal;text-align:left;line-height:1.32;font-size:9px;color:#31534d;background:#F0F8F6;border:1px solid #D7EAE5;border-radius:5px;padding:5px 7px;cursor:pointer;overflow-wrap:anywhere}
+.table-just-snippet:hover{background:#E3F3EF;color:#005852}
+.table-just-status-cell{min-width:166px;max-width:255px}
+
+/* Protecao visual e menu extraidos da versao publicada */
+/* ============================================================
+   LOGIN / CONTROLE DE ACESSO
+   ============================================================ */
+body.auth-pending .app,body.auth-logged-out .app{opacity:0;pointer-events:none}
+.login-screen{display:none}
+body.auth-pending .login-screen,body.auth-logged-out .login-screen{display:flex}
+body.access-operacional #view-general,body.access-operacional #view-comparison,body.access-operacional #view-evolution{display:none!important}
+/* V15 - menu retrátil */
+.sidebar-toggle{position:absolute}
+
+
+
+.table-export-toolbar{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(180px,1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.table-export-action{
+  display:flex;
+  align-items:end;
+}
+.table-export-action button{
+  width:100%;
+  height:39px;
+  border:1px solid #b8d9d5;
+  border-radius:8px;
+  background:#fff;
+  color:#005852;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+.table-export-action button:hover{background:#eef9f7}
+.coord-all-ranking .ranking-main table{min-width:700px}
+.coord-all-ranking .rank-name{font-weight:800;color:#173c39}
+.coord-all-ranking .rank-region{color:#6f807c;font-size:10px;font-weight:700}
+@media(max-width:900px){
+  .table-export-toolbar{grid-template-columns:1fr}
+}
+
+
+/* ===== Conferência de pontuação ===== */
+.conf-intro{color:var(--muted);font-size:13px;margin:4px 0 0}
+.conf-region-title{font-size:18px;font-weight:800;color:var(--primary-dark);margin:26px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.conf-card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 18px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.conf-card-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f0f7f6;border-bottom:1px solid var(--line)}
+.conf-card-head h3{margin:0;font-size:15px;color:var(--gray-dark)}
+.conf-note-pill{font-weight:800;font-size:14px;color:#fff;background:var(--primary);border-radius:999px;padding:4px 12px}
+.conf-note-pill.low{background:var(--secondary-dark)}
+.conf-warn{padding:8px 16px;font-size:12px;color:#8a5300;background:#fff6e8;border-bottom:1px solid #f6dfb8}
+.conf-table-wrap{overflow-x:auto}
+.conf-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.conf-table th{background:#fafcfc;color:var(--muted);font-weight:700;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.conf-table td{padding:8px 10px;border-bottom:1px solid #eef3f2;vertical-align:middle}
+.conf-table td.num,.conf-table th.num{text-align:right;white-space:nowrap}
+.conf-table tfoot td{font-weight:800;background:#fafcfc;border-top:2px solid var(--line)}
+.conf-calc-val{font-weight:700}
+.conf-calc-formula{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.conf-ranges{display:flex;flex-wrap:wrap;gap:4px}
+.conf-range{border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;color:var(--muted);white-space:nowrap;background:#fff}
+.conf-range.hit{border-color:var(--primary);background:var(--primary);color:#fff;font-weight:700}
+.conf-range.hit.zero{border-color:var(--red);background:var(--red)}
+.conf-diff{color:var(--red);font-weight:800}
+.conf-same{color:var(--muted)}
+.conf-nocrit{color:var(--muted);font-style:italic}
+.conf-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 0 4px}
+</style>
+<style id="protecao-acesso">
+body:not(.auth-ok) .app {display:none!important}
+.auth-screen{position:fixed;inset:0;background:#f2f7f6;display:grid;place-items:center;z-index:99999;font:14px Segoe UI,Arial,sans-serif}
+.auth-box{width:min(420px,94vw);background:white;border:1px solid #d7e8e5;box-shadow:0 14px 48px #00585222;padding:28px;border-radius:15px}
+.auth-box h2{font-size:21px;color:#005852;margin:0 0 8px}.auth-box p{color:#536a65;font-size:12px;line-height:1.5}
+.auth-box input,.auth-box select{width:100%;margin:7px 0;padding:11px;border:1px solid #c7dbd8;border-radius:8px;font-size:13px}
+.auth-box button,.su-btn{padding:10px 14px;background:#007f76;color:white;border:0;border-radius:7px;cursor:pointer;font-weight:700}
+.auth-box button{width:100%;margin-top:8px}.su-btn:disabled{opacity:.5}
+.su-toolbar{position:fixed;top:5px;right:12px;z-index:800;display:none;align-items:center;gap:8px;background:#fff;padding:5px;border-radius:9px;border:1px solid #d8e6e3}
+.auth-ok .su-toolbar{display:flex}.su-toolbar span{font:11px Segoe UI;color:#31534c}
+.su-screen{display:none;background:#f5f8f7;border:1px solid #dce9e6;border-radius:12px;padding:20px;margin-top:15px}
+.su-screen.active{display:block}.su-screen h2{font-size:19px;color:#005852;margin:0 0 12px}
+.su-screen table{min-width:0}.su-screen th,.su-screen td{font-size:12px;padding:10px;border:1px solid #e2ebe9}
+.su-screen th{background:#007f76;color:white}.su-controls{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0}
+.su-controls select,.su-controls input{padding:8px;border:1px solid #b8d6d2;border-radius:7px;max-width:260px}
+.su-muted{color:#627d78;font-size:12px}.su-error{color:#b22c2c;white-space:pre-wrap;font-size:12px}
+@media(max-width:750px){.su-toolbar{position:static;justify-content:flex-end;flex-wrap:wrap}.app{grid-template-columns:1fr!important}.sidebar{position:relative;height:auto!important;overflow:auto}.side-message{display:none}}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="side-brand">
+    <div class="brand-copy">
+      <strong>Análise -<br>Superintendência</strong>
+      <small>Desempenho regional</small>
+    </div>
+  </div>
+
+  <nav class="side-nav">
+    <div class="nav-item active" data-view="general">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 10.5 12 3l9 7.5"></path>
+          <path d="M5.5 9.5V21h13V9.5"></path>
+          <path d="M9.5 21v-7h5v7"></path>
+        </svg>
+      </span>
+      Visão Geral
+    </div>
+
+    <div class="nav-item" data-view="tables">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 5h16v14H4z"></path>
+          <path d="M4 10h16"></path>
+          <path d="M9 5v14"></path>
+        </svg>
+      </span>
+      Tabelas
+    </div>
+
+    <div class="nav-item" data-view="comparison">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 20V10"></path>
+          <path d="M10 20V4"></path>
+          <path d="M16 20v-7"></path>
+          <path d="M22 20V7"></path>
+        </svg>
+      </span>
+      Comparação
+    </div>
+
+    <div class="nav-item" data-view="evolution">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 20h18"></path>
+          <path d="M4 18V5"></path>
+          <path d="m6 15 4-4 3 2 6-7"></path>
+          <path d="M16 6h3v3"></path>
+        </svg>
+      </span>
+      Evolução Temporal
+    </div>
+
+    <div class="nav-item" data-view="conference">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 11l3 3 8-8"></path>
+          <path d="M20 12v7H4V5h11"></path>
+        </svg>
+      </span>
+      Conferência
+    </div>
+  </nav>
+
+  <div class="side-message">
+    Resultados hoje.<br>
+    Uma região mais forte<br>
+    amanhã.
+  </div>
+</aside>
+
+<div class="content">
+
+<header class="topbar">
+  <div class="welcome">
+    Bem-vindo(a) à plataforma de desempenho regional
+  </div>
+
+  <div class="top-right">
+    <div class="export-wrap" style="display:flex;gap:8px">
+      
+      <a id="exportButton" class="export-button" href="javascript:void(0)">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg>
+        Gerar PowerPoint
+      </a>
+    </div>
+
+    <div class="bell">
+      <svg viewBox="0 0 24 24">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+        <path d="M10 21h4"></path>
+      </svg>
+      <span class="bell-dot"></span>
+    </div>
+
+    <div class="user-box">
+      <div class="avatar">AS</div>
+      <div class="user-copy">
+        <strong id="unusedUserName">Análise - Superintendência</strong>
+        <small id="unusedUserRole">Gestão Regional</small>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<main class="main">
+
+  <section id="view-general" class="view-section active">
+    <div class="page-head">
+      <div class="page-title">
+        <h1>Visão Geral da Região</h1>
+        <p>Acompanhe os principais indicadores de desempenho da sua região.</p>
+      </div>
+
+      <div class="filters">
+        <div class="filter">
+          <label>Região</label>
+          <select id="regionSelect"></select>
+        </div>
+
+        <div class="filter">
+          <label>Período</label>
+          <select>
+            <option>Outubro/2026</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <section class="card ranking-section">
+      <h2>Ranking das Regiões e Coordenações</h2>
+      <p class="section-subtitle">Posição consolidada no período, com destaque para a região selecionada.</p>
+      <div id="rankingOverview"></div>
+      <div id="miniRankings" class="mini-rankings"></div>
+    </section>
+
+    <section class="card ranking-section coord-all-ranking">
+      <h2>Ranking Consolidado das Coordenações</h2>
+      <p class="section-subtitle">Da pior para a melhor. Empates no score (2 casas): maior IRL primeiro.</p>
+      <div id="allCoordinationRanking"></div>
+    </section>
+
+    <section id="managerCard"></section>
+
+    <section class="card coord-section">
+      <div class="coord-head">
+        <div>
+          <h2>Coordenações da Região</h2>
+          <p id="coordSubtitle"></p>
+        </div>
+
+        <button id="detailToggle" class="detail-link">
+          Ver detalhes das coordenações&nbsp;&nbsp;→
+        </button>
+      </div>
+
+      <div id="coordGrid" class="coord-grid"></div>
+      <div id="detailArea" class="details"></div>
+    </section>
+  </section>
+
+
+  <section id="view-tables" class="view-section tables-no-score">
+    <div class="page-head">
+      <div class="page-title">
+        <h1>Tabelas</h1>
+      </div>
+
+      <div class="filters">
+        <div class="filter">
+          <label>Período</label>
+          <select>
+            <option>Outubro/2026</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-export-toolbar">
+      <div class="filter">
+        <label>Regional para exportação</label>
+        <select id="tableExportRegion"></select>
+      </div>
+      <div class="filter">
+        <label>Tipo de exportação</label>
+        <select id="tableExportType">
+          <option value="cards">Cards</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label>Conteúdo</label>
+        <select id="tableExportScope">
+          <option value="regional">Regional</option>
+          <option value="cards">Cards</option>
+        </select>
+      </div>
+      <div class="table-export-action">
+        <button id="tableExportButton" type="button">Exportar tabelas</button>
+      </div>
+    </div>
+
+    <div id="allRegionTables"></div>
+  </section>
+
+  <section id="view-comparison" class="view-section executive-comparison-view">
+    <div class="page-head executive-comparison-head">
+      <div class="page-title">
+        <h1>Comparação entre Regiões</h1>
+        <p>Desempenho dos principais indicadores por região em relação às suas metas individuais.</p>
+      </div>
+      <div class="comparison-period-pill">Outubro/2026</div>
+    </div>
+
+    <div id="comparisonSummary" class="exec-summary"></div>
+
+    <div class="exec-legend">
+      <span><i class="exec-target-line"></i>Planejado (meta da região)</span>
+      <span><i class="exec-real-swatch met"></i>Realizado (meta atingida)</span>
+      <span><i class="exec-real-swatch missed"></i>Realizado (meta pendente)</span>
+    </div>
+
+    <div id="comparisonSections"></div>
+  </section>
+
+  <section id="view-conference" class="view-section">
+    <div class="page-head">
+      <div class="page-title">
+        <h1>Conferência de Pontuação</h1>
+        <p class="conf-intro">Memória de cálculo por coordenação: planejado, realizado, valor usado no cálculo, faixas de pontos e pontuação obtida. Score = Pontos × Peso × 10.</p>
+      </div>
+      <div class="filters">
+        <div class="filter">
+          <label>Região</label>
+          <select id="confRegion"></select>
+        </div>
+        <div class="filter">
+          <label>Período</label>
+          <select><option>Outubro/2026</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="conf-legend">
+      <span><span class="conf-range hit">faixa</span> faixa atingida</span>
+      <span>Score máximo = Peso × 10 (soma deve ser 10) · Score obtido = Pontos × Peso × 10</span>
+      <span><span class="conf-diff">valor</span> soma máxima diferente de 10 (ponto de observação)</span>
+    </div>
+    <div id="confContent"></div>
+  </section>
+
+  <section id="view-evolution" class="view-section">
+    <div class="page-head evolution-page-head">
+      <div class="page-title">
+        <h1>Evolução Temporal</h1>
+        <p>Evolução da pontuação da gerência, coordenações e indicadores para uma ou mais regiões.</p>
+      </div>
+
+      <div class="evolution-filter-grid">
+        <div class="filter region-dropdown">
+          <label>Regiões</label>
+          <button id="evolutionRegionToggle" class="region-toggle" type="button">Selecionar regiões</button>
+          <div id="evolutionRegionMenu" class="region-menu"></div>
+          <small class="filter-hint">Clique para expandir e marcar as regiões desejadas.</small>
+        </div>
+
+        <div class="filter">
+          <label>Mês Início</label>
+          <select id="evolutionStartMonth"></select>
+        </div>
+
+        <div class="filter">
+          <label>Mês Fim</label>
+          <select id="evolutionEndMonth"></select>
+        </div>
+      </div>
+    </div>
+
+    <section class="card chart-section">
+      <h2>Pontuação da Gerência</h2>
+      <p class="section-subtitle">Evolução das regiões selecionadas no intervalo informado.</p>
+      <div class="chart-box"><div id="managerEvolutionChart"></div></div>
+    </section>
+
+    <section class="card chart-section" style="margin-top:14px">
+      <h2>Pontuação das Coordenações</h2>
+      <p class="section-subtitle">Cada setor é apresentado separadamente para facilitar a comparação.</p>
+      <div id="coordEvolutionCharts" class="evolution-grid"></div>
+    </section>
+
+    <section class="card chart-section" style="margin-top:14px">
+      <h2>Evolução por Indicador</h2>
+      <p class="section-subtitle">Todos os indicadores, organizados por setor, para as regiões e meses selecionados.</p>
+      <div id="indicatorEvolutionSections"></div>
+    </section>
+  </section>
+
+</main>
+</div>
+</div>
+
+<div id="execJustModalBg" class="exec-modal-bg" role="dialog" aria-modal="true" aria-labelledby="execJustModalTitle">
+  <div class="exec-modal">
+    <div class="exec-modal-head">
+      <h3 id="execJustModalTitle">Justificativas</h3>
+      <button id="execJustModalClose" class="exec-modal-close" type="button" aria-label="Fechar justificativas">×</button>
+    </div>
+    <div id="execJustModalBody" class="exec-modal-body"></div>
+    <div class="exec-modal-footer"><button id="execJustModalFooterSave" class="exec-save exec-save-sticky" type="button" style="display:none">Salvar justificativa</button><span id="execJustModalSaveStatus" class="exec-save-feedback" aria-live="polite"></span><button id="execJustModalFooterClose" class="exec-modal-footer-close" type="button">Fechar</button></div>
+  </div>
+</div>
+
+<script>
+let DATA = [];
+const REGION_ORDER = ["Baixada", "Centro Sul", "Leste", "Oeste", "Vale"];
+const COORD_ORDER = ["Gerência", "Varejo", "Projetos Especiais e Grandes Clientes", "Leitura", "Construção"];
+const CONF_FAIXAS = {"IRL": [["0 a 0,25", 1], ["> 0,25 a 0,45", 0.9], ["> 0,45 a 0,65", 0.8], ["> 0,65", 0]], "IEN": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "RECLAMACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ATENDIMENTO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ARRECADACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_PERDAS": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_CORE": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "IQG": [["< meta (< 100%)", 0], ["≥ meta (≥ 100%)", 1]], "AIS": [["< 99%", 0], ["99% a < 100%", 0.5], ["≥ 100%", 1]], "CAPEX": [["< 90%", 0], ["≥ 90%", 1]], "OPEX": [["≤ meta (≤ 100%)", 1], ["> meta (> 100%)", 0]], "CORTE_DISJUNTOR": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "NAO_LIDOS": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ERRO_LEITURA": [["< 96,9%", 0], ["96,9% a < 98,9%", 0.2], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ADERENCIA_FATURA": [["< 98,6%", 0], ["98,6% a < 99,9%", 0.5], ["≥ 99,9%", 1]]};
+const EXEC_SUPABASE_URL="";
+const EXEC_SUPABASE_KEY="";
+const EXEC_PERIOD="Outubro/2026";
+const EXEC_WEEK_START="2026-11-09";
+const EXEC_WEEK_END="2026-11-15";
+const EXEC_JUST_MIN=30;
+const EXEC_JUST_MAX=350;
+
+const EXEC_JUST_MAP=new Map();
+const EXEC_JUST_DELETED_MAP=new Map();
+
+const regionSelect=document.getElementById("regionSelect");
+const managerCard=document.getElementById("managerCard");
+const coordGrid=document.getElementById("coordGrid");
+const coordSubtitle=document.getElementById("coordSubtitle");
+const detailArea=document.getElementById("detailArea");
+const detailToggle=document.getElementById("detailToggle");
+const rankingOverview=document.getElementById("rankingOverview");
+const miniRankings=document.getElementById("miniRankings");
+const allRegionTables=document.getElementById("allRegionTables");
+const allCoordinationRanking=document.getElementById("allCoordinationRanking");
+const tableExportRegion=document.getElementById("tableExportRegion");
+const tableExportType=document.getElementById("tableExportType");
+const tableExportScope=document.getElementById("tableExportScope");
+const tableExportButton=document.getElementById("tableExportButton");
+
+const comparisonSections=document.getElementById("comparisonSections");
+
+const evolutionRegionToggle=document.getElementById("evolutionRegionToggle");
+const evolutionRegionMenu=document.getElementById("evolutionRegionMenu");
+const evolutionStartMonth=document.getElementById("evolutionStartMonth");
+const evolutionEndMonth=document.getElementById("evolutionEndMonth");
+const managerEvolutionChart=document.getElementById("managerEvolutionChart");
+const coordEvolutionCharts=document.getElementById("coordEvolutionCharts");
+const indicatorEvolutionSections=document.getElementById("indicatorEvolutionSections");
+
+
+const CURRENT_PERIOD="Outubro/2026";
+const PREVIOUS_PERIOD="Setembro/2026";
+
+const ICONS={
+trophy:`<svg viewBox="0 0 24 24"><path d="M8 4h8v4c0 4-2 6-4 6s-4-2-4-6V4Z"></path><path d="M8 6H4c0 4 1.5 6 4.2 6"></path><path d="M16 6h4c0 4-1.5 6-4.2 6"></path><path d="M12 14v4"></path><path d="M8 21h8"></path><path d="M9 18h6"></path></svg>`,
+users:`<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.9"></path><path d="M16 3.1a4 4 0 0 1 0 7.8"></path></svg>`,
+bars:`<svg viewBox="0 0 24 24"><path d="M4 20V10h4v10H4Z"></path><path d="M10 20V4h4v16h-4Z"></path><path d="M16 20V7h4v13h-4Z"></path></svg>`,
+cart:`<svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.4 11.2a2 2 0 0 0 2 1.6H18a2 2 0 0 0 1.9-1.4L22 7H6"></path></svg>`,
+clipboard:`<svg viewBox="0 0 24 24"><path d="M8 4h8"></path><path d="M9 2h6v4H9z"></path><path d="M6 4H5a2 2 0 0 0-2 2v15h18V6a2 2 0 0 0-2-2h-1"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg>`,
+helmet:`<svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"></path><path d="M12 7v8"></path><path d="M7 9.5 9 15"></path><path d="M17 9.5 15 15"></path><path d="M3 15h18v3H3z"></path></svg>`,
+arrowUp:`<svg viewBox="0 0 24 24"><path d="M12 19V5"></path><path d="m6 11 6-6 6 6"></path></svg>`,
+arrowDown:`<svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="m6 13 6 6 6-6"></path></svg>`
+};
+
+function number(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=Number(v);
+  return Number.isFinite(n)?n:null;
+}
+
+function formatNumber(v,d=1){
+  const n=number(v);
+  if(n===null)return "-";
+  return Number(n.toFixed(d)).toLocaleString(
+    "pt-BR",
+    {minimumFractionDigits:0,maximumFractionDigits:d}
+  );
+}
+
+function formatPoints(v){return formatNumber(v,3)}
+function formatScore(v){
+  const n=number(v);
+  return n===null?"-":n.toLocaleString("pt-BR",{
+    minimumFractionDigits:2,maximumFractionDigits:2
+  });
+}
+
+function isPlanPhysicalIndicator(ind){
+  const raw=String(ind||"").trim().toUpperCase();
+  const t=raw.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return t.includes("CUMPRIMENTO DO PLANO FISICO PERDAS")
+      || t.includes("CUMPRIMENTO DO PLANO FISICO CORE");
+}
+
+function isPercentIndicator(ind){
+  const raw=String(ind||"").trim().toUpperCase();
+  const t=raw.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+  // O "%" pertence ao nome desses indicadores, não aos valores.
+  if(isPlanPhysicalIndicator(ind)) return false;
+
+  return (
+    raw.startsWith("%") ||
+    raw.includes("AIS%") ||
+    t.includes("CLIENTES LIDOS") ||
+    t.includes("CLIENTES NAO LIDOS") ||
+    t.includes("ADERENCIA DE ENTREGA DE FATURA") ||
+    t.includes("ERRO DE LEITURA")
+  );
+}
+
+function formatDataValue(v,ind){
+  const n=number(v);
+
+  if(n===null){
+    return(v===null||v===undefined||v==="")?"-":String(v);
+  }
+
+  if(isPercentIndicator(ind)){
+    const p=Math.abs(n)<=2?n*100:n;
+    return p.toLocaleString(
+      "pt-BR",
+      {minimumFractionDigits:0,maximumFractionDigits:2}
+    )+"%";
+  }
+
+  return n.toLocaleString(
+    "pt-BR",
+    {minimumFractionDigits:0,maximumFractionDigits:2}
+  );
+}
+
+function formatPreviousMonth(v){
+  const n=number(v);
+
+  if(n===null){
+    return(v===null||v===undefined||v==="")?"-":String(v);
+  }
+
+  const p=Math.abs(n)<=2?n*100:n;
+
+  return p.toLocaleString(
+    "pt-BR",
+    {minimumFractionDigits:0,maximumFractionDigits:1}
+  )+"%";
+}
+
+function formatWeight(v){
+  const n=number(v);
+  if(n===null)return "-";
+  const p=Math.abs(n)<=1?n*100:n;
+  return Math.round(p).toLocaleString("pt-BR")+"%";
+}
+
+function formatAdvance(v){
+  if(v===null||v===undefined||v==="")return "-";
+
+  const n=number(v);
+
+  if(n===null){
+    const t=String(v).trim().toUpperCase();
+    let cls="irl-zero";
+
+    if(t==="SEGURO") cls="irl-seguro";
+    else if(t==="ACEITÁVEL"||t==="ACEITAVEL") cls="irl-aceitavel";
+    else if(t==="TOLERÁVEL"||t==="TOLERAVEL") cls="irl-toleravel";
+    else if(t==="CRÍTICO"||t==="CRITICO") cls="irl-critico";
+
+    return `<span class="irl ${cls}">${v}</span>`;
+  }
+
+  const pct=Math.round(n*100);
+  const cls=pct>=100?"advance-ok":"advance-bad";
+
+  return `<span class="advance-badge ${cls}">${pct.toLocaleString("pt-BR")}%</span>`;
+}
+
+function renderPerformance(v){
+  if(v===null||v===undefined||v==="")return "-";
+
+  if(typeof v==="string"){
+    const raw=v.trim();
+    const x=raw.toUpperCase();
+    if(raw==="↑"||raw==="⬆"||x==="MELHORA"||x==="MELHOR"||x==="UP"||x==="ALTA")
+      return `<span class="performance up">${ICONS.arrowUp}</span>`;
+    if(raw==="↓"||raw==="⬇"||x==="PIORA"||x==="PIOR"||x==="DOWN"||x==="BAIXA")
+      return `<span class="performance down">${ICONS.arrowDown}</span>`;
+    if(raw==="="||x==="IGUAL"||x==="ESTÁVEL"||x==="ESTAVEL")
+      return `<span class="performance equal">=</span>`;
+
+    const normalized=raw.replace("%","").replace(",",".");
+    const parsed=Number(normalized);
+    if(Number.isFinite(parsed)){
+      if(Math.abs(parsed)<1e-12)return `<span class="performance equal">=</span>`;
+      return parsed>0
+        ? `<span class="performance up">${ICONS.arrowUp}</span>`
+        : `<span class="performance down">${ICONS.arrowDown}</span>`;
+    }
+  }
+
+  const n=number(v);
+  if(n!==null){
+    if(Math.abs(n)<1e-12)return `<span class="performance equal">=</span>`;
+    return n>0
+      ? `<span class="performance up">${ICONS.arrowUp}</span>`
+      : `<span class="performance down">${ICONS.arrowDown}</span>`;
+  }
+
+  return "-";
+}
+
+function renderPerformanceRow(row){
+  const atual=number(row?.["Avanço"]);
+  const anterior=number(row?.["Mês Anterior"]);
+
+  if(atual!==null&&anterior!==null){
+    const diff=atual-anterior;
+    if(Math.abs(diff)<1e-9)return `<span class="performance equal">=</span>`;
+    return diff>0
+      ? `<span class="performance up">${ICONS.arrowUp}</span>`
+      : `<span class="performance down">${ICONS.arrowDown}</span>`;
+  }
+
+  return renderPerformance(row?.["Desempenho"]);
+}
+
+function performanceDirection(row){
+  const atual=number(row?.["Avanço"]);
+  const anterior=number(row?.["Mês Anterior"]);
+
+  if(atual!==null&&anterior!==null){
+    const diff=atual-anterior;
+    if(Math.abs(diff)<1e-9)return "equal";
+    return diff>0?"up":"down";
+  }
+
+  const raw=String(row?.["Desempenho"]||"").trim().toUpperCase();
+  if(raw==="↑"||raw==="⬆"||raw==="MELHORA"||raw==="MELHOR"||raw==="UP"||raw==="ALTA")return "up";
+  if(raw==="↓"||raw==="⬇"||raw==="PIORA"||raw==="PIOR"||raw==="DOWN"||raw==="BAIXA")return "down";
+  if(raw==="="||raw==="IGUAL"||raw==="ESTÁVEL"||raw==="ESTAVEL")return "equal";
+  return null;
+}
+
+function isRowOnTarget(row){
+  const x=String(row?.["Eficiência"]||"");
+  return x==="✅" || x.toUpperCase()==="OK" || x.toUpperCase()==="SIM";
+}
+
+function renderEfficiency(row){
+  const valor = String(
+    row?.["Eficiência"] ?? ""
+  ).trim();
+
+  if(valor === "✅"){
+    return `<span class="eff ok">✓</span>`;
+  }
+
+  if(valor === "⚠️"){
+    return `<span class="eff warn">!</span>`;
+  }
+
+  if(valor === "❌"){
+    return `<span class="eff bad">×</span>`;
+  }
+
+  return "";
+}
+
+function rowsFor(region,coord){
+  return DATA.filter(
+    r=>r["Região"]===region&&r["Coordenação"]===coord
+  );
+}
+
+function totalScore(rows){
+  return rows.reduce(
+    (s,r)=>s+(number(r["Score"])||0),
+    0
+  );
+}
+
+function coordinationScores(region){
+  return COORD_ORDER
+    .filter(c=>c!=="Gerência")
+    .map(coord=>({
+      coord,
+      rows:rowsFor(region,coord)
+    }))
+    .filter(x=>x.rows.length)
+    .map(x=>({
+      coord:x.coord,
+      score:totalScore(x.rows)
+    }));
+}
+
+function regionScore(region){
+  const scores=coordinationScores(region).map(x=>x.score);
+  if(!scores.length)return 0;
+  return scores.reduce((a,b)=>a+b,0)/scores.length;
+}
+
+function rankingFor(region){
+  const ranking=REGION_ORDER
+    .filter(r=>coordinationScores(r).length)
+    .map(r=>({
+      region:r,
+      score:regionScore(r)
+    }))
+    .sort((a,b)=>b.score-a.score);
+
+  const current=ranking.find(x=>x.region===region);
+  if(!current)return 0;
+
+  const higherScores=[
+    ...new Set(
+      ranking
+        .filter(x=>x.score>current.score+1e-9)
+        .map(x=>x.score)
+    )
+  ];
+
+  return higherScores.length+1;
+}
+
+function table(rows,totalLabel,scoreOverride=null,isTables=false){
+  const normalized=rows
+    .filter(r=>String(r["Indicador"]??"").trim()!=="")
+    .map(r=>({...r}));
+
+  let lastBlock="";
+
+  normalized.forEach(r=>{
+    const indicador=String(r["Indicador"]??"").trim().toUpperCase();
+    let raw=String(r["Blocos"]??"").trim();
+
+    // PERDAS possui somente o indicador IEN.
+    // Evita qualquer bloco/linha fantasma de PERDAS em outros indicadores.
+    if(raw.toUpperCase()==="PERDAS" && !indicador.startsWith("IEN")){
+      raw="";
+    }
+
+    if(raw&&raw!=="-")lastBlock=raw;
+
+    if(indicador.startsWith("IEN")){
+      r.__block="PERDAS";
+      lastBlock="PERDAS";
+    }else{
+      r.__block=raw&&raw!=="-"?raw:lastBlock;
+    }
+  });
+
+  const groups=[];
+  let i=0;
+  while(i<normalized.length){
+    const block=normalized[i].__block;
+    let j=i+1;
+    while(j<normalized.length&&normalized[j].__block===block)j++;
+    groups.push({start:i,count:j-i,block:block||"-"});
+    i=j;
+  }
+
+  const rowSpanMap={};
+  groups.forEach(g=>rowSpanMap[g.start]=g);
+
+  const body=normalized.map((r,idx)=>{
+    let blockCell="";
+    if(rowSpanMap[idx]){
+      const g=rowSpanMap[idx];
+      blockCell=`<td class="block-label" rowspan="${g.count}">${g.block}</td>`;
+    }
+
+    return `<tr>
+      ${blockCell}
+      <td class="indicator-name">${r["Indicador"]??"-"}</td>
+      <td class="planned-cell">${formatDataValue(r["Planejado"],r["Indicador"])}</td>
+      <td>${formatDataValue(r["Realizado"],r["Indicador"])}</td>
+      <td class="point-cell calc-col">${formatPoints(r["Pontos"])}</td>
+      <td class="weight-cell calc-col">${formatWeight(r["Peso"])}</td>
+      <td class="score-cell calc-col">${formatScore(r["Score"])}</td>
+      <td>${formatAdvance(r["Avanço"])}</td>
+      <td>${renderPerformanceRow(r)}</td>
+      <td>${formatPreviousMonth(r["Mês Anterior"])}</td>
+      <td>${renderEfficiency(r)}</td>
+      ${isTables ? `<td class="table-just-status-cell">${execEfficiencyOK(r["Eficiência"])
+        ? '<span class="table-just-not-required">—</span>'
+        : execSavedJust(r)?.justificativa
+          ? `<div class="table-just-preview"><button type="button" class="table-just-badge saved table-just-open" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">Justificado</button><button class="table-just-snippet" type="button" title="Clique para ler o comentário completo" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execEscapeText(execSavedJust(r).justificativa.slice(0,92))}${execSavedJust(r).justificativa.length>92?'…':''}</button></div>`
+          : '<span class="table-just-badge pending">● Pendente</span>'}</td>
+      <td class="table-just-management"><div class="table-just-row-actions">${execEfficiencyOK(r["Eficiência"])
+        ? '<span class="table-just-not-required">—</span>'
+        : `<button type="button" onclick="execOpenTableJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execSavedJust(r)?.justificativa?'Editar':'Justificar'}</button>${execSavedJust(r)?.justificativa?`<button class="delete" type="button" onclick="execDeleteTableJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">Apagar</button>`:''}`}</div></td>`
+      : `<td class="table-just-cell">${execSavedJust(r)?.justificativa
+        ? `<button class="table-just-readonly table-just-snippet" type="button" title="Clique para ler o comentário completo" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execEscapeText(execSavedJust(r).justificativa.slice(0,110))}${execSavedJust(r).justificativa.length>110?'…':''}</button>`
+        : '<span class="table-just-not-required">—</span>'}</td>`}
+    </tr>`;
+  }).join("");
+
+  const tableId=`tbl-${Math.random().toString(36).slice(2)}`;
+  const justTableKey=rows.map(r=>String(r["Região"]??"")+"|"+String(r["Coordenação"]??"")).find(Boolean)||totalLabel;
+  const justOpen=isTables&&EXEC_JUST_OPEN_TABLES.has(justTableKey);
+  const score=formatScore(scoreOverride===null?totalScore(rows):scoreOverride);
+
+  return `<div class="data-table-block">
+    <div class="table-card-head">
+      <div class="table-total-score">${totalLabel}: <strong>${score}</strong></div>
+      <div class="table-card-actions">
+        <button class="toggle-calc" type="button" onclick="toggleCalcColumns('${tableId}',this)">Mostrar Pontos, Peso e Score</button>
+      </div>
+      ${isTables?`<div class="table-just-toolbar"><button class="toggle-just-management" type="button" onclick="toggleJustManagement('${tableId}',this)">${justOpen?'Ocultar':'Mostrar'} ações de justificativa</button></div>`:''}
+    </div>
+    <div class="table-wrap">
+      <table id="${tableId}" data-just-table-key="${justTableKey}" class="${justOpen?'show-just-actions':''}">
+        <thead><tr>
+          <th>Blocos</th><th>Indicador</th><th>Planejado</th><th>Realizado</th>
+          <th class="calc-col">Pontos</th><th class="calc-col">Peso</th><th class="calc-col">Score</th>
+          <th>Avanço</th><th>Desempenho</th><th>Mês Anterior</th><th>Eficiência</th>
+          ${isTables?'<th>Justificativa</th><th class="table-just-management">Ações</th>':'<th>Comentário</th>'}
+        </tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+const EXEC_JUST_OPEN_TABLES=new Set();
+function toggleJustManagement(tableId,button){
+  const table=document.getElementById(tableId);
+  if(!table)return;
+  const open=table.classList.toggle("show-just-actions");
+  const key=table.dataset.justTableKey;
+  if(key){if(open)EXEC_JUST_OPEN_TABLES.add(key);else EXEC_JUST_OPEN_TABLES.delete(key)}
+  button.textContent=open?"Ocultar ações de justificativa":"Mostrar ações de justificativa";
+}
+function toggleCalcColumns(tableId,button){
+  const table=document.getElementById(tableId);
+  if(!table)return;
+  table.classList.toggle("show-calc");
+  button.textContent=table.classList.contains("show-calc")
+    ? "Ocultar Pontos, Peso e Score"
+    : "Mostrar Pontos, Peso e Score";
+}
+
+function renderManager(region){
+  const rows=rowsFor(region,"Gerência");
+  const rank=rankingFor(region);
+
+  managerCard.innerHTML=`<div class="card manager-card">
+    <div class="manager-head">
+
+      <div class="manager-title">
+        <h2>Resumo da Gerência</h2>
+        <p>Desempenho consolidado dos principais indicadores da região.</p>
+      </div>
+
+      <div class="kpi-row">
+
+        <div class="kpi-card">
+          <div class="kpi-icon">${ICONS.trophy}</div>
+
+          <div class="kpi-copy">
+            <small>Nota da Gerência</small>
+            <span class="kpi-value">${formatScore(regionScore(region))}</span>
+            <div class="kpi-sub">resultado atual</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon">${ICONS.bars}</div>
+
+          <div class="kpi-copy">
+            <small>Ranking da Região</small>
+            <span class="kpi-value">${rankDisplay(rank,"trophy")}</span>
+            <div class="kpi-sub">
+              de ${REGION_ORDER.filter(r=>rowsFor(r,"Gerência").length).length} regiões
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    ${table(rows,"NOTA DA GERÊNCIA",regionScore(region))}
+  </div>`;
+}
+
+function coordIcon(c){
+  if(c==="Varejo")return ICONS.cart;
+  if(c==="Projetos Especiais e Grandes Clientes")return ICONS.users;
+  if(c==="Leitura")return ICONS.clipboard;
+  if(c==="Construção")return ICONS.helmet;
+  return ICONS.bars;
+}
+
+function fakeSpark(score){
+  const base=Math.max(50,Math.min(100,score));
+
+  const vals=[
+    base-11,base-9,base-12,base-7,base-5,base-2,
+    base,base-2,base-1,base+4,base+1,base+7
+  ];
+
+  const mn=Math.min(...vals);
+  const mx=Math.max(...vals);
+  const w=120;
+  const h=34;
+
+  const pts=vals.map(
+    (v,i)=>[
+      i*(w/(vals.length-1)),
+      h-((v-mn)/(mx-mn||1))*25-4
+    ]
+  );
+
+  const line=pts
+    .map((p,i)=>`${i===0?"M":"L"} ${p[0]} ${p[1]}`)
+    .join(" ");
+
+  const area=`${line} L ${w} ${h} L 0 ${h} Z`;
+
+  return `<svg viewBox="0 0 120 34" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#009B91" stop-opacity=".24"/>
+        <stop offset="100%" stop-color="#009B91" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <path class="area" fill="url(#sparkGrad)" d="${area}"></path>
+    <path class="line" d="${line}"></path>
+  </svg>`;
+}
+
+function renderCoords(region){
+  const coords=COORD_ORDER.filter(
+    c=>c!=="Gerência"&&rowsFor(region,c).length
+  );
+
+  coordSubtitle.textContent=
+    `Desempenho das coordenações que compõem a região ${region}.`;
+
+  coordGrid.innerHTML=coords.map(c=>{
+    const rows=rowsFor(region,c);
+    const sc=totalScore(rows);
+
+    return `<div class="coord-card">
+      <div class="coord-card-top">
+        <div class="coord-name">
+          ${coordIcon(c)}
+          <span>${c}</span>
+        </div>
+
+        <div class="chevron">›</div>
+      </div>
+
+      <div class="coord-main">
+        <div>
+          <span class="coord-score">${formatScore(sc)}</span>
+        </div>
+
+        <div class="spark">${fakeSpark(sc)}</div>
+      </div>
+
+      <div class="coord-foot">
+        <small>Período atual</small>
+        <span class="pill">Resultado calculado</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  detailArea.innerHTML=coords.map(
+    c=>`<div class="card detail-panel">
+      <h3>${c}</h3>
+      ${table(rowsFor(region,c),"NOTA DA COORDENAÇÃO")}
+    </div>`
+  ).join("");
+}
+
+
+function ordinal(n){
+  return `${n}º`;
+}
+
+function coordRankHeaderIcon(coord){
+  if(coord==="Varejo"){
+    return `<span class="coord-rank-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.4 11.2a2 2 0 0 0 2 1.6H18a2 2 0 0 0 1.9-1.4L22 7H6"></path></svg></span>`;
+  }
+  if(coord==="Projetos Especiais e Grandes Clientes"){
+    return `<span class="coord-rank-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.9"></path><path d="M16 3.1a4 4 0 0 1 0 7.8"></path></svg></span>`;
+  }
+  if(coord==="Leitura"){
+    return `<span class="coord-rank-icon"><svg viewBox="0 0 24 24"><path d="M8 4h8"></path><path d="M9 2h6v4H9z"></path><path d="M6 4H5a2 2 0 0 0-2 2v15h18V6a2 2 0 0 0-2-2h-1"></path><path d="M8 10h8"></path><path d="M8 14h8"></path></svg></span>`;
+  }
+  if(coord==="Construção"){
+    return `<span class="coord-rank-icon"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0"></path><path d="M12 7v8"></path><path d="M7 9.5 9 15"></path><path d="M17 9.5 15 15"></path><path d="M3 15h18v3H3z"></path></svg></span>`;
+  }
+  return `<span class="coord-rank-icon">${ICONS.bars}</span>`;
+}
+
+function sectionHeadingHTML(coord,label,subtitle=""){
+  return `<div class="section-heading">
+    ${coordRankHeaderIcon(coord)}
+    <div class="section-heading-text">
+      <strong>${label}</strong>
+      ${subtitle ? `<small>${subtitle}</small>` : ``}
+    </div>
+  </div>`;
+}
+
+function selectedEvolutionRegions(){
+  const selected=[...evolutionRegionMenu.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value);
+  return selected.length?selected:REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r));
+}
+
+function updateRegionToggleLabel(){
+  const selected=selectedEvolutionRegions();
+  if(selected.length===0){
+    evolutionRegionToggle.textContent="Selecionar regiões";
+    return;
+  }
+  if(selected.length===1){
+    evolutionRegionToggle.textContent=selected[0];
+    return;
+  }
+  if(selected.length===REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r)).length){
+    evolutionRegionToggle.textContent="Todas as regiões";
+    return;
+  }
+  evolutionRegionToggle.textContent=`${selected.length} regiões selecionadas`;
+}
+
+function trophySvg(position){
+  const cls=position===1?"gold":position===2?"silver":"bronze";
+  return `<svg class="rank-icon ${cls}" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M8 4h8v4c0 4-2 6-4 6s-4-2-4-6V4Z" fill="currentColor" opacity=".95"></path>
+    <path d="M8 6H4c0 3.6 1.5 5.5 4.3 5.8M16 6h4c0 3.6-1.5 5.5-4.3 5.8" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <path d="M12 14v4M8.5 21h7M9.5 18h5" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <text x="12" y="10.4" text-anchor="middle" font-size="7.2" font-weight="900" fill="#fff" stroke="none">${position}</text>
+  </svg>`;
+}
+
+function medalSvg(position){
+  const cls=position===1?"gold":position===2?"silver":"bronze";
+  return `<svg class="rank-icon ${cls}" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M7 2h4l2 7-4 2-2-9Z" fill="currentColor" opacity=".82"></path>
+    <path d="M17 2h-4l-2 7 4 2 2-9Z" fill="currentColor" opacity=".62"></path>
+    <circle cx="12" cy="14.5" r="6" fill="currentColor"></circle>
+    <text x="12" y="17.2" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">${position}</text>
+  </svg>`;
+}
+
+function rankDisplay(position,kind="medal"){
+  if(!position)return "-";
+  if(position<=3){
+    const icon=kind==="trophy"?trophySvg(position):medalSvg(position);
+    return `<span class="rank-display">${icon}</span>`;
+  }
+  return `<span class="rank-number">${ordinal(position)}</span>`;
+}
+
+function rankingListFor(coord){
+  const sorted=REGION_ORDER
+    .map(region=>{
+      if(coord==="Gerência"){
+        const scores=coordinationScores(region);
+        return scores.length
+          ? {region,score:regionScore(region)}
+          : null;
+      }
+
+      const rows=rowsFor(region,coord);
+      return rows.length
+        ? {region,score:totalScore(rows)}
+        : null;
+    })
+    .filter(Boolean)
+    .sort((a,b)=>b.score-a.score);
+
+  let lastScore=null;
+  let lastPosition=0;
+
+  return sorted.map((x,i)=>{
+    const sameAsPrevious=
+      lastScore!==null &&
+      Math.abs(x.score-lastScore)<1e-9;
+
+    const position=sameAsPrevious
+      ? lastPosition
+      : i+1;
+
+    lastScore=x.score;
+    lastPosition=position;
+
+    return {...x,position};
+  });
+}
+
+function positionFor(region,coord){
+  const list=rankingListFor(coord);
+  const found=list.find(x=>x.region===region);
+  return found?found.position:null;
+}
+
+function renderRankings(region){
+  const gerenciaRanking=rankingListFor("Gerência");
+
+  const coordColumns=[
+    {key:"Varejo",label:"Varejo"},
+    {key:"Projetos Especiais e Grandes Clientes",label:"Grandes Clientes"},
+    {key:"Leitura",label:"Leitura"},
+    {key:"Construção",label:"Construção"}
+  ];
+
+  const rows=gerenciaRanking.map(item=>{
+    const coordCells=coordColumns.map(c=>{
+      const pos=positionFor(item.region,c.key);
+      return `<td class="rank-cell">${pos?rankDisplay(pos,"medal"):"-"}</td>`;
+    }).join("");
+
+    return `<tr class="${item.position<=3?`rank-${item.position}`:""} ${item.region===region?"selected-region":""}">
+      <td class="rank-pos rank-cell">${rankDisplay(item.position,"trophy")}</td>
+      <td><strong>${item.region}</strong></td>
+      <td class="rank-score">${formatScore(item.score)}</td>
+      ${coordCells}
+    </tr>`;
+  }).join("");
+
+  rankingOverview.innerHTML=`
+    <div class="ranking-main">
+      <table>
+        <thead>
+          <tr>
+            <th>Posição</th>
+            <th>Região</th>
+            <th>Score</th>
+            <th>Varejo</th>
+            <th>Grandes Clientes</th>
+            <th>Leitura</th>
+            <th>Construção</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+
+  miniRankings.innerHTML=coordColumns.map(def=>{
+    const list=rankingListFor(def.key);
+
+    if(!list.length)return "";
+
+    const body=list.map(item=>`
+      <tr class="${item.position<=3?`rank-${item.position}`:""} ${item.region===region?"selected-region":""}">
+        <td class="rank-pos rank-cell">${rankDisplay(item.position,"medal")}</td>
+        <td><strong>${item.region}</strong></td>
+        <td class="rank-score">${formatScore(item.score)}</td>
+      </tr>
+    `).join("");
+
+    return `<div class="mini-ranking">
+      <h3>
+        ${coordRankHeaderIcon(def.key)}
+        <span class="coord-rank-copy">
+          <strong>${def.label}</strong>
+          <small>Ranking das regiões</small>
+        </span>
+      </h3>
+      <table>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
+  }).join("");
+}
+
+function numericAdvance(row){
+  return number(row?.["Avanço"]);
+}
+
+function previousAdvance(row){
+  return number(row?.["Mês Anterior"]);
+}
+
+function chartBounds(values,kind="percent"){
+  const finite=values.filter(v=>Number.isFinite(v));
+
+  if(!finite.length)return {min:0,max:1};
+
+  let min=Math.min(...finite);
+  let max=Math.max(...finite);
+  let range=max-min;
+
+  // Evita exagerar visualmente diferenças pequenas.
+  // Percentual: amplitude mínima de 5 p.p.
+  // Score: amplitude mínima de 1,5 ponto.
+  const minSpan = kind==="score" ? 1.5 : 0.05;
+
+  if(range < minSpan){
+    const center=(min+max)/2;
+    min=center-minSpan/2;
+    max=center+minSpan/2;
+    range=minSpan;
+  }
+
+  const lowerPad=range*0.12;
+  const upperPad=range*0.20;
+
+  return {
+    min:min-lowerPad,
+    max:max+upperPad
+  };
+}
+
+function svgTextEscape(value){
+  return String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function attrEscape(value){
+  return svgTextEscape(value).replaceAll('"','&quot;');
+}
+
+function pctLabel(v){
+  if(!Number.isFinite(v))return "-";
+  return `${(v*100).toLocaleString("pt-BR",{maximumFractionDigits:1})}%`;
+}
+
+function scoreLabel(v){
+  if(!Number.isFinite(v))return "-";
+  return v.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+}
+
+function groupedBarChart(data){
+  if(!data.length){
+    return `<div class="empty-state">Não há dados numéricos disponíveis para este indicador.</div>`;
+  }
+
+  const values=data.flatMap(d=>[d.previous,d.current]).filter(Number.isFinite);
+  if(!values.length){
+    return `<div class="empty-state">Este indicador não possui avanço numérico para comparação.</div>`;
+  }
+
+  const W=980,H=285;
+  const margin={top:30,right:22,bottom:48,left:24};
+  const innerW=W-margin.left-margin.right;
+  const innerH=H-margin.top-margin.bottom;
+  const bounds=chartBounds(values,"percent");
+  const y=v=>margin.top+(bounds.max-v)/(bounds.max-bounds.min)*innerH;
+
+  const groupW=innerW/data.length;
+  const barW=Math.min(34,groupW*0.28);
+  const baseline=y(bounds.min);
+
+  const grid="";
+
+  const bars=data.map((d,i)=>{
+    const center=margin.left+groupW*i+groupW/2;
+    const xPrev=center-barW-3;
+    const xCur=center+3;
+    const prevY=y(d.previous);
+    const curY=y(d.current);
+
+    const prevH=Math.max(1,baseline-prevY);
+    const curH=Math.max(1,baseline-curY);
+
+    return `
+      <g class="chart-mark" data-tooltip="${attrEscape(`${d.region}\n${PREVIOUS_PERIOD}: ${pctLabel(d.previous)}`)}">
+        <rect x="${xPrev}" y="${prevY}" width="${barW}" height="${prevH}" rx="4" fill="#CDCDCD"/>
+        <text x="${xPrev+barW/2}" y="${prevY-7}" text-anchor="middle" font-size="11" font-weight="800" fill="#5c6664">${pctLabel(d.previous)}</text>
+      </g>
+
+      <g class="chart-mark" data-tooltip="${attrEscape(`${d.region}\n${CURRENT_PERIOD}: ${pctLabel(d.current)}`)}">
+        <rect x="${xCur}" y="${curY}" width="${barW}" height="${curH}" rx="4" fill="#009B91"/>
+        <text x="${xCur+barW/2}" y="${curY-7}" text-anchor="middle" font-size="11" font-weight="900" fill="#005852">${pctLabel(d.current)}</text>
+      </g>
+
+      <text x="${center}" y="${H-28}" text-anchor="middle"
+            font-size="12" font-weight="800" fill="#354844">${svgTextEscape(d.region)}</text>
+    `;
+  }).join("");
+
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    ${grid}
+    ${bars}
+  </svg>`;
+}
+
+function multiSeriesBarChart(series,formatter="score"){
+  const usable=series
+    .map(s=>({...s,points:s.points.filter(p=>Number.isFinite(p.value))}))
+    .filter(s=>s.points.length);
+
+  if(!usable.length){
+    return `<div class="empty-state">Não há dados disponíveis.</div>`;
+  }
+
+  const labels=[...new Set(usable.flatMap(s=>s.points.map(p=>p.label)))];
+  const allValues=usable.flatMap(s=>s.points.map(p=>p.value));
+
+  const W=980,H=295;
+  const margin={top:38,right:22,bottom:50,left:24};
+  const innerW=W-margin.left-margin.right;
+  const innerH=H-margin.top-margin.bottom;
+
+  const bounds=chartBounds(
+    allValues,
+    formatter==="score" ? "score" : "percent"
+  );
+
+  const y=v=>margin.top+(bounds.max-v)/(bounds.max-bounds.min)*innerH;
+  const fmt=formatter==="percent" ? pctLabel : scoreLabel;
+
+  // Paleta mais neutra para Evolução Temporal.
+  const palette=["#009B91","#B8873B","#666666","#5F9E99","#A58E6C"];
+  const labelPalette=["#005852","#7A5928","#414141","#466F6B","#705F49"];
+
+  const groupW=innerW/Math.max(labels.length,1);
+  const barW=Math.min(50,groupW/(usable.length+1));
+
+  let bars="";
+
+  labels.forEach((lab,li)=>{
+    const center=margin.left+groupW*(li+.5);
+
+    usable.forEach((ser,si)=>{
+      const p=ser.points.find(x=>x.label===lab);
+      if(!p)return;
+
+      const x=center-(usable.length*barW)/2+si*barW;
+      const top=y(p.value);
+      const base=H-margin.bottom;
+      const h=Math.max(2,base-top);
+
+      const labelColor=
+        ser.name==="Oeste" ? "#466F6B" :
+        ser.name==="Vale" ? "#705F49" :
+        labelPalette[si%labelPalette.length];
+
+      const tip=`${ser.name}\n${lab}: ${fmt(p.value)}`;
+
+      bars+=`
+        <g class="chart-mark" data-tooltip="${attrEscape(tip)}">
+          <rect
+            x="${x}"
+            y="${top}"
+            width="${barW-5}"
+            height="${h}"
+            rx="4"
+            fill="${palette[si%palette.length]}"
+          />
+          <text
+            x="${x+(barW-5)/2}"
+            y="${top-7}"
+            text-anchor="middle"
+            font-size="11"
+            font-weight="900"
+            fill="${labelColor}"
+          >${fmt(p.value)}</text>
+        </g>
+      `;
+    });
+
+    bars+=`
+      <text
+        x="${center}"
+        y="${H-24}"
+        text-anchor="middle"
+        font-size="12"
+        font-weight="800"
+        fill="#354844"
+      >${svgTextEscape(lab)}</text>
+    `;
+  });
+
+  const legend=usable.map((s,si)=>`
+    <span class="legend-item">
+      <span class="legend-swatch" style="background:${palette[si%palette.length]}"></span>
+      ${svgTextEscape(s.name)}
+    </span>
+  `).join("");
+
+  return `
+    <div class="chart-legend">${legend}</div>
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      ${bars}
+    </svg>
+  `;
+}
+
+function previousPointsForRow(row){
+  // Pontos do mês anterior já calculados no Python com os critérios vigentes.
+  if(row && Object.prototype.hasOwnProperty.call(row,"Pontos Mês Anterior")){
+    return number(row["Pontos Mês Anterior"]);
+  }
+  const coord=String(row["Coordenação"]||"").toUpperCase();
+  const ind=String(row["Indicador"]||"").toUpperCase();
+  const a=previousAdvance(row);
+
+  if(ind==="IRL"){
+    const s=String(row["Mês Anterior"]||"").trim().toUpperCase();
+    if(s==="SEGURO")return 1;
+    if(s==="ACEITÁVEL"||s==="ACEITAVEL")return .9;
+    if(s==="TOLERÁVEL"||s==="TOLERAVEL")return .8;
+    return 0;
+  }
+
+  if(a===null)return null;
+
+  if(coord==="GERÊNCIA"){
+    if(ind.startsWith("IEN")){
+      return a<.90?0:(Math.min(a,1)-.90)/.10;
+    }
+    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
+    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
+    if(ind.includes("ATENDIMENTO NO PRAZO")&&ind.includes("SERVIÇOS REGULADOS"))return a>=1?1:0;
+    if(ind==="ARRECADAÇÃO TOTAL EM 12 MESES")return a>=1?1:0;
+    if(ind==="CLIENTES NÃO LIDOS")return a>=1?1:(a>=.98?.5:0);
+  }
+
+  if(coord==="VAREJO"){
+    if(ind.startsWith("IEN")||ind==="ARRECADAÇÃO R$ MM"||ind.includes("CUMPRIMENTO DO PLANO FÍSICO PERDAS")){
+      return a<.99?0:(a<1?.5:.996);
+    }
+    if(ind.includes("RECLAMAÇÃO")&&ind.includes("PROCEDENTE"))return a<.90?0:(Math.min(a,1)-.90)/.10;
+    if(ind.includes("ATENDIMENTO NO PRAZO")&&ind.includes("SERVIÇOS REGULADOS"))return a<.90?0:(Math.min(a,1)-.90)/.10;
+    if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
+    if(ind.includes("CUMPRIMENTO DO PLANO FÍSICO CORE"))return a<.99?0:(a<.996?.5:1);
+    if(ind==="AIS% REALIZADO R$")return a<.99?0:(a<1?.5:1);
+    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
+    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+  }
+
+  if(coord==="PROJETOS ESPECIAIS E GRANDES CLIENTES"){
+    if(ind.startsWith("IEN")||ind.includes("CUMPRIMENTO DO PLANO FÍSICO PERDAS")||ind.includes("CUMPRIMENTO DO PLANO FÍSICO CORE")){
+      return a<.99?0:(a<.996?.5:1);
+    }
+    if(ind.includes("RECLAMAÇÃO")&&ind.includes("PROCEDENTE"))return a<.90?0:(Math.min(a,1)-.90)/.10;
+    if(ind.includes("ATENDIMENTO NO PRAZO")&&ind.includes("SERVIÇOS REGULADOS"))return a<.90?0:(Math.min(a,1)-.90)/.10;
+    if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
+    if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
+    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
+    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+  }
+
+  if(coord==="LEITURA"){
+    if(ind==="CORTE NO DISJUNTOR"||ind==="CLIENTES NÃO LIDOS"){
+      return a>=.996?1:(a>=.989?.5:0);
+    }
+    if(ind==="ERRO DE LEITURA"){
+      return a>=.996?1:(a>=.989?.5:(a>=.969?.2:0));
+    }
+    if(ind==="ADERÊNCIA DE ENTREGA DE FATURA"){
+      return a>=.999?1:(a>=.986?.5:0);
+    }
+  }
+
+  if(coord==="CONSTRUÇÃO"){
+    if(ind.startsWith("IEN"))return a<.90?0:(Math.min(a,1)-.90)/.10;
+    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
+    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
+    if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
+    if(ind.includes("CUMPRIMENTO DO PLANO FÍSICO PERDAS"))return a>=1?1:0;
+  }
+
+  return null;
+}
+
+function historicalScore(rows){
+  return rows.reduce((sum,row)=>{
+    const points=previousPointsForRow(row);
+    const weight=number(row["Peso"]);
+
+    if(points===null||weight===null)return sum;
+
+    const w=Math.abs(weight)<=1?weight:weight/100;
+    return sum+(points*w*10);
+  },0);
+}
+
+
+function coordinationIRL(rows){
+  const irl=rows.find(r=>execNorm(r["Indicador"])==="IRL");
+  return irl?number(irl["Realizado"]):null;
+}
+
+function renderAllCoordinationRanking(region){
+  if(!allCoordinationRanking)return;
+
+  const items=REGION_ORDER.flatMap(reg=>
+    COORD_ORDER.filter(coord=>coord!=="Gerência"&&rowsFor(reg,coord).length).map(coord=>{
+      const rows=rowsFor(reg,coord);
+      return {region:reg,coord,score:totalScore(rows),irl:coordinationIRL(rows)};
+    })
+  ).sort((a,b)=>{
+    // Classificação da melhor para a pior: maior score primeiro.
+    // Empate no score exibido com duas casas: menor IRL primeiro.
+    const scoreA=Math.round((a.score+Number.EPSILON)*100);
+    const scoreB=Math.round((b.score+Number.EPSILON)*100);
+    if(scoreA!==scoreB)return scoreB-scoreA;
+    if(a.irl!==null&&b.irl!==null&&Math.abs(a.irl-b.irl)>1e-12)return a.irl-b.irl;
+    if(a.irl===null&&b.irl!==null)return 1;
+    if(a.irl!==null&&b.irl===null)return -1;
+    return a.coord.localeCompare(b.coord,"pt-BR")||a.region.localeCompare(b.region,"pt-BR");
+  });
+
+  const rows=items.map((item,idx)=>`<tr class="${item.region===region?"selected-region":""}">
+      <td class="rank-pos rank-cell"><span class="rank-number">${idx+1}º</span></td>
+      <td><div class="rank-name">${item.coord} – ${item.region}</div></td>
+      <td class="rank-score">${formatScore(item.score)}</td>
+      <td class="rank-score">${item.irl===null?"—":item.irl.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:3})}</td>
+    </tr>`).join("");
+
+  allCoordinationRanking.innerHTML=`<div class="ranking-main"><table>
+    <thead><tr><th>Posição</th><th>Coordenação – Regional</th><th>Score</th><th>IRL (desempate)</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderAllRegionTables(){
+  if(!allRegionTables)return;
+
+  allRegionTables.innerHTML=REGION_ORDER.map(region=>{
+    const content=COORD_ORDER
+      .filter(coord=>rowsFor(region,coord).length)
+      .map(coord=>{
+        const label=
+          coord==="Projetos Especiais e Grandes Clientes"
+            ?"Grandes Clientes"
+            :coord;
+
+        return `<section class="card all-tables-card">
+          <div class="region-table-title">${region} — ${label}</div>
+          ${table(rowsFor(region,coord),"",null,true)}
+        </section>`;
+      })
+      .join("");
+
+    if(!content)return "";
+
+    return `
+      <div class="region-boundary start">INÍCIO — REGIÃO ${region}</div>
+      ${content}
+      <div class="region-boundary end">FIM — REGIÃO ${region}</div>
+    `;
+  }).join("");
+}
+
+function execNorm(v){
+  return String(v??"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+}
+function execBlockName(row){
+  const raw=String(row?.["Blocos"]??"").trim();
+  const n=execNorm(raw);
+  if(n.includes("SEGUR"))return "Segurança";
+  if(n.includes("PERDA"))return "Perdas";
+  if(n.includes("CLIENT"))return "Cliente";
+  if(n.includes("QUAL"))return "Qualidade";
+  if(n.includes("PROD"))return "Produtividade";
+  if(n.includes("ORC"))return "Orçamento";
+  if(n.includes("LEIT"))return "Leitura";
+  if(n.includes("COBR"))return "Cobrança";
+  const ind=execNorm(row?.["Indicador"]);
+  if(ind==="IRL")return "Segurança";
+  if(ind.includes("IEN"))return "Perdas";
+  if(ind.includes("RECLAM")||ind.includes("ATENDIMENTO NO PRAZO"))return "Cliente";
+  if(ind.includes("IQG"))return "Qualidade";
+  if(ind.includes("PLANO FISICO"))return "Produtividade";
+  if(ind.includes("CAPEX")||ind.includes("OPEX")||ind.includes("AIS"))return "Orçamento";
+  if(ind.includes("LEITURA")||ind.includes("CLIENTES NAO LIDOS")||ind.includes("FATURA"))return "Leitura";
+  if(ind.includes("ARRECAD")||ind.includes("CORTE"))return "Cobrança";
+  return raw||"Outros";
+}
+function execBlockIcon(block){
+  return {
+    "Segurança":"◆","Perdas":"◒","Cliente":"●","Qualidade":"✦",
+    "Produtividade":"▥","Orçamento":"≋","Leitura":"▤","Cobrança":"$"
+  }[block]||"•";
+}
+function execIsIRL(ind){return execNorm(ind)==="IRL"}
+function execEfficiencyOK(v){
+  const t=String(v??"").trim().toUpperCase();
+  return t.includes("✅")||["OK","SIM","ATINGIU","ATINGIDA"].includes(t);
+}
+function execUnit(ind){
+  const t=execNorm(ind);
+  if(t.includes("CAPEX")||t.includes("OPEX")||t.includes("ARRECAD"))return "money";
+  if(isPercentIndicator(ind))return "percent";
+  return "number";
+}
+function execFmt(v,ind){
+  const n=number(v);
+  if(n===null)return "-";
+  const u=execUnit(ind);
+  if(u==="percent"){
+    const p=Math.abs(n)<=2?n*100:n;
+    return p.toLocaleString("pt-BR",{maximumFractionDigits:2})+"%";
+  }
+  if(u==="money"){
+    return "R$ "+n.toLocaleString("pt-BR",{maximumFractionDigits:2});
+  }
+  return n.toLocaleString("pt-BR",{maximumFractionDigits:2});
+}
+function execAggType(ind){
+  const t=execNorm(ind);
+  if(t==="IRL"||t.includes("ATENDIMENTO NO PRAZO")||t.includes("IQG")||(t.includes("AIS")&&t.includes("REALIZADO")))return "avg";
+  return "sum";
+}
+function execAggregate(vals,type){
+  const a=vals.filter(Number.isFinite);
+  if(!a.length)return null;
+  return type==="avg"?a.reduce((x,y)=>x+y,0)/a.length:a.reduce((x,y)=>x+y,0);
+}
+function execCanonicalIndicator(ind){
+  const t=execNorm(ind);
+  // IQG Padrão e IQG SLA são fontes do mesmo indicador.
+  if(t.includes("IQG") && (t.includes("QUALIDADE GERAL") || t.startsWith("IQG"))){
+    return "IQG - Índice de Qualidade Geral";
+  }
+  return String(ind??"").trim();
+}
+function execIndicatorsForBlock(block){
+  const rows=DATA.filter(r=>execBlockName(r)===block);
+  return [...new Set(rows.map(r=>execCanonicalIndicator(r["Indicador"])).filter(Boolean))];
+}
+function execRowsForIndicator(block,ind){
+  return REGION_ORDER.map(region=>{
+    const candidates=DATA.filter(r=>execBlockName(r)===block&&r["Região"]===region&&execCanonicalIndicator(r["Indicador"])===ind);
+    if(!candidates.length)return null;
+    const ps=candidates.map(r=>number(r["Planejado"])).filter(Number.isFinite);
+    const rs=candidates.map(r=>number(r["Realizado"])).filter(Number.isFinite);
+    if(!ps.length||!rs.length)return null;
+    const type=execAggType(ind);
+    const p=execAggregate(ps,type),real=execAggregate(rs,type);
+    const source=candidates.find(r=>!execEfficiencyOK(r["Eficiência"]))||candidates[0];
+    return {
+      region,planned:p,real,
+      ok:candidates.every(r=>execEfficiencyOK(r["Eficiência"])),
+      source,
+      sources:candidates
+    };
+  }).filter(Boolean);
+}
+function execGeneralAttainment(planned,real,ind){
+  const p=number(planned),r=number(real);
+  if(p===null||r===null)return false;
+  const t=execNorm(ind);
+  const eps=Math.max(1e-9,Math.abs(p)*1e-9);
+  // Faixas históricas específicas do projeto. Não estender tolerância aos demais indicadores.
+  if(t.includes("CAPEX"))return r>=p*.90-eps&&r<=p*1.10+eps;
+  if(t.includes("OPEX"))return r>=p*.85-eps&&r<=p*1.15+eps;
+  if(t.includes("RECLAM")||t.includes("CLIENTES NAO LIDOS")||t.includes("ERRO DE LEITURA"))return r<=p+eps;
+  // Demais indicadores: meta mínima de realização (inclusive IEN, IQG e prazo).
+  return r+eps>=p;
+}
+function execGeneral(rows,ind){
+  const type=execAggType(ind);
+  const planned=execAggregate(rows.map(x=>x.planned),type);
+  const real=execAggregate(rows.map(x=>x.real),type);
+  return {planned,real,ok:execGeneralAttainment(planned,real,ind)};
+}
+function execKey(row){
+  return [
+    EXEC_PERIOD,EXEC_WEEK_START,
+    String(row?.["Região"]??"").trim(),
+    String(row?.["Coordenação"]??"").trim(),
+    String(row?.["Indicador"]??"").trim()
+  ].join("¦");
+}
+function execSavedJust(row){return EXEC_JUST_MAP.get(execKey(row))||null}
+function execJustificationsForBlock(block){
+  const out=[];
+  execIndicatorsForBlock(block).forEach(ind=>{
+    execRowsForIndicator(block,ind).forEach(x=>{
+      (x.sources||[x.source]).forEach(source=>{
+        const saved=execSavedJust(source);
+        if(saved?.justificativa){
+          out.push({
+            region:x.region,indicator:ind,text:String(saved.justificativa).trim(),row:source,saved
+          });
+        }
+      });
+    });
+  });
+  return out;
+}
+async function execLoadJustifications(){
+  try{
+    const url=new URL(`${EXEC_SUPABASE_URL}/rest/v1/superintendencia_justificativas`);
+    url.searchParams.set("select","*");
+    url.searchParams.set("periodo",`eq.${EXEC_PERIOD}`);
+    url.searchParams.set("semana_inicio",`eq.${EXEC_WEEK_START}`);
+    const r=await fetch(url,{
+      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`}
+    });
+    if(!r.ok)throw new Error(await r.text());
+    const data=await r.json();
+    EXEC_JUST_MAP.clear();
+    EXEC_JUST_DELETED_MAP.clear();
+    (data||[]).forEach(j=>{
+      const k=[j.periodo,j.semana_inicio,j.regiao,j.coordenacao,j.indicador].join("¦");
+      if(j.apagado)EXEC_JUST_DELETED_MAP.set(k,j);
+      else EXEC_JUST_MAP.set(k,j);
+    });
+    // Tabelas pode estar aberta enquanto ocorre o carregamento assíncrono.
+    renderAllRegionTables();
+    if(regionSelect?.value)render(regionSelect.value);
+  }catch(e){console.warn("Justificativas da Comparação:",e)}
+}
+function execSummary(){
+  const blocks=[...new Set(DATA.map(execBlockName).filter(x=>x&&x!=="Outros"))];
+  const regional=[];
+  blocks.forEach(b=>execIndicatorsForBlock(b).forEach(ind=>{
+    if(execIsIRL(ind))return;
+    regional.push(...execRowsForIndicator(b,ind));
+  }));
+  const total=regional.length,hit=regional.filter(x=>x.ok).length,miss=total-hit;
+  const hp=total?Math.round(hit/total*100):0,mp=total?Math.round(miss/total*100):0;
+  const el=document.getElementById("comparisonSummary");
+  if(!el)return;
+  el.innerHTML=`
+    <div class="exec-kpi">
+      <div class="exec-kpi-icon">✓</div>
+      <div class="exec-kpi-copy"><small>Metas atingidas</small><strong>${hit}/${total}</strong></div>
+      <div class="exec-kpi-rate">${hp}%</div>
+      <div class="exec-kpi-track"><i style="width:${hp}%"></i></div>
+    </div>
+    <div class="exec-kpi pending">
+      <div class="exec-kpi-icon">!</div>
+      <div class="exec-kpi-copy"><small>Metas pendentes</small><strong>${miss}/${total}</strong></div>
+      <div class="exec-kpi-rate">${mp}%</div>
+      <div class="exec-kpi-track"><i style="width:${mp}%"></i></div>
+    </div>`;
+}
+function execVerticalChart(rows,ind,compact){
+  const values=rows.flatMap(x=>[number(x.planned),number(x.real)]).filter(Number.isFinite);
+  if(!values.length)return `<div class="exec-vchart exec-empty">Sem dados para o período</div>`;
+  const low=Math.min(...values),high=Math.max(...values),spread=high-low;
+  const reference=Math.max(Math.abs(high),Math.abs(low),1);
+  const safe=spread>reference*.00001?spread:Math.max(reference*.08,.01);
+  const min=low-safe*.38,max=high+safe*.35,range=max-min;
+  const pos=v=>Math.max(0,Math.min(100,(v-min)/range*100));
+  const H=226,adjusted=min>0.00001;
+  return `<div class="exec-chart-shell">
+    <div class="exec-axis-note"><span>${adjusted?'Eixo Y com origem ajustada':'Eixo Y adaptativo'}</span><span>${execFmt(min,ind)} — ${execFmt(max,ind)}</span></div>
+    <div class="exec-vchart">${rows.map(x=>{
+      const plan=pos(x.planned),real=pos(x.real),py=plan/100*H,ry=real/100*H;
+      const higher=x.planned>x.real+Math.max(1e-9,Math.abs(x.planned)*1e-9);
+      // Centro de cada rótulo próximo ao ponto que representa; desvia quando muito próximos.
+      let metaY=py+(higher?5:-18),realY=higher?Math.max(4,ry-18):ry+6;
+      const close=Math.abs(metaY-realY)<21;
+      if(close){metaY+=higher?7:-9;realY+=higher?-10:12;}
+      metaY=Math.max(3,Math.min(H-15,metaY));realY=Math.max(4,Math.min(H-15,realY));
+      const delta=x.planned===0||x.planned===null?null:(x.real-x.planned)/Math.abs(x.planned)*100;
+      const diff=delta===null?'—':`${delta>0?'+':''}${delta.toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
+      return `<div class="exec-vcol" title="${x.region}: Meta ${execFmt(x.planned,ind)}; Realizado ${execFmt(x.real,ind)}; desvio ${diff}">
+        <div class="exec-vplot ${adjusted?'exec-plot-truncated':''}">
+          <div class="exec-vbar ${x.ok?'met':'missed'}" style="height:${Math.max(5,real)}%"></div>
+          <div class="exec-target-marker" style="bottom:${plan}%"></div>
+          <span class="exec-label meta ${close?'collision':''}" style="bottom:${metaY}px"><b>Meta</b> ${execFmt(x.planned,ind)}</span>
+          <span class="exec-label real ${x.ok?'met':'missed'} ${close?'collision':''}" style="bottom:${realY}px">${execFmt(x.real,ind)}</span>
+          ${adjusted?'<span class="exec-axis-break" title="Eixo Y com origem ajustada">∿</span>':''}
+        </div>
+        <div class="exec-vregion">${x.region}</div>
+        <div class="exec-region-delta ${x.ok?'met':'missed'}">Δ ${diff}</div>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+function execMetaGaugeSVG(planned,real,ok){
+  const p=number(planned),r=number(real),valid=p!==null&&r!==null&&Math.abs(p)>1e-12;
+  const ratio=valid?Math.max(0,Math.min(1.5,Math.abs(r/p))):0;
+  const cx=72,cy=84,rad=53,length=Math.PI*rad;
+  const a=Math.PI-ratio/1.5*Math.PI;
+  const tx=cx+41*Math.cos(a),ty=cy-41*Math.sin(a);
+  const mt=Math.PI-(1/1.5)*Math.PI;
+  const mx1=cx+45*Math.cos(mt),my1=cy-45*Math.sin(mt);
+  const mx2=cx+61*Math.cos(mt),my2=cy-61*Math.sin(mt);
+  const color=ok?"#009B91":"#F5AA41";
+  return `<svg class="exec-meta-gauge" viewBox="0 0 144 110" role="img" aria-label="Semicírculo completo de 180 graus com ponteiro do realizado e referência de meta 100%">
+    <path d="M 19 84 A 53 53 0 0 1 125 84" fill="none" stroke="#D5E9E5" stroke-width="15" stroke-linecap="butt"/>
+    <path d="M 19 84 A 53 53 0 0 1 125 84" fill="none" stroke="${color}" stroke-width="15" stroke-linecap="butt" stroke-dasharray="${(ratio/1.5*length).toFixed(3)} ${length.toFixed(3)}"/>
+    <line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}" stroke="#193D38" stroke-width="2.5"/>
+    <circle cx="${mx2}" cy="${my2}" r="3" fill="#193D38"/>
+    <line x1="${cx}" y1="${cy}" x2="${tx}" y2="${ty}" stroke="#173D39" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="#173D39" stroke="#fff" stroke-width="1.7"/>
+    <text x="${cx}" y="101" text-anchor="middle" font-size="15" font-weight="900" fill="${color}">${valid?Math.round(Math.abs(r/p)*100)+"%":"—"}</text>
+    <text x="${cx}" y="110" text-anchor="middle" font-size="7" font-weight="800" fill="#44605A">Meta 100%</text>
+  </svg>`;
+}
+function execGeneralBox(rows,ind){
+  const g=execGeneral(rows,ind),cls=g.ok?"met":"missed";
+  const diff=g.planned===null||Math.abs(g.planned)<1e-12?null:(g.real-g.planned)/Math.abs(g.planned)*100;
+  const dtext=diff===null?"—":`${diff>0?"+":""}${diff.toLocaleString("pt-BR",{maximumFractionDigits:1})}%`;
+  const indicatorRule=execNorm(ind);
+  const allowedRange=indicatorRule.includes("CAPEX")?" · Faixa: 90–110%":indicatorRule.includes("OPEX")?" · Faixa: 85–115%":"";
+  return `<div class="exec-general exec-general-with-gauge">
+    <div class="exec-general-info">
+      <div class="exec-general-label">CONSOLIDADO GERAL</div>
+      <div class="exec-general-values">
+        <div><small>Planejado (meta)</small><strong>${execFmt(g.planned,ind)}</strong></div>
+        <div><small>Realizado</small><strong>${execFmt(g.real,ind)}</strong></div>
+      </div>
+      <div class="exec-general-status ${cls}"><span class="exec-dot">${g.ok?"✓":"!"}</span>${g.ok?"Meta atingida":"Meta pendente"}<span class="exec-tolerance-rule">${allowedRange}</span><span class="exec-general-delta">Δ ${dtext}</span></div>
+    </div>
+    <div class="exec-meta-gauge-wrap">${execMetaGaugeSVG(g.planned,g.real,g.ok)}</div>
+  </div>`;
+}
+
+function execIRLGaugeSVG(value,big=true){
+  // Semicírculo integral 180º; bandas da classificação, ponteiro e escala explícita.
+  const original=number(value),valid=original!==null;
+  const n=valid?Math.max(0,Math.min(4,original)):0;
+  const w=big?252:56,h=big?163:42,cx=w/2,cy=big?117:32,r=big?83:23;
+  const P=(deg,rr=r)=>{const a=deg*Math.PI/180;return{x:cx+rr*Math.cos(a),y:cy-rr*Math.sin(a)}};
+  const arc=(a0,a1)=>{const p=P(a0),q=P(a1);return `M ${p.x.toFixed(2)} ${p.y.toFixed(2)} A ${r} ${r} 0 0 1 ${q.x.toFixed(2)} ${q.y.toFixed(2)}`};
+  const bands=[{a:180,b:135,color:'#009B91'},{a:135,b:90,color:'#64C8B7'},{a:90,b:45,color:'#F5AA41'},{a:45,b:0,color:'#D84B48'}];
+  const ang=180-n/4*180,tip=P(ang,r-(big?29:8));
+  const display=valid?original.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—';
+  const status=execIRLClass(original);
+  return `<svg class="${big?'exec-irl-svg exec-irl-v26':'exec-irl-mini-v26'}" viewBox="0 0 ${w} ${h}" role="img" aria-label="IRL ${display}: ${status}. Escala de risco de zero a quatro.">
+    <path d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}" fill="none" stroke="#E1EBE8" stroke-width="${big?22:7}"/>
+    ${bands.map(b=>`<path d="${arc(b.a,b.b)}" fill="none" stroke="${b.color}" stroke-width="${big?20:6}"/>`).join('')}
+    ${big?[0,1,2,3,4].map(t=>{const p=P(180-t/4*180,r+19);return `<text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="9" font-weight="800" fill="#365650">${t}</text>`}).join(''):''}
+    <line x1="${cx}" y1="${cy}" x2="${tip.x}" y2="${tip.y}" stroke="#163D38" stroke-width="${big?4:1.8}" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="${big?7:2.7}" fill="#163D38" stroke="white" stroke-width="${big?2:0.7}"/>
+    ${big?`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="23" font-weight="900" fill="#173D39">${display}</text><text x="${cx}" y="${cy+34}" text-anchor="middle" font-size="11" font-weight="900" fill="#005852">${status}</text>`:''}
+  </svg>`;
+}
+function execIRLClass(v){
+  const n=number(v);
+  if(n===null)return "Sem dado";
+  if(n<=1)return "Seguro";
+  if(n<=2)return "Aceitável";
+  if(n<=3)return "Tolerável";
+  return "Crítico";
+}
+function execIRLIndicator(block,ind,rows){
+  const all=rows.map(x=>x.real).filter(Number.isFinite);
+  const general=all.length?all.reduce((a,b)=>a+b,0)/all.length:0;
+  return `<div class="exec-indicator">
+    <div class="exec-indicator-head" style="grid-template-columns:1fr">
+      <div class="exec-indicator-title">${ind} — classificação por faixa de risco</div>
+    </div>
+    <div class="exec-irl-main">${execIRLGaugeSVG(general,true)}</div>
+    <div class="exec-irl-general-class">Consolidado geral · ${execIRLClass(general)}</div>
+    <div class="exec-irl-regions">
+      ${rows.map(x=>{const cl=execIRLClass(x.real),cn=execNorm(cl).toLowerCase();return `<div class="exec-irl-mini">${execIRLGaugeSVG(x.real,false)}<strong>${Number((x.real||0).toFixed(2)).toLocaleString("pt-BR")}</strong><span>${x.region}</span><em class="exec-irl-class ${cn}">${cl}</em></div>`}).join("")}
+    </div>
+  </div>`;
+}
+function execIndicator(block,ind){
+  const rows=execRowsForIndicator(block,ind);
+  if(execIsIRL(ind))return execIRLIndicator(block,ind,rows);
+  return `<div class="exec-indicator">
+    <div class="exec-indicator-head">
+      <div class="exec-indicator-title">${ind}</div>
+      ${execGeneralBox(rows,ind)}
+    </div>
+    ${execVerticalChart(rows,ind,false)}
+  </div>`;
+}
+function execBlockJustHTML(block){
+  const just=execJustificationsForBlock(block);
+  if(!just.length)return "";
+  return `<div class="exec-justifications">
+    <div class="exec-just-title">
+      <span>Justificativas (${just.length})</span>
+      <button type="button" onclick="execOpenJustModal('${encodeURIComponent(block)}')">Ver todas</button>
+    </div>
+    ${just.slice(0,2).map(j=>`<div class="exec-just-line"><i></i><button type="button" onclick="execViewSavedJust('${encodeURIComponent(JSON.stringify(j.saved)).replaceAll("'","%27")}')"><strong>${j.region}:</strong> ${j.text.length>110?j.text.slice(0,109).trim()+"…":j.text}</button></div>`).join("")}
+  </div>`;
+}
+function execRenderBlock(block){
+  const inds=execIndicatorsForBlock(block);
+  if(!inds.length)return "";
+  const just=execJustificationsForBlock(block),cls=[just.length?"has-just":"",inds.length>1?"multi-indicator":""].filter(Boolean).join(" ");
+  return `<section class="exec-block ${cls}">
+    <div class="exec-block-head">
+      <div class="exec-block-head-left">
+        <div class="exec-block-icon">${execBlockIcon(block)}</div>
+        <div class="exec-block-title">${block}</div>
+      </div>
+      <button class="exec-block-just-link" type="button" onclick="execOpenJustModal('${encodeURIComponent(block)}')">Ver justificativas (${just.length}) ›</button>
+    </div>
+    <div class="exec-block-body">
+      ${inds.map(ind=>execIndicator(block,ind)).join("")}
+      ${execBlockJustHTML(block)}
+    </div>
+  </section>`;
+}
+function execPaintComparison(){
+  if(!comparisonSections)return;
+  execSummary();
+  const order=["Segurança","Perdas","Cliente","Qualidade","Produtividade","Orçamento","Leitura","Cobrança"];
+  comparisonSections.innerHTML=`<div class="exec-block-grid">${order.map(execRenderBlock).join("")}</div>`;
+}
+async function renderComparisonAll(){
+  // Exibir indicadores imediatamente; a rede não pode bloquear o painel.
+  execPaintComparison();
+  await execLoadJustifications();
+  // Incorporar justificativas somente depois de carregadas.
+  execPaintComparison();
+}
+function execAllBlockRows(block){
+  const arr=[];
+  execIndicatorsForBlock(block).forEach(ind=>{
+    execRowsForIndicator(block,ind).forEach(x=>{
+      (x.sources||[x.source]).forEach(source=>arr.push({ind,...x,source}));
+    });
+  });
+  return arr;
+}
+function execEditorRows(block){
+  return execAllBlockRows(block).filter(x=>{
+    if(execIsIRL(x.ind))return !!execSavedJust(x.source);
+    return !x.ok||!!execSavedJust(x.source);
+  });
+}
+function execEscapeText(v){
+  return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+}
+function execOpenReadOnly(title,entries){
+  const footerSave=document.getElementById("execJustModalFooterSave");if(footerSave)footerSave.style.display="none";
+  document.getElementById("execJustModalTitle").textContent=title;
+  document.getElementById("execJustModalBody").innerHTML=entries.length
+    ? entries.map(j=>`<div class="exec-just-view-row"><h4>${execEscapeText(j.heading)}</h4><div class="exec-readonly-text">${execEscapeText(j.text)}</div></div>`).join("")
+    : `<div class="exec-just-view-row">Nenhuma justificativa registrada.</div>`;
+  document.getElementById("execJustModalBg").classList.add("open");
+}
+function execViewSavedJust(encoded){
+  const j=JSON.parse(decodeURIComponent(encoded));
+  execOpenReadOnly(`Justificativa — ${j.regiao||""} / ${j.indicador||""}`,[{
+    heading:[j.regiao,j.coordenacao,j.indicador].filter(Boolean).join(" · "),
+    text:j.justificativa||""
+  }]);
+}
+function execViewRowJust(encoded){
+  const row=JSON.parse(decodeURIComponent(encoded));
+  const j=execSavedJust(row);
+  if(!j?.justificativa)return;
+  execViewSavedJust(encodeURIComponent(JSON.stringify(j)));
+}
+function execOpenJustModal(enc){
+  const block=decodeURIComponent(enc);
+  const rows=execJustificationsForBlock(block);
+  execOpenReadOnly(`Justificativas — ${block}`,rows.map(j=>({
+    heading:[j.region,j.row?.["Coordenação"],j.indicator].filter(Boolean).join(" · "),
+    text:j.text
+  })));
+}
+function execOpenTableJust(encoded){
+  const footerSave=document.getElementById("execJustModalFooterSave");
+  if(footerSave){footerSave.style.display="inline-flex";footerSave.disabled=false;footerSave.onclick=()=>execSaveJust(0,encoded,true);}
+  const feedback=document.getElementById("execJustModalSaveStatus");if(feedback)feedback.textContent="";
+  const row=JSON.parse(decodeURIComponent(encoded));
+  if(execEfficiencyOK(row["Eficiência"]))return;
+  const saved=execSavedJust(row),value=String(saved?.justificativa||"");
+  const bg=document.getElementById("execJustModalBg");
+  document.getElementById("execJustModalTitle").textContent=`Justificativa — ${row["Região"]} / ${row["Indicador"]}`;
+  document.getElementById("execJustModalBody").innerHTML=`<div class="exec-just-editor">
+    <h4>${String(row["Região"]||"")} · ${String(row["Coordenação"]||"")} · ${String(row["Indicador"]||"")}</h4>
+    <small>Período ${EXEC_PERIOD} · ${EXEC_WEEK_START} a ${EXEC_WEEK_END}</small>
+    <textarea id="execJustText0" minlength="${EXEC_JUST_MIN}" maxlength="${EXEC_JUST_MAX}" oninput="execUpdateCount(0)" placeholder="Digite entre ${EXEC_JUST_MIN} e ${EXEC_JUST_MAX} caracteres...">${value.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}</textarea>
+    <div class="exec-just-editor-footer"><span id="execCount0" class="exec-charcount">${value.length}/${EXEC_JUST_MAX}</span>
+      <button id="execJustInlineSave" class="exec-save" type="button" onclick="execSaveJust(0, '${encoded}', true)">Salvar justificativa</button>
+    </div>
+  </div>`;
+  bg.classList.add("open");
+  // O comando principal também fica dentro do editor, independente do rodapé da modal.
+  if(footerSave){footerSave.style.setProperty("display","inline-flex","important");}
+}
+function execUpdateCount(i){
+  const ta=document.getElementById(`execJustText${i}`),ct=document.getElementById(`execCount${i}`);
+  if(ta&&ct)ct.textContent=`${ta.value.length}/${EXEC_JUST_MAX}`;
+}
+async function execSaveJust(i,encoded,fromTable=false){
+  if(!fromTable)return;
+  const row=JSON.parse(decodeURIComponent(encoded));
+  if(fromTable && execEfficiencyOK(row["Eficiência"])){
+    alert("Este indicador já atingiu a meta e não requer justificativa.");
+    return;
+  }
+  const ta=document.getElementById(`execJustText${i}`);
+  const txt=String(ta?.value||"").trim();
+  if(txt.length<EXEC_JUST_MIN||txt.length>EXEC_JUST_MAX){
+    alert(`A justificativa deve possuir entre ${EXEC_JUST_MIN} e ${EXEC_JUST_MAX} caracteres.`);
+    return;
+  }
+  const existing=execSavedJust(row)||EXEC_JUST_DELETED_MAP.get(execKey(row));
+  const payload={
+    periodo:EXEC_PERIOD,semana_inicio:EXEC_WEEK_START,semana_fim:EXEC_WEEK_END,
+    regiao:String(row["Região"]??"").trim(),
+    coordenacao:String(row["Coordenação"]??"").trim(),
+    indicador:String(row["Indicador"]??"").trim(),
+    justificativa:txt,
+    eficiencia_snapshot:String(row["Eficiência"]??"").trim(),
+    autor_nome:"Plataforma",
+    apagado:false,apagado_em:null
+  };
+  let url=`${EXEC_SUPABASE_URL}/rest/v1/superintendencia_justificativas`;
+  let method="POST";
+  if(existing?.id){
+    method="PATCH";
+    url+=`?id=eq.${encodeURIComponent(existing.id)}`;
+  }
+  const footerSave=document.getElementById("execJustModalFooterSave");
+  const feedback=document.getElementById("execJustModalSaveStatus");
+  if(footerSave){footerSave.disabled=true;footerSave.textContent="Salvando...";}
+  try{
+    const r=await fetch(url,{
+      method,
+      headers:{
+        apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`,
+        "Content-Type":"application/json",Prefer:"return=representation"
+      },
+      body:JSON.stringify(payload)
+    });
+    if(!r.ok)throw new Error(await r.text());
+    const saved=(await r.json())?.[0];
+    if(saved){
+      EXEC_JUST_DELETED_MAP.delete(execKey(row));
+      EXEC_JUST_MAP.set(execKey(row),saved);
+      await renderComparisonAll();
+      renderAllRegionTables();
+      if(regionSelect?.value)render(regionSelect.value);
+      execOpenTableJust(encoded);
+      const f=document.getElementById("execJustModalSaveStatus");if(f)f.textContent="Justificativa salva.";
+    }else{throw new Error("Servidor não retornou o registro salvo.");}
+  }catch(e){console.error(e);if(feedback)feedback.textContent="Falha ao salvar: verifique o acesso ao Supabase.";alert("Não foi possível salvar a justificativa.");}
+  finally{const b=document.getElementById("execJustModalFooterSave");if(b){b.disabled=false;b.textContent="Salvar justificativa";}}
+}
+
+async function execDeleteTableJust(encoded){
+  const row=JSON.parse(decodeURIComponent(encoded));
+  if(execEfficiencyOK(row["Eficiência"]))return;
+  const saved=execSavedJust(row);
+  if(!saved?.id)return;
+  if(!confirm("Apagar esta justificativa? O registro será marcado como excluído no histórico."))return;
+  const url=`${EXEC_SUPABASE_URL}/rest/v1/superintendencia_justificativas?id=eq.${encodeURIComponent(saved.id)}`;
+  try{
+    const r=await fetch(url,{
+      method:"PATCH",
+      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`,
+        "Content-Type":"application/json",Prefer:"return=representation"},
+      body:JSON.stringify({apagado:true,apagado_em:new Date().toISOString()})
+    });
+    if(!r.ok)throw new Error(await r.text());
+    EXEC_JUST_MAP.delete(execKey(row));
+    EXEC_JUST_DELETED_MAP.set(execKey(row),{...saved,apagado:true});
+    renderAllRegionTables();
+    if(regionSelect?.value)render(regionSelect.value);
+    await renderComparisonAll();
+    execCloseJustModal();
+  }catch(e){console.error(e);alert("Não foi possível apagar a justificativa.")}
+}
+function populateTableExportRegions(){
+  if(!tableExportRegion)return;
+  tableExportRegion.innerHTML="";
+  REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r)).forEach(r=>{
+    const o=document.createElement("option");
+    o.value=r;
+    o.textContent=r;
+    tableExportRegion.appendChild(o);
+  });
+}
+
+function exportRowDirection(row){
+  const dir=performanceDirection(row);
+  if(dir==="up")return "Melhorou";
+  if(dir==="down")return "Piorou";
+  if(dir==="equal")return "Estável";
+  return "-";
+}
+
+function buildExportTableRows(rows,mode){
+  const normalized=rows
+    .filter(r=>String(r["Indicador"]??"").trim()!=="")
+    .map(r=>({...r}));
+
+  let lastBlock="";
+  normalized.forEach(r=>{
+    const indicador=String(r["Indicador"]??"").trim().toUpperCase();
+    let raw=String(r["Blocos"]??"").trim();
+    if(raw.toUpperCase()==="PERDAS" && !indicador.startsWith("IEN"))raw="";
+    if(raw&&raw!=="-")lastBlock=raw;
+    if(indicador.startsWith("IEN")){
+      r.__block="PERDAS";
+      lastBlock="PERDAS";
+    }else{
+      r.__block=raw&&raw!=="-"?raw:lastBlock;
+    }
+  });
+
+  if(mode==="email"){
+    return normalized.map(r=>`<tr>
+      <td>${r.__block||"-"}</td>
+      <td>${r["Indicador"]??"-"}</td>
+      <td>${formatDataValue(r["Planejado"],r["Indicador"])}</td>
+      <td>${formatDataValue(r["Realizado"],r["Indicador"])}</td>
+      <td>${String(formatAdvance(r["Avanço"]))}</td>
+    </tr>`).join("");
+  }
+
+  return normalized.map(r=>`<tr>
+    <td>${r.__block||"-"}</td>
+    <td>${r["Indicador"]??"-"}</td>
+    <td>${formatDataValue(r["Planejado"],r["Indicador"])}</td>
+    <td>${formatDataValue(r["Realizado"],r["Indicador"])}</td>
+    <td>${formatPoints(r["Pontos"])}</td>
+    <td>${formatWeight(r["Peso"])}</td>
+    <td>${formatScore(r["Score"])}</td>
+    <td>${String(formatAdvance(r["Avanço"]))}</td>
+    <td>${exportRowDirection(r)}</td>
+    <td>${formatPreviousMonth(r["Mês Anterior"])}</td>
+    <td>${isRowOnTarget(r)?"✓":"! / ×"}</td>
+  </tr>`).join("");
+}
+
+function buildRegionExportHTML(region,type,scope){
+  const sections=COORD_ORDER.filter(coord=>rowsFor(region,coord).length).map(coord=>{
+    const rows=rowsFor(region,coord);
+    const label=coord;
+    const headers=type==="email"
+      ? `<tr><th>Blocos</th><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr>`
+      : `<tr><th>Blocos</th><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Pontos</th><th>Peso</th><th>Score</th><th>Avanço</th><th>Desempenho</th><th>Mês Anterior</th><th>Eficiência</th></tr>`;
+    return `<section class="card-block">
+      <h2>${scope==="cards"?"Cards":"Regional"} · ${region} · ${label}</h2>
+      <table>
+        <thead>${headers}</thead>
+        <tbody>${buildExportTableRows(rows,type)}</tbody>
+      </table>
+    </section>`;
+  }).join("");
+
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Exportação ${region}</title>
+  <style>
+    body{font-family:Segoe UI,Arial,sans-serif;background:#f5f7f7;color:#173c39;padding:24px}
+    h1{margin:0 0 6px;font-size:26px} p{margin:0 0 18px;color:#5f7270}
+    .card-block{background:#fff;border:1px solid #dce7e5;border-radius:10px;padding:14px 14px 10px;margin-bottom:16px}
+    .card-block h2{margin:0 0 10px;font-size:16px}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    thead th{background:#009B91;color:#fff;padding:8px;border:1px solid #dce7e5;text-align:left}
+    tbody td{padding:7px 8px;border:1px solid #dce7e5;vertical-align:top}
+    .advance-badge{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:800}
+    .advance-ok{background:#d9f2ef;color:#00675f;border:1px solid #81cfc7}
+    .advance-bad{background:#fde7e7;color:#c83535;border:1px solid #f3aaaa}
+    .irl{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:800}
+    .irl-seguro{background:#dff5ef;color:#007b72;border:1px solid #a4dcd6}
+    .irl-aceitavel{background:#e7f7f5;color:#278d85;border:1px solid #b9e3df}
+    .irl-toleravel{background:#fff1dc;color:#a5690b;border:1px solid #f3cf95}
+    .irl-critico,.irl-zero{background:#fde6e6;color:#c83f3a;border:1px solid #f3aaaa}
+  </style></head><body>
+  <h1>Exportação ${type==="cards"?"Cards":"Email"}</h1>
+  <p>Regional selecionada: <strong>${region}</strong> · Conteúdo: <strong>${scope==="cards"?"Cards":"Regional"}</strong> · Período: <strong>${CURRENT_PERIOD}</strong></p>
+  ${sections}
+  
+<div class="auth-screen" id="su-auth">
+  <div class="auth-box">
+    <h2>Análise — Superintendência</h2>
+    <p>Entre com seu acesso individual. Novas contas precisam ser aprovadas pelo criador.</p>
+    <form id="su-form"><input type="email" id="su-email" placeholder="E-mail" required autocomplete="username"/>
+    <input type="password" id="su-pass" placeholder="Senha (mínimo 6 caracteres)" required autocomplete="current-password" minlength="6"/>
+    <button type="submit">Entrar</button></form>
+    <button type="button" id="su-cadastrar" style="background:#e8f4f2;color:#005852">Solicitar cadastro</button>
+    <p id="su-msg" aria-live="polite"></p>
+  </div>
+</div>
+<div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
+<script src="./config.js"></script>
+<script type="module" src="./plataforma.js"></script>
+</body></html>`;
+}
+
+function downloadRegionTables(){
+  if(!tableExportRegion || !tableExportType || !tableExportScope)return;
+  const region=tableExportRegion.value;
+  const type=tableExportType.value;
+  const scope=tableExportScope.value;
+  if(!region)return;
+  const html=buildRegionExportHTML(region,type,scope);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${type}_${scope}_${region.replaceAll(' ','_').toLowerCase()}.html`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
+}
+
+function availablePeriods(){
+  return [PREVIOUS_PERIOD,CURRENT_PERIOD];
+}
+
+function periodValueForRow(row,period){
+  if(period===CURRENT_PERIOD)return numericAdvance(row);
+  if(period===PREVIOUS_PERIOD)return previousAdvance(row);
+  return null;
+}
+
+function scoreForPeriod(rows,period){
+  if(period===CURRENT_PERIOD)return totalScore(rows);
+  if(period===PREVIOUS_PERIOD)return historicalScore(rows);
+  return null;
+}
+
+function selectedPeriods(){
+  const periods=availablePeriods();
+  let a=periods.indexOf(evolutionStartMonth.value);
+  let b=periods.indexOf(evolutionEndMonth.value);
+  if(a<0)a=0;
+  if(b<0)b=periods.length-1;
+  if(a>b)[a,b]=[b,a];
+  return periods.slice(a,b+1);
+}
+
+function populateEvolutionFilters(){
+  evolutionRegionMenu.innerHTML="";
+  REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r)).forEach(r=>{
+    const checked=r===regionSelect.value ? "checked" : "";
+    evolutionRegionMenu.insertAdjacentHTML("beforeend", `
+      <label class="region-option">
+        <input type="checkbox" value="${r}" ${checked}>
+        <span>${r}</span>
+      </label>
+    `);
+  });
+  updateRegionToggleLabel();
+
+  const periods=availablePeriods();
+  evolutionStartMonth.innerHTML="";
+  evolutionEndMonth.innerHTML="";
+  periods.forEach((p,i)=>{
+    const a=document.createElement("option");a.value=p;a.textContent=p;if(i===0)a.selected=true;evolutionStartMonth.appendChild(a);
+    const b=document.createElement("option");b.value=p;b.textContent=p;if(i===periods.length-1)b.selected=true;evolutionEndMonth.appendChild(b);
+  });
+  updateEvolutionAll();
+}
+
+function updateEvolutionAll(){
+  const regions=selectedEvolutionRegions();
+  updateRegionToggleLabel();
+  const periods=selectedPeriods();
+
+  // Nota da Gerência = média das notas das coordenações (mesma regra do card).
+  const managerScoreForPeriod=(region,period)=>{
+    const vals=COORD_ORDER.filter(c=>c!=="Gerência")
+      .map(c=>rowsFor(region,c)).filter(rows=>rows.length)
+      .map(rows=>scoreForPeriod(rows,period)).filter(Number.isFinite);
+    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+  };
+  const managerSeries=regions.map(region=>({
+    name:region,
+    points:periods.map(period=>({label:period,value:managerScoreForPeriod(region,period)}))
+  }));
+  managerEvolutionChart.innerHTML=multiSeriesBarChart(managerSeries,"score");
+
+  coordEvolutionCharts.innerHTML=COORD_ORDER.filter(c=>c!=="Gerência").map(coord=>{
+    const series=regions.map(region=>({
+      name:region,
+      points:periods.map(period=>({label:period,value:scoreForPeriod(rowsFor(region,coord),period)}))
+    })).filter(s=>s.points.some(p=>Number.isFinite(p.value)));
+    if(!series.length)return "";
+    const coordLabel=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
+    return `<div class="chart-box">${sectionHeadingHTML(coord,coordLabel)}${multiSeriesBarChart(series,"score")}</div>`;
+  }).join("");
+
+  indicatorEvolutionSections.innerHTML=COORD_ORDER.map(coord=>{
+    const indicators=[...new Set(DATA.filter(r=>r["Coordenação"]===coord).map(r=>String(r["Indicador"]??"").trim()).filter(Boolean))];
+    if(!indicators.length)return "";
+    const charts=indicators.map(ind=>{
+      const series=regions.map(region=>{
+        const row=DATA.find(r=>r["Região"]===region&&r["Coordenação"]===coord&&r["Indicador"]===ind);
+        if(!row)return null;
+        return {name:region,points:periods.map(period=>({label:period,value:periodValueForRow(row,period)}))};
+      }).filter(Boolean).filter(s=>s.points.some(p=>Number.isFinite(p.value)));
+      if(!series.length)return "";
+      return `<div class="chart-box"><h3 class="chart-title">${ind}</h3>${multiSeriesBarChart(series,"percent")}</div>`;
+    }).join("");
+    if(!charts)return "";
+    const label=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
+    return `<section class="sector-subsection">${sectionHeadingHTML(coord,label)}<div class="comparison-grid">${charts}</div></section>`;
+  }).join("");
+}
+
+
+
+function setupChartTooltips(){
+  const tooltip=document.getElementById("chartTooltip");
+  if(!tooltip)return;
+
+  document.addEventListener("mousemove",event=>{
+    const mark=event.target.closest?.(".chart-mark");
+    if(!mark){
+      tooltip.style.display="none";
+      return;
+    }
+
+    const text=mark.getAttribute("data-tooltip");
+    if(!text){
+      tooltip.style.display="none";
+      return;
+    }
+
+    tooltip.textContent=text;
+    tooltip.style.display="block";
+
+    const gap=14;
+    const rect=tooltip.getBoundingClientRect();
+    let left=event.clientX+gap;
+    let top=event.clientY+gap;
+
+    if(left+rect.width>window.innerWidth-8)left=event.clientX-rect.width-gap;
+    if(top+rect.height>window.innerHeight-8)top=event.clientY-rect.height-gap;
+
+    tooltip.style.left=`${Math.max(8,left)}px`;
+    tooltip.style.top=`${Math.max(8,top)}px`;
+  });
+
+  document.addEventListener("mouseleave",()=>{tooltip.style.display="none";});
+}
+
+setupChartTooltips();
+
+function confWeight(v){
+  const n=number(v);
+  if(n===null)return "-";
+  return (n*100).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:1})+"%";
+}
+
+function confEsc(v){
+  return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+}
+
+function confFormatCalc(row){
+  const v=row["Cálculo Valor"];
+  const formula=row["Cálculo Fórmula"]||"";
+  const n=number(v);
+  let txt;
+  if(n===null) txt=(v===null||v===undefined||v==="")?"-":confEsc(v);
+  else if(row["Critério"]==="IRL") txt=n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:3});
+  else txt=(n*100).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+  return `<span class="conf-calc-val">${txt}</span><span class="conf-calc-formula">${confEsc(formula)}</span>`;
+}
+
+function confFormatRanges(row){
+  const faixas=CONF_FAIXAS[row["Critério"]];
+  if(!faixas)return '<span class="conf-nocrit">sem critério definido</span>';
+  const pts=number(row["Pontos"]);
+  return `<div class="conf-ranges">${faixas.map(([label,p])=>{
+    const hit=pts!==null&&Math.abs(pts-p)<1e-9;
+    return `<span class="conf-range${hit?" hit":""}${hit&&p===0?" zero":""}">${confEsc(label)} → ${formatNumber(p,2)}</span>`;
+  }).join("")}</div>`;
+}
+
+function confCoordCard(region,coord){
+  const rows=rowsFor(region,coord);
+  if(!rows.length)return "";
+  let somaMax=0,somaScore=0,semPeso=0;
+  const body=rows.map(row=>{
+    const peso=number(row["Peso"]);
+    const score=number(row["Score"]);
+    const max=peso===null?null:peso*10;
+    if(max===null)semPeso++; else somaMax+=max;
+    somaScore+=score||0;
+    return `<tr>
+      <td>${confEsc(row["Indicador"])}</td>
+      <td class="num">${confWeight(peso)}</td>
+      <td class="num">${formatDataValue(row["Planejado"],row["Indicador"])}</td>
+      <td class="num">${formatDataValue(row["Realizado"],row["Indicador"])}</td>
+      <td class="num">${row["Critério"]?confFormatCalc(row):formatAdvance(row["Avanço"])}</td>
+      <td>${confFormatRanges(row)}</td>
+      <td class="num">${formatNumber(row["Pontos"],2)}</td>
+      <td class="num">${formatScore(max)}</td>
+      <td class="num"><b>${formatScore(score)}</b></td>
+    </tr>`;
+  }).join("");
+  const nota=somaScore;
+  const maxOk=Math.abs(somaMax-10)<1e-6 && !semPeso;
+  const obs=[];
+  if(Math.abs(somaMax-10)>=1e-6)
+    obs.push(`a soma dos scores máximos é ${formatScore(somaMax)}, e não 10`);
+  if(semPeso)
+    obs.push(`${semPeso} indicador(es) sem peso definido`);
+  const aviso=obs.length
+    ?`<div class="conf-warn"><b>Ponto de observação:</b> ${obs.join("; ")}.</div>`:"";
+  return `<div class="conf-card">
+    <div class="conf-card-head">
+      <h3>${confEsc(coord)}</h3>
+      <span class="conf-note-pill${nota<8.5?" low":""}">Nota ${formatScore(nota)} de ${formatScore(somaMax)}</span>
+    </div>
+    ${aviso}
+    <div class="conf-table-wrap"><table class="conf-table">
+      <thead><tr>
+        <th>Indicador</th><th class="num">Peso</th><th class="num">Planejado</th><th class="num">Realizado</th>
+        <th class="num">Cálculo</th><th>Faixas de pontos</th><th class="num">Pontos</th><th class="num">Score máximo</th><th class="num">Score obtido</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr>
+        <td>Total</td><td class="num">${confWeight(somaMax/10)}</td><td></td><td></td><td></td><td></td><td></td>
+        <td class="num ${maxOk?"":"conf-diff"}">${formatScore(somaMax)}</td>
+        <td class="num">${formatScore(somaScore)}</td>
+      </tr></tfoot>
+    </table></div>
+  </div>`;
+}
+
+function confRegionBlock(region){
+  const coords=COORD_ORDER.filter(c=>c!=="Gerência");
+  const cards=coords.map(c=>confCoordCard(region,c)).join("");
+  if(!cards)return "";
+  const notas=coords.map(c=>rowsFor(region,c)).filter(r=>r.length)
+    .map(rows=>rows.reduce((a,r)=>a+(number(r["Score"])||0),0));
+  const media=notas.length?notas.reduce((a,b)=>a+b,0)/notas.length:null;
+  return `<div class="conf-region-title">${confEsc(region)} — Nota da Gerência (média das coordenações): ${formatScore(media)}</div>`+cards;
+}
+
+const confRegion=document.getElementById("confRegion");
+function populateConfRegions(){
+  if(!confRegion||confRegion.options.length)return;
+  const todas=document.createElement("option");
+  todas.value="__ALL__";todas.textContent="Todas as regiões";
+  confRegion.appendChild(todas);
+  REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r)).forEach(r=>{
+    const o=document.createElement("option");o.value=r;o.textContent=r;confRegion.appendChild(o);
+  });
+  confRegion.value=regionSelect.value||"__ALL__";
+  confRegion.addEventListener("change",renderConference);
+}
+
+function renderConference(){
+  populateConfRegions();
+  const el=document.getElementById("confContent");
+  if(!el)return;
+  const regions=confRegion.value==="__ALL__"
+    ?REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r))
+    :[confRegion.value];
+  el.innerHTML=regions.map(r=>confRegionBlock(r)).join("")||"<p>Sem dados.</p>";
+}
+
+function switchView(view){
+  // O HTML gerado nesta versão não incorpora o gerenciador de perfis.
+  // Não referenciar CURRENT_ACCESS_PROFILE sem ele estar definido.
+  if(typeof CURRENT_ACCESS_PROFILE!=="undefined" && CURRENT_ACCESS_PROFILE && String(CURRENT_ACCESS_PROFILE.perfil||"").toUpperCase()==="OPERACIONAL" && view!=="tables") view="tables";
+  document.querySelectorAll(".view-section").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+
+  document.getElementById(`view-${view}`).classList.add("active");
+  document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add("active");
+
+  if(view==="tables"){
+    renderAllRegionTables();
+  }
+
+  if(view==="comparison"){
+    renderComparisonAll();
+  }
+
+  if(view==="conference"){
+    renderConference();
+  }
+
+  if(view==="evolution"){
+    if(!evolutionRegionMenu.children.length){
+      populateEvolutionFilters();
+    }else{
+      updateEvolutionAll();
+    }
+  }
+}
+
+function render(region){
+  renderRankings(region);
+  renderAllCoordinationRanking(region);
+  renderManager(region);
+  renderCoords(region);
+}
+
+REGION_ORDER
+  .filter(r=>DATA.some(x=>x["Região"]===r))
+  .forEach(r=>{
+    const o=document.createElement("option");
+    o.value=r;
+    o.textContent=r;
+    regionSelect.appendChild(o);
+  });
+
+regionSelect.addEventListener("change",()=>{
+  detailArea.classList.remove("open");
+  detailToggle.innerHTML="Ver detalhes das coordenações&nbsp;&nbsp;→";
+  render(regionSelect.value);
+  if(tableExportRegion)tableExportRegion.value=regionSelect.value;
+
+  if(evolutionRegionMenu.children.length){
+    [...evolutionRegionMenu.querySelectorAll('input[type="checkbox"]')].forEach(o=>o.checked=(o.value===regionSelect.value));
+    updateRegionToggleLabel();
+    updateEvolutionAll();
+  }
+});
+
+evolutionRegionToggle.addEventListener("click",()=>{
+  evolutionRegionMenu.classList.toggle("open");
+});
+
+document.addEventListener("click",event=>{
+  if(!event.target.closest(".region-dropdown")){
+    evolutionRegionMenu.classList.remove("open");
+  }
+});
+
+evolutionRegionMenu.addEventListener("change",()=>{
+  updateRegionToggleLabel();
+  updateEvolutionAll();
+});
+
+evolutionStartMonth.addEventListener("change",updateEvolutionAll);
+evolutionEndMonth.addEventListener("change",updateEvolutionAll);
+if(tableExportButton)tableExportButton.addEventListener("click",downloadRegionTables);
+
+document.querySelectorAll(".nav-item[data-view]").forEach(item=>{
+  item.addEventListener("click",()=>switchView(item.dataset.view));
+});
+
+const execJustModalClose=document.getElementById("execJustModalClose");
+const execJustModalBg=document.getElementById("execJustModalBg");
+const execJustModalFooterClose=document.getElementById("execJustModalFooterClose");
+function execCloseJustModal(){
+  if(execJustModalBg)execJustModalBg.classList.remove("open");
+}
+if(execJustModalClose)execJustModalClose.addEventListener("click",execCloseJustModal);
+if(execJustModalFooterClose)execJustModalFooterClose.addEventListener("click",execCloseJustModal);
+if(execJustModalBg)execJustModalBg.addEventListener("click",e=>{if(e.target===execJustModalBg)execCloseJustModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&execJustModalBg?.classList.contains("open"))execCloseJustModal()});
+const execPptButton=document.getElementById("exportButton");
+if(execPptButton)execPptButton.addEventListener("click",()=>alert("A geração do PowerPoint será implementada posteriormente pelo botão, conforme definido."));
+
+detailToggle.addEventListener("click",()=>{
+  detailArea.classList.toggle("open");
+
+  detailToggle.innerHTML=
+    detailArea.classList.contains("open")
+    ?"Ocultar detalhes&nbsp;&nbsp;↑"
+    :"Ver detalhes das coordenações&nbsp;&nbsp;→";
+});
+
+function inicializarPainel(){
+  populateTableExportRegions();
+  if(regionSelect.options.length){
+    regionSelect.value=regionSelect.options[0].value;
+    if(tableExportRegion && tableExportRegion.options.length) tableExportRegion.value=regionSelect.value;
+    render(regionSelect.value);
+    renderComparisonAll();
+    populateEvolutionFilters();
+  }
+}
+
+// A versão anterior declarava esta função, mas nunca a executava:
+// o layout carregava sem dados e sem ativar as interações.
+inicializarPainel();
+
+
+window.__CARREGAR_DADOS_SEGUROS = function(rows, scope){
+  DATA = rows;
+  // Somente regiões com linhas autorizadas podem entrar nos filtros.
+  regionSelect.innerHTML = '';
+  const allowed = new Set(rows.map(x => x['Região']));
+  REGION_ORDER.filter(r => allowed.has(r)).forEach(r => {
+    const op = document.createElement('option'); op.value=r; op.textContent=r; regionSelect.appendChild(op);
+  });
+  if(scope !== 'criador' && scope !== 'superint'){
+    document.querySelectorAll('#rankingOverview,#miniRankings').forEach(el=>{
+      const section=el.closest('.ranking-section');
+      if(section)section.style.display='none';
+      else el.style.display='none';
+    });
+  }
+  inicializarPainel();
+};
+</script>
+
+
+
+<div id="chartTooltip" class="chart-tooltip"></div>
+</body>
+</html>
