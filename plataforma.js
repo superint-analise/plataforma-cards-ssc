@@ -289,6 +289,10 @@ $('su-solicitacao').addEventListener('submit',async e=>{
     ]);
     if(response.error) {
       const reason=String(response.error.message||'');
+      if(response.error.status===429 || /email rate limit|over_email_send_rate_limit|rate limit exceeded/i.test(reason)){
+        msg.textContent='Limite temporário de e-mails de confirmação do Supabase atingido. Não reenvie a solicitação agora. Se já possui conta, volte à tela de login e clique em Entrar; caso contrário, tente cadastrar mais tarde.';
+        return;
+      }
       if(/already registered|already exists|user already/i.test(reason)){
         msg.textContent='Este e-mail já possui cadastro. Clique em Voltar ao login e utilize Entrar. Se necessário, recupere sua senha.';
         return;
