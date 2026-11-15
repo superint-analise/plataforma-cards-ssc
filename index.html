@@ -1671,26 +1671,560 @@ body.access-operacional #view-general,body.access-operacional #view-comparison,b
 .conf-same{color:var(--muted)}
 .conf-nocrit{color:var(--muted);font-style:italic}
 .conf-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 0 4px}
+
+/* ==========================================================
+   V40 — CAMADA VISUAL PROFISSIONAL (protótipo)
+   Somente CSS. Mantém as cores da marca; remove gradientes,
+   unifica tipografia, espaçamento e cores semânticas.
+   ========================================================== */
+:root{
+  --ink:#16302C;          /* texto principal            */
+  --ink-2:#435752;        /* texto secundário           */
+  --muted:#6B7D79;        /* legendas                   */
+  --line:#E1E9E7;         /* bordas                     */
+  --line-2:#EDF2F1;       /* divisórias internas        */
+  --canvas:#F3F6F5;       /* fundo da página            */
+  --tint:#EAF5F3;         /* realce verde suave         */
+  --warn-bg:#FDF1DF;      /* fora da meta (fundo)       */
+  --warn-ink:#9A5800;     /* fora da meta (texto)       */
+  --bad:#C4453D;          /* uso restrito: ❌ e crítico  */
+  --r:10px;
+}
+
+body{
+  background:var(--canvas)!important;
+  font-size:13px;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+td,.kpi-value,.rank-score,.coord-score,.exec-label,.exec-general-values strong,
+.exec-kpi-copy strong,.table-total-score strong,.conf-table td{font-variant-numeric:tabular-nums}
+
+/* ---------- Menu lateral ---------- */
+.sidebar{background:#005852!important;box-shadow:none}
+.side-brand{min-height:72px;padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.10)}
+.brand-copy strong{font-size:15px;font-weight:700;letter-spacing:-.1px}
+.brand-copy small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.62);margin-top:6px}
+.side-nav{margin-top:12px;padding:0 10px}
+.nav-item{height:40px;padding:0 12px;margin:2px 0;gap:12px;border-left:0;border-radius:8px;font-size:13.5px;color:rgba(255,255,255,.80)}
+.nav-item:hover{background:rgba(255,255,255,.06)}
+.nav-item.active{background:rgba(255,255,255,.12);box-shadow:inset 3px 0 0 #F5AA41;font-weight:600;color:#fff}
+.nav-icon svg{width:18px;height:18px;stroke-width:2}
+.side-message{display:none}
+
+/* ---------- Barra superior ---------- */
+.topbar{height:56px;padding:0 32px;background:#fff;border-bottom:1px solid var(--line);justify-content:flex-end}
+.welcome,.bell,.user-box{display:none!important}
+.export-button{height:34px;padding:0 14px;border-radius:8px;font-size:12.5px;font-weight:600;border-color:#CFDDDA;box-shadow:none}
+#onepageButton{background:#005852;border-color:#005852;color:#fff}
+#onepageButton:hover{background:#009B91;border-color:#009B91}
+
+/* ---------- Cabeçalho das páginas ---------- */
+.main{padding:28px 32px 48px}
+.page-head{margin-bottom:22px;gap:28px}
+.page-title h1{font-size:24px;font-weight:700;letter-spacing:-.4px;color:var(--ink)}
+.page-title p,.conf-intro{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.45}
+.filter label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.filter select{height:36px;border-radius:8px;border-color:#D3DEDB;font-size:13px;color:var(--ink)}
+
+/* ---------- Cartões e títulos de seção ---------- */
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(16,48,44,.04)}
+.ranking-section,.coord-section,.chart-section{padding:20px 22px}
+.ranking-section h2,.chart-section h2,.coord-head h2,.manager-title h2{font-size:17px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
+.section-subtitle,.coord-head p,.manager-title p{font-size:12.5px;color:var(--muted);margin-top:4px}
+.section-subtitle{margin-bottom:16px}
+
+/* ---------- Tabelas (padrão único) ---------- */
+.table-wrap,.ranking-main{border:1px solid var(--line);border-radius:var(--r);overflow:auto}
+thead th,.ranking-main thead th{
+  height:38px;background:#005852!important;border-right:0;border-bottom:0;
+  font-size:10.5px;font-weight:700;letter-spacing:.05em;color:#fff
+}
+tbody td{height:40px;font-size:12.5px;color:var(--ink-2);border-right:0;border-bottom:1px solid var(--line-2)}
+tbody tr:hover td{background:#F8FBFA}
+.block-label{
+  background:#009B91!important;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  border-right:1px solid rgba(255,255,255,.25)!important;border-bottom:1px solid rgba(255,255,255,.25)!important
+}
+.indicator-name{font-weight:600;color:var(--ink);font-size:12px}
+.planned-cell{background:#F7F9F9;color:var(--ink-2);font-weight:500}
+.point-cell,.weight-cell,.score-cell{background:var(--tint);color:#005852;font-weight:700}
+
+.advance-badge,.irl{height:22px;min-width:54px;border-radius:6px;border:0!important;font-size:11.5px;font-weight:700}
+.irl{font-size:10.5px;letter-spacing:.03em}
+.advance-ok{background:var(--tint);color:#00675F}
+.advance-bad{background:var(--warn-bg);color:var(--warn-ink)}
+.irl-seguro,.irl-aceitavel{background:var(--tint);color:#00675F}
+.irl-toleravel{background:var(--warn-bg);color:var(--warn-ink)}
+.irl-critico,.irl-zero{background:#FBE7E5;color:var(--bad)}
+
+.performance.down{color:#E0912A}
+.performance.equal{color:#9AA7A4}
+.eff{width:20px;height:20px;font-size:12px}
+.eff.bad{background:var(--bad)}
+
+.table-card-head{margin-bottom:10px}
+.table-total-score{background:#fff;border:1px solid var(--line);box-shadow:none;border-radius:8px;padding:6px 6px 6px 12px;font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.table-total-score::before{content:none}
+.table-total-score strong{min-width:52px;height:28px;border-radius:6px;background:#005852;font-size:16px;font-weight:700}
+.toggle-calc,#view-tables .table-just-toolbar .toggle-just-management{
+  border:1px solid #D3DEDB!important;background:#fff!important;color:#005852!important;
+  border-radius:7px;padding:6px 11px;font-size:11.5px!important;font-weight:600!important
+}
+.toggle-calc:hover,#view-tables .table-just-toolbar .toggle-just-management:hover{background:var(--tint)!important}
+
+/* ---------- Rankings ---------- */
+.ranking-main tbody tr.rank-1 td,.ranking-main tbody tr.rank-2 td,.ranking-main tbody tr.rank-3 td{background:#fff}
+.ranking-main tr.selected-region td,.mini-ranking tr.selected-region td{background:#EEF8F6!important;color:var(--ink);font-weight:700}
+.ranking-main tr.selected-region,.mini-ranking tr.selected-region{box-shadow:inset 3px 0 0 #009B91}
+.rank-icon{width:24px;height:24px;filter:none}
+.rank-number{min-width:24px;height:24px;padding:0 6px;font-size:11px;font-weight:700;background:#EEF2F1;color:var(--ink-2)}
+.rank-score{font-size:13px;font-weight:700;color:var(--ink)}
+.mini-rankings{gap:14px;margin-top:16px}
+.mini-ranking{border-radius:var(--r);box-shadow:none;border-color:var(--line)}
+.mini-ranking h3{min-height:50px;padding:10px 12px;border-bottom:1px solid var(--line-2)}
+.coord-rank-icon{width:28px;height:28px;border-radius:7px;background:var(--tint);color:#005852}
+.coord-rank-copy strong{font-size:12.5px;font-weight:700;color:var(--ink)}
+.coord-rank-copy small{font-size:10.5px;color:var(--muted)}
+.mini-ranking tbody td{height:36px;font-size:12px}
+
+/* ---------- Resumo da Gerência e Coordenações ---------- */
+.manager-card{padding:20px 22px}
+.manager-head{padding:0 0 16px}
+.kpi-card{min-height:84px;border-radius:var(--r);background:#fff;border-color:var(--line)}
+.kpi-copy small{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kpi-value{font-size:26px;font-weight:700;color:var(--ink);margin-top:3px}
+.kpi-sub{font-size:11.5px;color:var(--muted)}
+.coord-section{margin-top:18px}
+.coord-grid{gap:14px}
+.coord-card{min-height:0;padding:16px;border-radius:var(--r);background:#fff;border-color:var(--line)}
+.coord-name{font-size:12.5px;font-weight:700;color:var(--ink)}
+.coord-main{margin-top:12px;grid-template-columns:1fr}
+.coord-score{font-size:28px;font-weight:700;color:var(--ink)}
+.spark,.coord-foot .pill{display:none}           /* sparkline é ilustrativa (fakeSpark) */
+.coord-foot{margin-top:2px}
+.coord-foot small{font-size:11px;color:var(--muted)}
+.detail-link{font-size:12.5px;font-weight:600}
+
+/* ---------- Página Tabelas ---------- */
+.table-export-toolbar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:22px}
+.table-export-action button{height:36px;background:#005852;border-color:#005852;color:#fff;font-size:12.5px;font-weight:600}
+.table-export-action button:hover{background:#009B91}
+.region-boundary{border-radius:var(--r);font-size:11.5px;letter-spacing:.08em;font-weight:700}
+.region-boundary.start{background:#005852;border-left:4px solid #F5AA41;padding:12px 16px;margin:26px 0 12px}
+.region-boundary.end{background:transparent;border:0;border-top:1px dashed #C6D4D1;border-radius:0;color:#8C9C99;font-size:10.5px;padding:8px 2px 0;margin:6px 0 30px}
+.all-tables-card{padding:18px 20px}
+.region-table-title{background:transparent;border:0;padding:0 0 10px;margin:0;font-size:14px;font-weight:700;color:var(--ink)}
+.table-just-badge{border:0!important;border-radius:6px;font-size:11px;font-weight:700;padding:4px 9px}
+.table-just-badge.pending{background:var(--warn-bg);color:var(--warn-ink)}
+.table-just-badge.saved{background:var(--tint);color:#00675F}
+.table-just-snippet{font-size:11.5px}
+
+/* ---------- Comparação ---------- */
+.comparison-period-pill{justify-self:end;align-self:end;font-size:12px;font-weight:700;border-radius:8px;padding:8px 14px;border-color:var(--line)}
+.exec-summary{gap:12px;margin-bottom:12px}
+.exec-kpi{border-radius:var(--r);box-shadow:none;border-color:var(--line);padding:12px 14px}
+.exec-kpi-copy small{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.exec-kpi-copy strong{font-size:22px;font-weight:700;color:var(--ink)}
+.exec-kpi-rate{font-size:13px}
+.exec-legend{font-size:11.5px;font-weight:500;color:var(--ink-2);margin-bottom:14px}
+.executive-comparison-view .exec-block{border-radius:12px;border-color:var(--line);box-shadow:0 1px 2px rgba(16,48,44,.04)}
+.executive-comparison-view .exec-block-head{min-height:46px;background:#005852;padding:0 14px}
+.exec-block-icon{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.14);font-size:13px}
+.exec-block-title{font-size:14.5px;font-weight:700}
+.exec-block-just-link{font-size:11px;font-weight:600;opacity:.85}
+.executive-comparison-view .exec-block-body{padding:16px}
+.executive-comparison-view .exec-indicator-title{font-size:13px;font-weight:700;color:var(--ink)}
+.executive-comparison-view .exec-general{background:#F6FAF9;border-color:var(--line)}
+.executive-comparison-view .exec-general-label{font-size:10.5px;letter-spacing:.06em;color:var(--muted)}
+.executive-comparison-view .exec-general-values small{font-size:10.5px;color:var(--muted)}
+.executive-comparison-view .exec-general-values strong{font-size:16px;font-weight:700}
+.executive-comparison-view .exec-general-status{font-size:11px}
+.executive-comparison-view .exec-general-delta{font-size:11.5px}
+.executive-comparison-view .exec-tolerance-rule{font-size:10.5px}
+.executive-comparison-view .exec-axis-note{font-size:10px;color:#8A9A97}
+.executive-comparison-view .exec-vplot{background:none}
+.executive-comparison-view .exec-vbar.met{background:#009B91!important}
+.executive-comparison-view .exec-vbar.missed{background:#F5AA41!important}
+.executive-comparison-view .exec-vbar{border-radius:4px 4px 0 0}
+.executive-comparison-view .exec-label.real{font-size:10.5px!important;padding:2px 5px}
+.executive-comparison-view .exec-label.meta{font-size:9.5px!important}
+.executive-comparison-view .exec-label.meta b{font-size:8.5px!important}
+.executive-comparison-view .exec-vregion{font-size:11px;color:var(--ink-2);font-weight:600}
+.executive-comparison-view .exec-region-delta{font-size:10.5px}
+.executive-comparison-view .exec-irl-mini strong{font-size:12.5px}
+.executive-comparison-view .exec-irl-mini span{font-size:10.5px;color:var(--muted)}
+.executive-comparison-view .exec-irl-class{font-size:10px;border-radius:6px}
+.executive-comparison-view .exec-irl-general-class{font-size:11.5px}
+.executive-comparison-view .exec-justifications{background:#FBF7F0;border:0;border-left:3px solid #F5AA41;border-radius:6px}
+.executive-comparison-view .exec-just-title{font-size:11px}
+.executive-comparison-view .exec-just-line{font-size:11px}
+.exec-modal-head{background:#005852}
+.exec-modal-head h3{font-size:14px}
+.exec-just-editor h4{font-size:12.5px}
+.exec-just-editor small,.exec-charcount{font-size:11px}
+.exec-just-editor textarea{font-size:12.5px}
+
+/* ---------- Evolução Temporal ---------- */
+.region-dropdown{position:relative}
+.region-toggle{
+  width:100%;height:36px;padding:0 34px 0 12px;text-align:left;cursor:pointer;
+  border:1px solid #D3DEDB;border-radius:8px;background:#fff;color:var(--ink);font-size:13px;position:relative
+}
+.region-toggle::after{content:"";position:absolute;right:13px;top:13px;width:7px;height:7px;border-right:2px solid #5E706C;border-bottom:2px solid #5E706C;transform:rotate(45deg)}
+.region-menu{
+  display:none;position:absolute;left:0;right:0;top:62px;z-index:60;padding:6px;
+  background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(16,48,44,.12)
+}
+.region-menu.open{display:block}
+.region-option{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--ink)}
+.region-option:hover{background:var(--tint)}
+.region-option input{accent-color:#009B91;margin:0}
+.filter-hint{font-size:11px;color:var(--muted);margin-top:6px}
+.chart-box{border-color:var(--line);border-radius:var(--r);padding:14px 16px 10px}
+.chart-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.chart-legend{font-size:12px;color:var(--ink-2)}
+.legend-swatch{border-radius:3px}
+.section-heading{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
+.section-heading-text strong{display:block;font-size:14px;font-weight:700;color:var(--ink)}
+.section-heading-text small{display:block;font-size:11.5px;color:var(--muted)}
+.sector-subsection{margin-top:26px;padding-top:0}
+
+/* ---------- Conferência ---------- */
+.conf-legend{font-size:12px;color:var(--ink-2)}
+.conf-region-title{font-size:17px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line)}
+.conf-card{border-color:var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(16,48,44,.04)}
+.conf-card-head{background:#fff;border-bottom:1px solid var(--line);padding:14px 18px}
+.conf-card-head h3{font-size:15px;font-weight:700;color:var(--ink)}
+.conf-note-pill{font-size:13px;font-weight:700;border-radius:8px;padding:5px 12px;background:#005852}
+.conf-note-pill.low{background:#F5AA41;color:#3D2600}
+.conf-table th{background:#005852!important;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#fff;border-bottom:0}
+.conf-table td{font-size:12.5px;color:var(--ink-2)}
+.conf-range{font-size:11px;border-radius:5px}
+.conf-range.hit{background:#009B91;border-color:#009B91}
+.conf-range.hit.zero{background:var(--warn-bg);border-color:#F1C78A;color:var(--warn-ink)}
+.conf-warn{background:var(--warn-bg);color:var(--warn-ink);border-bottom-color:#F3D9B0}
+/* ajustes de densidade */
+thead th,tbody td{padding:0 9px}
+.indicator-name{font-size:11.5px}
+tbody td{font-size:12px}
+.evolution-filter-grid{align-items:start}
+.table-wrap table{min-width:1000px}
+.main{padding:28px 28px 48px}
+.all-tables-card,.manager-card{padding:16px 18px}
+.conf-range{padding:2px 5px}
+.indicator-name{white-space:normal;line-height:1.3;min-width:200px;padding-top:6px!important;padding-bottom:6px!important}
+thead th{letter-spacing:.03em}
+.conf-table td:first-child{white-space:normal;min-width:180px}
+
+/* ==========================================================
+   V41 — cartões e gráficos (sobre a camada V40)
+   ========================================================== */
+/* ---- Nota da gerência (destaque) ---- */
+.region-hero{margin-bottom:16px}
+.v41-hero{position:relative;overflow:hidden;border-radius:16px;padding:24px 26px;color:#fff;
+  display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.6fr);gap:22px 28px;
+  background:linear-gradient(135deg,#0B3B37 0%,#005852 58%,#00736A 100%);box-shadow:0 6px 22px rgba(11,59,55,.18)}
+.v41-hero::after{content:"";position:absolute;right:-80px;top:-120px;width:320px;height:320px;border-radius:50%;border:44px solid rgba(255,255,255,.045);pointer-events:none}
+.v41-hero>*{position:relative;z-index:1}
+.v41-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.v41-region{font-size:34px;font-weight:800;letter-spacing:-.6px;line-height:1.05;margin-top:6px;display:flex;align-items:center;gap:10px}
+.v41-region::before{content:"";width:6px;height:30px;border-radius:3px;background:#F5AA41}
+.v41-big{display:flex;align-items:baseline;gap:8px;margin-top:14px}
+.v41-big b{font-size:60px;font-weight:700;line-height:.95;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.v41-big small{font-size:13px;font-weight:600;color:rgba(255,255,255,.6)}
+.v41-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-content:center}
+.v41-k{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;min-height:96px}
+.v41-k small{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.v41-k b{display:block;font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.v41-k b i{font-style:normal;font-size:13px;color:rgba(255,255,255,.6);font-weight:600}
+.v41-k span{display:block;font-size:11px;color:rgba(255,255,255,.66);margin-top:3px;line-height:1.3}
+.v41-k.down b{color:#FFC978}.v41-k.up b{color:#7EE3D9}
+.v41-k.warn{background:rgba(245,170,65,.16);border-color:rgba(245,170,65,.45)}.v41-k.warn b{color:#FFC978}
+.v41-k.good{background:rgba(47,193,182,.14);border-color:rgba(47,193,182,.4)}
+.v41-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-content:start;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.v41-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:10px;padding:10px 12px}
+.v41-stat small{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.v41-stat b{display:block;font-size:22px;margin-top:2px;font-variant-numeric:tabular-nums}
+.v41-stat b i{font-style:normal;font-size:12px;color:rgba(255,255,255,.6);font-weight:600}
+.v41-mix{grid-column:1/-1;display:flex;height:6px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.12);margin-top:4px}
+.v41-mix i{display:block}
+.v41-mix-l{grid-column:1/-1;font-size:11.5px;color:rgba(255,255,255,.74)}
+.v41-impacts{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px}
+.v41-imp-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.v41-imp-h span{font-size:11.5px;font-weight:700;color:#FFD18F}
+.v41-imp-note{font-size:10.5px;color:rgba(255,255,255,.58);margin-top:6px;line-height:1.35}
+.v41-impacts ul{list-style:none;margin-top:6px}
+.v41-impacts li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.v41-impacts li:last-child{border-bottom:0}
+.v41-impacts li span{font-size:12px;font-weight:600;line-height:1.3}
+.v41-impacts li span small{display:block;font-size:10.5px;font-weight:500;color:rgba(255,255,255,.62);margin-top:1px}
+.v41-impacts li b{font-size:15px;color:#FFD18F;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.v41-impacts li b small{display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.6)}
+.v41-impacts .none{font-size:12px;color:rgba(255,255,255,.7);padding:8px 0}
+.manager-card .kpi-row{display:none}
+.manager-card .manager-head{padding-bottom:10px}
+
+/* ---- Cartões das coordenações ---- */
+.coord-card.v41-coord{display:flex;flex-direction:column;gap:0;cursor:default}
+.v41-score-row{display:flex;align-items:baseline;gap:10px;margin-top:12px}
+.v41-score-row .coord-score{font-size:30px}
+.v41-delta{font-size:12px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.v41-delta small{font-weight:500;color:var(--muted)}
+.v41-delta.up{color:#009B91}.v41-delta.down{color:#B86A00}.v41-delta.flat{color:#9AA7A4}
+.v41-prog{position:relative;height:6px;border-radius:99px;background:#EDF2F1;margin-top:10px}
+.v41-prog i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#F5AA41}
+.v41-prog i.ok{background:#009B91}
+.v41-prog u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#14302C;opacity:.35}
+.v41-foot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+.v41-foot span:last-child{white-space:nowrap}
+.v41-foot b{color:#B86A00}
+
+/* ---- Indicadores do Mês: cabeçalho das tabelas ---- */
+.v41-thead{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.v41-ic{width:34px;height:34px;border-radius:9px;background:#EAF5F3;color:#005852;display:grid;place-items:center;flex:none}
+.v41-ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.v41-thead-t strong{display:block;font-size:14.5px;font-weight:700;color:var(--ink)}
+.v41-thead-t small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.v41-thead-r{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v41-pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.v41-pill.ok{background:#EAF5F3;color:#00675F}
+.v41-pill.part{background:#FFF3D6;color:#8A5C05}
+.v41-pill.bad{background:#FDEBD0;color:#8A4E00}
+.v41-pill.just{background:#fff;border:1px solid #F1C78A;color:#9A5800}
+
+/* ---- Comparação: resumo ---- */
+.exec-summary.v41-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:none;margin-left:0;margin-bottom:12px}
+.v41-kpi{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 1px 2px rgba(16,48,44,.04)}
+.v41-kpi small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.v41-kpi b{display:block;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+.v41-kpi b i{font-style:normal;font-size:12px;color:var(--muted);font-weight:600}
+.v41-sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.v41-sw.ok{background:#009B91}.v41-sw.part{background:#E9A33A}.v41-sw.bad{background:#F5AA41}
+.v41-sw.mid{width:2px;height:12px;border-radius:0;background:#14302C;vertical-align:-2px}
+
+/* ---- Comparação: indicador ---- */
+.executive-comparison-view .exec-indicator.v41-ind{display:block;align-self:start}
+.v41-ind-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.v41-gen{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center;background:#F6FAF9;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.v41-gen-k{display:flex;align-items:baseline;gap:8px;grid-row:span 2}
+.v41-gen-k small{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);align-self:center}
+.v41-gen-k b{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.v41-gen-k b.ok{color:#00675F}.v41-gen-k b.bad{color:#B86A00}
+.v41-fav{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;align-self:center}
+.v41-fav.ok{background:#DDF1EE;color:#00675F}.v41-fav.bad{background:#FDEBD0;color:#8A4E00}
+.v41-gen-v{display:flex;gap:18px;flex-wrap:wrap}
+.v41-gen-v small{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.v41-gen-v b{font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.v41-gen-rule{font-size:11px;color:var(--muted)}
+
+.v41-dev{display:flex;flex-direction:column;gap:2px}
+.v41-dev-row,.v41-dev-axis{display:grid;grid-template-columns:86px 1fr 132px;gap:12px;align-items:center}
+.v41-dev-row{height:34px;border-radius:7px;padding:0 4px}
+.v41-dev-row:hover{background:#F6FAF9}
+.v41-dev-reg{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v41-dev-scale{display:flex;justify-content:space-between;font-size:10px;color:#9AA9A6;padding:0 0 2px;font-variant-numeric:tabular-nums}
+.v41-dev-scale span:nth-child(2){font-weight:700;color:#14302C;opacity:.6}
+.v41-dev-axis{padding:0 4px}
+.v41-dev-track{position:relative;height:16px;background:linear-gradient(90deg,transparent 0 25%,#EEF2F1 25% calc(25% + 1px),transparent calc(25% + 1px) 75%,#EEF2F1 75% calc(75% + 1px),transparent calc(75% + 1px))}
+.v41-dev-mid{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:#14302C;opacity:.45}
+.v41-dev-bar{position:absolute;top:2px;bottom:2px;border-radius:3px;min-width:3px}
+.v41-dev-bar.right{left:50%;border-radius:0 4px 4px 0}
+.v41-dev-bar.left{right:50%;border-radius:4px 0 0 4px}
+.v41-dev-bar.over{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.45) 0 3px,transparent 3px 7px)}
+.v41-dev-row.ok .v41-dev-bar{background-color:#009B91}
+.v41-dev-row.part .v41-dev-bar{background-color:#E9A33A}
+.v41-dev-row.bad .v41-dev-bar{background-color:#F5AA41}
+.v41-dev-row.na .v41-dev-bar{background-color:#B9C4C2}
+.v41-dev-val{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+.v41-dev-val b{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.v41-dev-row.ok .v41-dev-val b{color:#00675F}
+.v41-dev-row.part .v41-dev-val b,.v41-dev-row.bad .v41-dev-val b{color:#8A4E00}
+.v41-dev-val small{font-size:10.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.v41-dev-foot{font-size:10.5px;color:#8A9A97;margin-top:6px;line-height:1.4}
+
+/* ---- Comparação: IRL ---- */
+.v41-irl{display:flex;flex-direction:column;gap:2px}
+.v41-irl-bands{display:flex;height:8px;border-radius:99px;overflow:hidden}
+.v41-irl-bands i{display:block}
+.v41-irl-lbls{position:relative;height:16px;font-size:10px;color:var(--muted)}
+.v41-irl-lbls span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.v41-irl-head{display:grid;grid-template-columns:86px 1fr 132px;gap:12px;padding:0 4px;margin-bottom:4px}
+.v41-irl-row{display:grid;grid-template-columns:86px 1fr 132px;gap:12px;align-items:center;height:34px;padding:0 4px;border-radius:7px}
+.v41-irl-row:hover{background:#F6FAF9}
+.v41-irl-track{position:relative;height:16px}
+.v41-irl-track::before{content:"";position:absolute;left:0;right:0;top:7px;height:2px;background:#EEF2F1}
+.v41-irl-track i{position:absolute;top:2px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#005852;box-shadow:0 0 0 3px #fff}
+.v41-irl-cls{display:inline-flex;height:20px;align-items:center;padding:0 8px;border-radius:6px;font-size:10.5px;font-weight:700}
+.v41-irl-cls.seguro{background:#DDF1EE;color:#00675F}.v41-irl-cls.aceitavel{background:#E7F5F3;color:#2F8C84}
+.v41-irl-cls.toleravel{background:#FFF3D6;color:#8A5C05}.v41-irl-cls.critico{background:#FDEBD0;color:#8A4E00}.v41-irl-cls.intoleravel{background:#FBE7E5;color:#C4453D}
+
+/* ---- Evolução: gráficos de linha ---- */
+.v41-lc{width:100%;min-height:60px}
+.v41-lc svg{display:block}
+.v41-lc text{font-family:"Segoe UI",system-ui,sans-serif}
+#view-evolution .comparison-grid .chart-box{padding:12px 14px 8px}
+#view-evolution .chart-title{margin-bottom:2px}
+#view-evolution .chart-legend{margin:2px 0 4px}
+.v41-ind-sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px}
+
+@media (max-width:1280px){.v41-hero{grid-template-columns:1fr}.v41-kpis{grid-template-columns:repeat(2,1fr)}.exec-summary.v41-sum{grid-template-columns:repeat(2,1fr)}}
+
+.topbar{display:none!important}
+.v41-irl-row .v41-dev-val{flex-direction:row;align-items:center;justify-content:flex-end;gap:8px}
+
+/* ==========================================================
+   V42 — cabeçalho das páginas, pódio, evolução e memória de cálculo
+   ========================================================== */
+.view-section>.page-head{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:20px 24px 20px 30px;margin-bottom:18px;align-items:center;box-shadow:0 1px 2px rgba(16,48,44,.04),0 8px 24px rgba(16,48,44,.04)}
+.view-section>.page-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,#009B91,#005852)}
+.view-section>.page-head::after{content:"";position:absolute;right:-60px;top:-90px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,155,145,.08),rgba(0,155,145,0) 70%);pointer-events:none}
+.view-section>.page-head .page-title::before{content:"Análise · Superintendência";display:block;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#009B91;margin-bottom:6px}
+.view-section>.page-head .page-title h1{font-size:23px;font-weight:800;letter-spacing:-.4px;color:#0B3B37}
+.view-section>.page-head .page-title p{max-width:560px}
+.view-section>.page-head .filters,.view-section>.page-head .evolution-filter-grid{position:relative;z-index:1;background:#F4F8F7;border:1px solid #E1EBE8;border-radius:12px;padding:10px 12px;gap:10px}
+.view-section>.page-head .filter label{font-size:10px;letter-spacing:.08em;color:#5E706C;margin-bottom:5px}
+.view-section>.page-head .filter select,.view-section>.page-head .region-toggle{
+  -webkit-appearance:none;appearance:none;height:40px;min-width:170px;border:1px solid #D3E0DD;border-radius:10px;background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23005852' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding:0 36px 0 14px;font-size:13.5px;font-weight:700;color:#0B3B37;cursor:pointer;
+  box-shadow:0 1px 2px rgba(16,48,44,.05);transition:border-color .15s,box-shadow .15s}
+.view-section>.page-head .region-toggle::after{display:none}
+.view-section>.page-head .filter select:hover,.view-section>.page-head .region-toggle:hover{border-color:#009B91}
+.view-section>.page-head .filter select:focus,.view-section>.page-head .region-toggle:focus{outline:none;border-color:#009B91;box-shadow:0 0 0 3px rgba(0,155,145,.15)}
+.view-section>.page-head .filter:first-child select#regionSelect,.view-section>.page-head select#confRegion{background-color:#005852;color:#fff;border-color:#005852;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E")}
+.view-section>.page-head select#regionSelect option,.view-section>.page-head select#confRegion option{background:#fff;color:#14302C}
+.view-section>.page-head .filter-hint{display:none}
+.view-section>.page-head .region-menu{top:64px}
+.view-section>.page-head .comparison-period-pill{background:#F4F8F7;border:1px solid #E1EBE8;color:#005852;height:40px;display:inline-flex;align-items:center;padding:0 16px;border-radius:10px;font-weight:800}
+
+/* pódio: 3 primeiras gerências e coordenações */
+.ranking-main tbody tr.podium td{font-weight:700;color:#14302C;height:46px}
+.ranking-main tbody tr.podium td:first-child{position:relative}
+.ranking-main tbody tr.podium td:first-child::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+.ranking-main tbody tr.podium-1 td{background:#FDF1D3!important;border-bottom-color:#F3DFA8}
+.ranking-main tbody tr.podium-2 td{background:#EDF1F2!important;border-bottom-color:#D9E0E2}
+.ranking-main tbody tr.podium-3 td{background:#F9E7DA!important;border-bottom-color:#EFCFB8}
+.ranking-main tbody tr.podium-1 td:first-child::before{background:#D9A21B}
+.ranking-main tbody tr.podium-2 td:first-child::before{background:#98A6AB}
+.ranking-main tbody tr.podium-3 td:first-child::before{background:#B8733F}
+.ranking-main tr.podium td:first-child .rank-icon{width:32px;height:32px}
+.ranking-main tr.podium .rank-score{font-size:15px;font-weight:800}
+.ranking-main tr.podium-1 .rank-score{color:#8A6100}.ranking-main tr.podium-2 .rank-score{color:#4E5C60}.ranking-main tr.podium-3 .rank-score{color:#87501F}
+.ranking-main tr.podium td:first-child .rank-number{min-width:30px;height:30px;font-size:12.5px;font-weight:800;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.ranking-main tr.podium-1 td:first-child .rank-number{background:linear-gradient(135deg,#F2C14E,#C98E0C)}
+.ranking-main tr.podium-2 td:first-child .rank-number{background:linear-gradient(135deg,#C3CDD1,#8D9A9F)}
+.ranking-main tr.podium-3 td:first-child .rank-number{background:linear-gradient(135deg,#DDA27A,#A8622F)}
+.ranking-main tr.podium .v42-medal{display:inline-flex;align-items:center;margin-left:8px;height:20px;padding:0 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;vertical-align:1px}
+.ranking-main tr.podium-1 .v42-medal{background:#D9A21B;color:#fff}.ranking-main tr.podium-2 .v42-medal{background:#98A6AB;color:#fff}.ranking-main tr.podium-3 .v42-medal{background:#B8733F;color:#fff}
+.ranking-main tr.podium.selected-region,.ranking-main tr.selected-region{box-shadow:inset -4px 0 0 #009B91}
+.ranking-main tr.selected-region:not(.podium) td{background:#EEF8F6!important}
+
+/* evolução: separar pontuação x indicadores */
+.v42-evo-nav{display:flex;gap:8px;margin:-4px 0 14px;position:sticky;top:8px;z-index:30}
+.v42-evo-nav button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:700;color:#14302C;box-shadow:0 2px 8px rgba(16,48,44,.08)}
+.v42-evo-nav button i{width:10px;height:10px;border-radius:3px}
+.v42-evo-nav button:hover{border-color:#009B91}
+.v42-kind{display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 10px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.v42-kind.score{background:#DDF1EE;color:#005852}
+.v42-kind.ind{background:#FDEBD0;color:#8A4E00}
+.v42-kind i{width:8px;height:8px;border-radius:2px;background:currentColor}
+#view-evolution .chart-section.v42-sec-score{border-top:4px solid #009B91}
+#view-evolution .chart-section.v42-sec-ind{border-top:4px solid #F5AA41;margin-top:26px!important}
+.v42-divider{display:flex;align-items:center;gap:12px;margin:28px 0 0;color:#8A4E00;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.v42-divider::before,.v42-divider::after{content:"";flex:1;height:1px;background:#F1D3A6}
+.v42-aux{display:flex;flex-direction:column}
+.v42-aux .v42-checks{display:flex;gap:6px;height:40px;align-items:center}
+.v42-check{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:999px;border:1px solid #D3E0DD;background:#fff;font-size:12px;font-weight:700;color:#425753;cursor:pointer;user-select:none}
+.v42-check input{accent-color:#009B91;margin:0}
+.v42-check:has(input:checked){background:#EAF5F3;border-color:#9FD6D0;color:#005852}
+
+/* memória de cálculo: status no nome do indicador */
+.v42-ci{display:flex;align-items:center;gap:8px}
+.v42-ci b{font-weight:700}
+.v42-ci .t{display:inline-flex;height:19px;align-items:center;padding:0 7px;border-radius:5px;font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.v42-ci.ok b{color:#00675F}.v42-ci.ok .t{background:#DDF1EE;color:#00675F}
+.v42-ci.part b{color:#B86A00}.v42-ci.part .t{background:#FFF0D2;color:#9A5F00}
+.v42-ci.bad b{color:#C46A00}.v42-ci.bad .t{background:#F5AA41;color:#fff}
+.conf-table tr.v42-row-bad td:first-child{box-shadow:inset 3px 0 0 #F5AA41}
+.conf-table tr.v42-row-part td:first-child{box-shadow:inset 3px 0 0 #F8CB7E}
+.conf-table tr.v42-row-ok td:first-child{box-shadow:inset 3px 0 0 #009B91}
+
+.v41-impacts ul{padding:0;margin-left:0}
+.view-section>.page-head .evolution-filter-grid{display:grid;grid-template-columns:minmax(190px,1.3fr) minmax(140px,1fr) minmax(140px,1fr);align-items:start}
+.view-section>.page-head .evolution-filter-grid select,.view-section>.page-head .evolution-filter-grid .region-toggle{min-width:0;width:100%}
+.view-section>.page-head .v42-aux{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px}
+.view-section>.page-head .v42-aux>label{margin:0}
+.view-section>.page-head .v42-aux .v42-checks{height:auto}
+.view-section>.page-head .filter label.v42-check{display:inline-flex;margin:0;font-size:12px;letter-spacing:0;text-transform:none;color:#425753;height:32px}
+.view-section>.page-head .filter label.v42-check:has(input:checked){color:#005852}
+.evolution-page-head{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)!important}
+
+#view-evolution .chart-section{scroll-margin-top:64px}
+
+/* ==========================================================
+   V43 — cartões de status clicáveis e legenda dos gráficos
+   ========================================================== */
+button.v41-stat.v42-st{all:unset;box-sizing:border-box;cursor:pointer;display:block;border-radius:12px;padding:11px 13px 10px;position:relative;
+  transition:transform .15s,box-shadow .15s,background .15s;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08)}
+button.v41-stat.v42-st small{display:block;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+button.v41-stat.v42-st b{display:block;font-size:26px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;color:#fff}
+button.v41-stat.v42-st b i{font-style:normal;font-size:12px;color:rgba(255,255,255,.65);font-weight:600}
+button.v41-stat.v42-st em{display:block;font-style:normal;font-size:10.5px;font-weight:700;color:rgba(255,255,255,.7);margin-top:2px}
+button.v41-stat.v42-st:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.18)}
+button.v41-stat.v42-st.ok{background:linear-gradient(135deg,#00A99E,#00877E);border-color:#2FC1B6;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+button.v41-stat.v42-st.bad{background:linear-gradient(135deg,#F5AA41,#E08E1E);border-color:#FFC978}
+button.v41-stat.v42-st.bad small,button.v41-stat.v42-st.bad em,button.v41-stat.v42-st.bad b i{color:rgba(58,36,0,.75)}
+button.v41-stat.v42-st.bad b{color:#3A2400}
+button.v41-stat.v42-st.part{background:rgba(255,255,255,.08)}
+button.v41-stat.v42-st.on{box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.2)}
+.v42-panel{grid-column:1/-1;background:#fff;color:#14302C;border-radius:14px;padding:14px 16px 16px;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:v42in .18s ease}
+@keyframes v42in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.v42-panel-h{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #EEF2F1;margin-bottom:12px}
+.v42-panel-h b{font-size:14px}
+.v42-panel-h span:not(.v42-dot){font-size:12px;color:#6E807C}
+.v42-panel-h button{all:unset;cursor:pointer;margin-left:auto;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:18px;color:#6E807C}
+.v42-panel-h button:hover{background:#EEF2F1}
+.v42-dot{width:10px;height:10px;border-radius:3px}
+.v42-panel.ok .v42-dot{background:#009B91}.v42-panel.part .v42-dot{background:#F8CB7E}.v42-panel.bad .v42-dot{background:#F5AA41}
+.v42-panel.ok{border-top:4px solid #009B91}.v42-panel.part{border-top:4px solid #F8CB7E}.v42-panel.bad{border-top:4px solid #F5AA41}
+.v42-panel-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.v42-grp{background:#F6FAF9;border:1px solid #E3ECEA;border-radius:10px;padding:10px 12px}
+.v42-grp-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#005852;margin-bottom:6px}
+.v42-grp-h svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.v42-grp-h i{margin-left:auto;font-style:normal;font-size:11px;background:#fff;border:1px solid #E3ECEA;border-radius:99px;padding:1px 8px;color:#425753}
+.v42-it{padding:6px 0;border-top:1px solid #E8EFED}
+.v42-it:first-of-type{border-top:0}
+.v42-it span{display:block;font-size:12px;font-weight:700;color:#14302C;line-height:1.3}
+.v42-it small{display:block;font-size:10.5px;color:#6E807C;margin-top:1px}
+.v42-panel.bad .v42-it span{color:#9A5800}
+.v42-empty{font-size:12.5px;color:#6E807C}
+.v42-meta-sw{display:inline-block;width:16px;height:0;border-top:2px dashed #8C9A97;vertical-align:middle;margin-right:6px}
+.v42-leg-note{color:#8A9A97;font-weight:500}
+
+/* SSC: autenticação sobre a v43 (não altera os cartões originais). */
+body:not(.auth-ok) .app,body:not(.auth-ok) #execJustModalBg{visibility:hidden!important}
+.auth-screen{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:linear-gradient(135deg,#eaf5f3,#f7faf9);padding:16px}
+body.auth-ok .auth-screen{display:none!important}
+.auth-box{width:min(440px,100%);padding:30px;background:white;border:1px solid #d4e7e3;border-radius:17px;box-shadow:0 12px 32px #00585215}
+.auth-box h2{font-size:21px;color:#005852;margin:0 0 14px}
+.auth-box p{font-size:12px;color:#566c69;line-height:1.6}
+.auth-box form{display:grid;gap:10px}.auth-box input,.auth-box select{width:100%;min-height:40px;padding:9px 11px;border:1px solid #c4d8d4;border-radius:7px;background:white;font:inherit;color:#203c38}
+.auth-box label{display:block;font-size:11px;color:#244c47;font-weight:700;margin:3px 0 -7px}
+.auth-box button,.su-btn{cursor:pointer;padding:10px 14px;border:0;border-radius:7px;background:#00877d;color:#fff;font-weight:700}
+.auth-box button:disabled,.su-btn:disabled{opacity:.5;cursor:not-allowed}
+#su-cadastrar,#su-voltar{width:100%;margin-top:9px;background:#e7f4f1;color:#005852}
+#su-msg{white-space:pre-line;min-height:30px}
+.su-toolbar{position:fixed;z-index:500;right:12px;top:6px;display:none;align-items:center;gap:10px;background:#fff;border:1px solid #c4d8d4;padding:3px 8px;border-radius:8px;font-size:10px;color:#005852}
+body.auth-ok .su-toolbar{display:flex}
+.su-toolbar .su-btn{padding:6px 10px;font-size:10px}
+.su-screen{padding:14px}.su-screen h2{font-size:18px;color:#005852;margin:8px 0}.su-screen .su-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:12px 0}
+.su-screen select,.su-screen input{max-width:260px;padding:8px;border:1px solid #c4d8d4;border-radius:6px;background:#fff}
+.su-screen table{min-width:0;width:100%}.su-screen th,.su-screen td{font-size:11px;padding:10px;border:1px solid #e2e9e7}
+.su-screen .su-muted{font-size:12px;color:#697e79}
 [hidden]{display:none!important}
-.auth-box label{display:block;font-size:12px;font-weight:600;color:#31534c;margin-top:8px}
-</style>
-<style id="protecao-acesso">
-body:not(.auth-ok) .app {display:none!important}
-.auth-screen{position:fixed;inset:0;background:#f2f7f6;display:grid;place-items:start center;overflow-y:auto;padding:24px 10px;z-index:99999;font:14px Segoe UI,Arial,sans-serif}
-.auth-box{width:min(420px,94vw);background:white;border:1px solid #d7e8e5;box-shadow:0 14px 48px #00585222;padding:28px;border-radius:15px}
-.auth-box h2{font-size:21px;color:#005852;margin:0 0 8px}.auth-box p{color:#536a65;font-size:12px;line-height:1.5}
-.auth-box input,.auth-box select{width:100%;margin:7px 0;padding:11px;border:1px solid #c7dbd8;border-radius:8px;font-size:13px}
-.auth-box button,.su-btn{padding:10px 14px;background:#007f76;color:white;border:0;border-radius:7px;cursor:pointer;font-weight:700}
-.auth-box button{width:100%;margin-top:8px}.su-btn:disabled{opacity:.5}
-.su-toolbar{position:fixed;top:5px;right:12px;z-index:800;display:none;align-items:center;gap:8px;background:#fff;padding:5px;border-radius:9px;border:1px solid #d8e6e3}
-.auth-ok .su-toolbar{display:flex}.su-toolbar span{font:11px Segoe UI;color:#31534c}
-.su-screen{display:none;background:#f5f8f7;border:1px solid #dce9e6;border-radius:12px;padding:20px;margin-top:15px}
-.su-screen.active{display:block}.su-screen h2{font-size:19px;color:#005852;margin:0 0 12px}
-.su-screen table{min-width:0}.su-screen th,.su-screen td{font-size:12px;padding:10px;border:1px solid #e2ebe9}
-.su-screen th{background:#007f76;color:white}.su-controls{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0}
-.su-controls select,.su-controls input{padding:8px;border:1px solid #b8d6d2;border-radius:7px;max-width:260px}
-.su-muted{color:#627d78;font-size:12px}.su-error{color:#b22c2c;white-space:pre-wrap;font-size:12px}
-@media(max-width:750px){.su-toolbar{position:static;justify-content:flex-end;flex-wrap:wrap}.app{grid-template-columns:1fr!important}.sidebar{position:relative;height:auto!important;overflow:auto}.side-message{display:none}}
 </style>
 </head>
 
@@ -1725,19 +2259,7 @@ body:not(.auth-ok) .app {display:none!important}
           <path d="M9 5v14"></path>
         </svg>
       </span>
-      Tabelas
-    </div>
-
-    <div class="nav-item" data-view="comparison">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24">
-          <path d="M4 20V10"></path>
-          <path d="M10 20V4"></path>
-          <path d="M16 20v-7"></path>
-          <path d="M22 20V7"></path>
-        </svg>
-      </span>
-      Comparação
+      Indicadores do Mês
     </div>
 
     <div class="nav-item" data-view="evolution">
@@ -1752,6 +2274,18 @@ body:not(.auth-ok) .app {display:none!important}
       Evolução Temporal
     </div>
 
+    <div class="nav-item" data-view="comparison">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 20V10"></path>
+          <path d="M10 20V4"></path>
+          <path d="M16 20v-7"></path>
+          <path d="M22 20V7"></path>
+        </svg>
+      </span>
+      Comparação
+    </div>
+
     <div class="nav-item" data-view="conference">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24">
@@ -1759,7 +2293,7 @@ body:not(.auth-ok) .app {display:none!important}
           <path d="M20 12v7H4V5h11"></path>
         </svg>
       </span>
-      Conferência
+      Memória de Cálculo
     </div>
   </nav>
 
@@ -1778,14 +2312,6 @@ body:not(.auth-ok) .app {display:none!important}
   </div>
 
   <div class="top-right">
-    <div class="export-wrap" style="display:flex;gap:8px">
-      
-      <a id="exportButton" class="export-button" href="javascript:void(0)">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg>
-        Gerar PowerPoint
-      </a>
-    </div>
-
     <div class="bell">
       <svg viewBox="0 0 24 24">
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
@@ -1829,6 +2355,8 @@ body:not(.auth-ok) .app {display:none!important}
       </div>
     </div>
 
+    <section id="regionHero" class="region-hero"></section>
+
     <section class="card ranking-section">
       <h2>Ranking das Regiões e Coordenações</h2>
       <p class="section-subtitle">Posição consolidada no período, com destaque para a região selecionada.</p>
@@ -1838,7 +2366,7 @@ body:not(.auth-ok) .app {display:none!important}
 
     <section class="card ranking-section coord-all-ranking">
       <h2>Ranking Consolidado das Coordenações</h2>
-      <p class="section-subtitle">Da pior para a melhor. Empates no score (2 casas): maior IRL primeiro.</p>
+      <p class="section-subtitle">Da melhor para a pior. Empates no score (2 casas): menor IRL primeiro.</p>
       <div id="allCoordinationRanking"></div>
     </section>
 
@@ -1865,7 +2393,8 @@ body:not(.auth-ok) .app {display:none!important}
   <section id="view-tables" class="view-section tables-no-score">
     <div class="page-head">
       <div class="page-title">
-        <h1>Tabelas</h1>
+        <h1>Indicadores do Mês</h1>
+        <p>Resultado de cada indicador por coordenação, com acompanhamento das justificativas.</p>
       </div>
 
       <div class="filters">
@@ -1917,9 +2446,11 @@ body:not(.auth-ok) .app {display:none!important}
     <div id="comparisonSummary" class="exec-summary"></div>
 
     <div class="exec-legend">
-      <span><i class="exec-target-line"></i>Planejado (meta da região)</span>
-      <span><i class="exec-real-swatch met"></i>Realizado (meta atingida)</span>
-      <span><i class="exec-real-swatch missed"></i>Realizado (meta pendente)</span>
+      <span><i class="v41-sw mid"></i>Meta da região (centro)</span>
+      <span><i class="v41-sw ok"></i>Pontuação máxima</span>
+      <span><i class="v41-sw part"></i>Pontuação parcial</span>
+      <span><i class="v41-sw bad"></i>Sem pontuação</span>
+      <span>Barra = desvio do realizado em relação à meta</span>
     </div>
 
     <div id="comparisonSections"></div>
@@ -1928,7 +2459,7 @@ body:not(.auth-ok) .app {display:none!important}
   <section id="view-conference" class="view-section">
     <div class="page-head">
       <div class="page-title">
-        <h1>Conferência de Pontuação</h1>
+        <h1>Memória de Cálculo</h1>
         <p class="conf-intro">Memória de cálculo por coordenação: planejado, realizado, valor usado no cálculo, faixas de pontos e pontuação obtida. Score = Pontos × Peso × 10.</p>
       </div>
       <div class="filters">
@@ -1974,24 +2505,42 @@ body:not(.auth-ok) .app {display:none!important}
           <label>Mês Fim</label>
           <select id="evolutionEndMonth"></select>
         </div>
+
+        <div class="filter v42-aux">
+          <label>Linhas auxiliares</label>
+          <div class="v42-checks">
+            <label class="v42-check"><input type="checkbox" onchange="v41SetOpt('trend',this.checked)">Tendência</label>
+            <label class="v42-check"><input type="checkbox" onchange="v41SetOpt('mean',this.checked)">Média</label>
+          </div>
+        </div>
       </div>
     </div>
 
-    <section class="card chart-section">
+    <div class="v42-evo-nav">
+      <button type="button" onclick="v41GoTo('v42SecManager')"><i style="background:#009B91"></i>Pontuação da Gerência</button>
+      <button type="button" onclick="v41GoTo('v42SecCoord')"><i style="background:#009B91"></i>Pontuação das Coordenações</button>
+      <button type="button" onclick="v41GoTo('v42SecInd')"><i style="background:#F5AA41"></i>Avanço dos Indicadores</button>
+    </div>
+
+    <section id="v42SecManager" class="card chart-section v42-sec-score">
+      <span class="v42-kind score"><i></i>Pontuação · nota de 0 a 10</span>
       <h2>Pontuação da Gerência</h2>
       <p class="section-subtitle">Evolução das regiões selecionadas no intervalo informado.</p>
       <div class="chart-box"><div id="managerEvolutionChart"></div></div>
     </section>
 
-    <section class="card chart-section" style="margin-top:14px">
+    <section id="v42SecCoord" class="card chart-section v42-sec-score" style="margin-top:14px">
+      <span class="v42-kind score"><i></i>Pontuação · nota de 0 a 10</span>
       <h2>Pontuação das Coordenações</h2>
       <p class="section-subtitle">Cada setor é apresentado separadamente para facilitar a comparação.</p>
       <div id="coordEvolutionCharts" class="evolution-grid"></div>
     </section>
 
-    <section class="card chart-section" style="margin-top:14px">
-      <h2>Evolução por Indicador</h2>
-      <p class="section-subtitle">Todos os indicadores, organizados por setor, para as regiões e meses selecionados.</p>
+    <div class="v42-divider">Indicadores</div>
+    <section id="v42SecInd" class="card chart-section v42-sec-ind">
+      <span class="v42-kind ind"><i></i>Indicadores · avanço em % da meta</span>
+      <h2>Avanço dos Indicadores</h2>
+      <p class="section-subtitle">Avanço de cada indicador (realizado em relação à meta), por coordenação, para as regiões e meses selecionados.</p>
       <div id="indicatorEvolutionSections"></div>
     </section>
   </section>
@@ -2011,16 +2560,17 @@ body:not(.auth-ok) .app {display:none!important}
   </div>
 </div>
 
+<script src="./config.js"></script>
 <script>
 let DATA = [];
 const REGION_ORDER = ["Baixada", "Centro Sul", "Leste", "Oeste", "Vale"];
 const COORD_ORDER = ["Gerência", "Varejo", "Projetos Especiais e Grandes Clientes", "Leitura", "Construção"];
 const CONF_FAIXAS = {"IRL": [["0 a 0,25", 1], ["> 0,25 a 0,45", 0.9], ["> 0,45 a 0,65", 0.8], ["> 0,65", 0]], "IEN": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "RECLAMACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ATENDIMENTO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ARRECADACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_PERDAS": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_CORE": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "IQG": [["< meta (< 100%)", 0], ["≥ meta (≥ 100%)", 1]], "AIS": [["< 99%", 0], ["99% a < 100%", 0.5], ["≥ 100%", 1]], "CAPEX": [["< 90%", 0], ["≥ 90%", 1]], "OPEX": [["≤ meta (≤ 100%)", 1], ["> meta (> 100%)", 0]], "CORTE_DISJUNTOR": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "NAO_LIDOS": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ERRO_LEITURA": [["< 96,9%", 0], ["96,9% a < 98,9%", 0.2], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ADERENCIA_FATURA": [["< 98,6%", 0], ["98,6% a < 99,9%", 0.5], ["≥ 99,9%", 1]]};
-const EXEC_SUPABASE_URL="";
-const EXEC_SUPABASE_KEY="";
-const EXEC_PERIOD="Outubro/2026";
-const EXEC_WEEK_START="2026-11-09";
-const EXEC_WEEK_END="2026-11-15";
+const EXEC_SUPABASE_URL=window.PLATAFORMA_CONFIG?.SUPABASE_URL||"";
+const EXEC_SUPABASE_KEY=window.PLATAFORMA_CONFIG?.SUPABASE_PUBLISHABLE_KEY||"";
+let EXEC_PERIOD="Outubro/2026";
+let EXEC_WEEK_START="2026-11-09";
+let EXEC_WEEK_END="2026-11-13";
 const EXEC_JUST_MIN=30;
 const EXEC_JUST_MAX=350;
 
@@ -2053,8 +2603,8 @@ const coordEvolutionCharts=document.getElementById("coordEvolutionCharts");
 const indicatorEvolutionSections=document.getElementById("indicatorEvolutionSections");
 
 
-const CURRENT_PERIOD="Outubro/2026";
-const PREVIOUS_PERIOD="Setembro/2026";
+let CURRENT_PERIOD="Outubro/2026";
+let PREVIOUS_PERIOD="Setembro/2026";
 
 const ICONS={
 trophy:`<svg viewBox="0 0 24 24"><path d="M8 4h8v4c0 4-2 6-4 6s-4-2-4-6V4Z"></path><path d="M8 6H4c0 4 1.5 6 4.2 6"></path><path d="M16 6h4c0 4-1.5 6-4.2 6"></path><path d="M12 14v4"></path><path d="M8 21h8"></path><path d="M9 18h6"></path></svg>`,
@@ -2547,28 +3097,17 @@ function renderCoords(region){
     const rows=rowsFor(region,c);
     const sc=totalScore(rows);
 
-    return `<div class="coord-card">
+    const prev=historicalScore(rows),dd=Number.isFinite(prev)?sc-prev:null,cnt=v41Counts(rows),out=cnt.part+cnt.bad;
+    return `<div class="coord-card v41-coord">
       <div class="coord-card-top">
         <div class="coord-name">
           ${coordIcon(c)}
           <span>${c}</span>
         </div>
-
-        <div class="chevron">›</div>
       </div>
-
-      <div class="coord-main">
-        <div>
-          <span class="coord-score">${formatScore(sc)}</span>
-        </div>
-
-        <div class="spark">${fakeSpark(sc)}</div>
-      </div>
-
-      <div class="coord-foot">
-        <small>Período atual</small>
-        <span class="pill">Resultado calculado</span>
-      </div>
+      <div class="v41-score-row"><span class="coord-score">${formatScore(sc)}</span>${v41DeltaHTML(dd,"vs "+v41ShortMonth(PREVIOUS_PERIOD))}</div>
+      <div class="v41-prog"><i class="${sc>=V41_META?"ok":""}" style="width:${Math.max(0,Math.min(100,sc*10))}%"></i><u style="left:${V41_META*10}%"></u></div>
+      <div class="v41-foot"><span>${out?`<b>${out}</b> abaixo da pontuação máxima`:"Todos com pontuação máxima"}</span><span>${rows.length} indicadores</span></div>
     </div>`;
   }).join("");
 
@@ -2721,9 +3260,9 @@ function renderRankings(region){
       return `<td class="rank-cell">${pos?rankDisplay(pos,"medal"):"-"}</td>`;
     }).join("");
 
-    return `<tr class="${item.position<=3?`rank-${item.position}`:""} ${item.region===region?"selected-region":""}">
+    return `<tr class="${item.position<=3?`rank-${item.position} podium podium-${item.position}`:""} ${item.region===region?"selected-region":""}">
       <td class="rank-pos rank-cell">${rankDisplay(item.position,"trophy")}</td>
-      <td><strong>${item.region}</strong></td>
+      <td><strong>${item.region}</strong>${item.position<=3?`<span class="v42-medal">${["Ouro","Prata","Bronze"][item.position-1]}</span>`:""}</td>
       <td class="rank-score">${formatScore(item.score)}</td>
       ${coordCells}
     </tr>`;
@@ -2783,6 +3322,262 @@ function numericAdvance(row){
 function previousAdvance(row){
   return number(row?.["Mês Anterior"]);
 }
+
+
+/* ================== V41 — utilitários ================== */
+const V41_META=8.5;
+function v41Weight(r){const w=number(r?.["Peso"]);return w===null?null:(Math.abs(w)<=1?w:w/100)}
+function v41Status(r){const p=number(r?.["Pontos"]);if(p===null)return "na";return p>=.999?"ok":(p>0?"part":"bad")}
+function v41Counts(rows){const c={ok:0,part:0,bad:0};rows.forEach(r=>{const s=v41Status(r);if(s in c)c[s]++});return c}
+function v41Lost(r){const p=number(r?.["Pontos"]),w=v41Weight(r);return p===null||w===null?0:(1-p)*w*10}
+function v41RegionPrev(region){
+  const v=COORD_ORDER.filter(c=>c!=="Gerência").map(c=>rowsFor(region,c)).filter(r=>r.length).map(historicalScore).filter(Number.isFinite);
+  return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+}
+function v41Num(v,d=2){return Number.isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"–"}
+function v41Signed(v,d=2){return !Number.isFinite(v)?"–":(v>0.0049?"+":v<-0.0049?"−":"±")+v41Num(Math.abs(v),d)}
+function v41DeltaHTML(d,suffix=""){
+  if(d===null||!Number.isFinite(d))return "";
+  const cls=d>0.0049?"up":d<-0.0049?"down":"flat",arrow=d>0.0049?"▲":d<-0.0049?"▼":"=";
+  return `<span class="v41-delta ${cls}">${arrow} ${v41Signed(d)}${suffix?` <small>${suffix}</small>`:""}</span>`;
+}
+function v41ShortMonth(p){const [m,y]=String(p||"").split("/");return (m||"").slice(0,3)+"/"+String(y||"").slice(2)}
+function v41Pct(v){
+  if(!Number.isFinite(v))return "–";
+  const e=Math.abs(v-1),d=e<1e-9?0:e<.0005?2:e<.02?1:0;
+  return (v*100).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
+}
+function v41FmtCompact(v,ind){
+  const n=number(v);if(n===null)return "–";
+  if(execUnit(ind)==="money"){
+    const a=Math.abs(n);
+    if(a>=1e9)return "R$ "+(n/1e9).toLocaleString("pt-BR",{maximumFractionDigits:2})+" bi";
+    if(a>=1e6)return "R$ "+(n/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi";
+    if(a>=1e3)return "R$ "+(n/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil";
+  }
+  return execFmt(n,ind);
+}
+function v41LowerBetter(ind){const t=execNorm(ind);return t.includes("OPEX")||t.includes("RECLAM")||t.includes("CLIENTES NAO LIDOS")||t.includes("ERRO DE LEITURA")}
+function v41NiceStep(span,target=4){
+  const raw=span/target,mag=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/mag;
+  return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*mag;
+}
+function v41Ring(p,col){const r=15,c=2*Math.PI*r;return `<svg width="40" height="40" viewBox="0 0 40 40" style="flex:none"><circle cx="20" cy="20" r="${r}" fill="none" stroke="#EDF2F1" stroke-width="5"/><circle cx="20" cy="20" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c*Math.max(0,Math.min(1,p))).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 20 20)"/></svg>`}
+
+/* ================== V41 — Visão Geral: destaque da nota ================== */
+function v41ManagerScoreAt(region,period){
+  const vals=COORD_ORDER.filter(c=>c!=="Gerência").map(c=>rowsFor(region,c)).filter(r=>r.length)
+    .map(rows=>scoreForPeriod(rows,period)).filter(Number.isFinite);
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+function v41YearAvg(region){
+  const year=String(CURRENT_PERIOD).split("/")[1];
+  const ps=availablePeriods().filter(p=>String(p).split("/")[1]===year);
+  const v=ps.map(p=>v41ManagerScoreAt(region,p)).filter(Number.isFinite);
+  return {avg:v.length?v.reduce((a,b)=>a+b,0)/v.length:null,n:v.length,year,first:ps[0],last:ps[ps.length-1]};
+}
+function renderHero(region){
+  const el=document.getElementById("regionHero");if(!el)return;
+  const now=regionScore(region),prev=v41RegionPrev(region),d=prev===null?null:now-prev;
+  const pos=rankingFor(region),tot=REGION_ORDER.filter(r=>coordinationScores(r).length).length;
+  const coords=COORD_ORDER.filter(c=>c!=="Gerência"&&rowsFor(region,c).length);
+  const rows=coords.flatMap(c=>rowsFor(region,c));
+  const c=v41Counts(rows),n=c.ok+c.part+c.bad||1,gap=now-V41_META,ya=v41YearAvg(region),nc=coords.length||1;
+  const impacts=rows.filter(r=>v41Status(r)!=="ok"&&v41Lost(r)>0).sort((a,b)=>v41Lost(b)-v41Lost(a));
+  const lostTotal=impacts.reduce((s,r)=>s+v41Lost(r),0)/nc;
+  const coordShort=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
+  const dCls=d===null?"":d>0.0049?"up":d<-0.0049?"down":"";
+  el.innerHTML=`<div class="v41-hero">
+    <div class="v41-id">
+      <div class="v41-eyebrow">Gerência analisada · ${CURRENT_PERIOD}</div>
+      <div class="v41-region">${region}</div>
+      <div class="v41-big"><b>${formatScore(now)}</b><small>/10 · nota da gerência</small></div>
+    </div>
+    <div class="v41-kpis">
+      <div class="v41-k"><small>Posição</small><b>${pos}º<i> de ${tot}</i></b><span>entre as gerências</span></div>
+      <div class="v41-k ${dCls}"><small>vs ${v41ShortMonth(PREVIOUS_PERIOD)}</small><b>${d===null?"–":(d>0.0049?"▲ ":d<-0.0049?"▼ ":"")+v41Signed(d)}</b><span>nota ${prev===null?"–":v41Num(prev)} no mês anterior</span></div>
+      <div class="v41-k ${gap<0?"warn":"good"}"><small>Meta ${v41Num(V41_META,1)}</small><b>${gap>=0?"Atingida":"−"+v41Num(-gap)}</b><span>${gap>=0?v41Signed(gap)+" acima da meta":"faltam para a meta"}</span></div>
+      <div class="v41-k"><small>Média ${ya.year}</small><b>${ya.avg===null?"–":v41Num(ya.avg)}</b><span>${ya.n} ${ya.n===1?"mês":"meses"} (${v41ShortMonth(ya.first)}${ya.n>1?" a "+v41ShortMonth(ya.last):""})</span></div>
+    </div>
+    <div class="v41-stats">
+      <button type="button" class="v41-stat v42-st ok ${V42_STATUS_OPEN==="ok"?"on":""}" onclick="v42ToggleStatus('ok')"><small>Pontuação Máxima</small><b>${c.ok}<i> / ${n}</i></b><em>ver indicadores ›</em></button>
+      <button type="button" class="v41-stat v42-st part ${V42_STATUS_OPEN==="part"?"on":""}" onclick="v42ToggleStatus('part')"><small>Pontuação Parcial</small><b>${c.part}<i> / ${n}</i></b><em>ver indicadores ›</em></button>
+      <button type="button" class="v41-stat v42-st bad ${V42_STATUS_OPEN==="bad"?"on":""}" onclick="v42ToggleStatus('bad')"><small>Sem Pontuação</small><b>${c.bad}<i> / ${n}</i></b><em>ver indicadores ›</em></button>
+      <div class="v41-mix"><i style="width:${c.ok/n*100}%;background:#2FC1B6"></i><i style="width:${c.part/n*100}%;background:#F8CB7E"></i><i style="width:${c.bad/n*100}%;background:#F5AA41"></i></div>
+      <div class="v41-mix-l">${Math.round(c.ok/n*100)}% dos indicadores das coordenações com pontuação máxima</div>
+    </div>
+    <div class="v41-impacts">
+      <div class="v41-imp-h"><div class="v41-eyebrow">Pontos que a gerência deixou de ganhar</div>${impacts.length?`<span>total −${v41Num(lostTotal)}</span>`:""}</div>
+      ${impacts.length?`<ul>${impacts.slice(0,3).map(r=>`<li><span>${r["Indicador"]}<small>${coordShort(r["Coordenação"])} · realizado ${v41FmtCompact(r["Realizado"],r["Indicador"])} · meta ${v41FmtCompact(r["Planejado"],r["Indicador"])}</small></span><b>−${v41Num(v41Lost(r)/nc)}<small>−${v41Num(v41Lost(r))} na coordenação</small></b></li>`).join("")}</ul>
+      <div class="v41-imp-note">Nota da gerência = média das ${nc} coordenações: cada ponto perdido numa coordenação vale 1/${nc} na gerência.</div>`:`<div class="none">Todos os indicadores com pontuação máxima.</div>`}
+    </div>
+    ${V42_STATUS_OPEN?v42StatusPanel(region,V42_STATUS_OPEN):""}
+  </div>`;
+}
+let V42_STATUS_OPEN=null;
+function v42ToggleStatus(st){V42_STATUS_OPEN=V42_STATUS_OPEN===st?null:st;renderHero(regionSelect.value)}
+function v42StatusPanel(region,st){
+  const names={ok:"Pontuação Máxima",part:"Pontuação Parcial",bad:"Sem Pontuação"};
+  const coords=COORD_ORDER.filter(c=>c!=="Gerência"&&rowsFor(region,c).length);
+  const groups=coords.map(c=>({c,rows:rowsFor(region,c).filter(r=>v41Status(r)===st)})).filter(g=>g.rows.length);
+  const short=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
+  const total=groups.reduce((a,g)=>a+g.rows.length,0);
+  return `<div class="v42-panel ${st}">
+    <div class="v42-panel-h"><span class="v42-dot"></span><b>${names[st]}</b><span>${total} indicador${total===1?"":"es"} · ${region}</span><button type="button" onclick="v42ToggleStatus('${st}')" aria-label="Fechar">×</button></div>
+    ${groups.length?`<div class="v42-panel-g">${groups.map(g=>`<div class="v42-grp"><div class="v42-grp-h">${coordIcon(g.c)}<span>${short(g.c)}</span><i>${g.rows.length}</i></div>${g.rows.map(r=>`<div class="v42-it"><span>${r["Indicador"]}</span><small>realizado ${v41FmtCompact(r["Realizado"],r["Indicador"])} · meta ${v41FmtCompact(r["Planejado"],r["Indicador"])} · ${formatNumber(r["Pontos"],2)} ponto(s)</small></div>`).join("")}</div>`).join("")}</div>`:`<div class="v42-empty">Nenhum indicador nesta situação.</div>`}
+  </div>`;
+}
+
+/* ================== V41 — Indicadores do Mês: cabeçalho ================== */
+function v41TableHead(region,coord,label){
+  const rows=rowsFor(region,coord),cnt=v41Counts(rows);
+  const pend=rows.filter(r=>!execEfficiencyOK(r["Eficiência"])&&!execSavedJust(r)).length;
+  const icon=coord==="Gerência"?ICONS.bars:coordIcon(coord);
+  return `<div class="v41-thead">
+    <span class="v41-ic">${icon}</span>
+    <div class="v41-thead-t"><strong>${label}</strong><small>${region} · ${rows.length} indicadores</small></div>
+    <div class="v41-thead-r">
+      <span class="v41-pill ok">${cnt.ok} pontuação máxima</span>
+      ${cnt.part?`<span class="v41-pill part">${cnt.part} pontuação parcial</span>`:""}
+      ${cnt.bad?`<span class="v41-pill bad">${cnt.bad} sem pontuação</span>`:""}
+      ${pend?`<span class="v41-pill just">${pend} justificativa${pend>1?"s":""} pendente${pend>1?"s":""}</span>`:""}
+    </div>
+  </div>`;
+}
+
+/* ================== V41 — Evolução: gráfico de linhas ================== */
+const V41_LINE_PALETTE=["#005852","#009B91","#F5AA41","#7A8E8A","#3D6E9E"];
+function v41RegionColor(name){const i=REGION_ORDER.indexOf(name);return V41_LINE_PALETTE[(i<0?0:i)%V41_LINE_PALETTE.length]}
+const V41_CHARTS=[];
+function v41Domain(values,ref,kind){
+  const v=values.filter(Number.isFinite);
+  let lo=Math.min(...v),hi=Math.max(...v);
+  const minSpan=kind==="score"?.5:.02;
+  if(hi-lo<minSpan){const c=(hi+lo)/2;lo=c-minSpan/2;hi=c+minSpan/2}
+  // referência (meta) entra na escala só quando está próxima dos dados
+  if(ref!==null){const s=hi-lo;if(ref>=lo-s*.6&&ref<=hi+s*.6){lo=Math.min(lo,ref);hi=Math.max(hi,ref)}}
+  const s=hi-lo;lo-=s*.14;hi+=s*.14;
+  const step=v41NiceStep(hi-lo,4);lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step)*step;
+  const ticks=[];for(let t=lo;t<=hi+step*1e-6;t+=step)ticks.push(+t.toFixed(10));
+  return {lo,hi,ticks,step};
+}
+function v41Spread(items,gap,minY,maxY){
+  items.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<items.length;i++)if(items[i].y-items[i-1].y<gap)items[i].y=items[i-1].y+gap;
+  const over=items.length?items[items.length-1].y-maxY:0;
+  if(over>0)items.forEach(it=>it.y-=over);
+  for(let i=items.length-2;i>=0;i--)if(items[i+1].y-items[i].y<gap)items[i].y=items[i+1].y-gap;
+  if(items.length&&items[0].y<minY){const sh=minY-items[0].y;items.forEach(it=>it.y+=sh)}
+  return items;
+}
+const V41_OPTS={trend:false,mean:false};
+function v41Fit(vals){ /* mínimos quadrados sobre o índice do mês */
+  const pts=vals.map((v,i)=>[i,v]).filter(p=>Number.isFinite(p[1]));
+  if(pts.length<2)return null;
+  const n=pts.length,mx=pts.reduce((s,p)=>s+p[0],0)/n,my=pts.reduce((s,p)=>s+p[1],0)/n;
+  const sxx=pts.reduce((s,p)=>s+(p[0]-mx)**2,0),sxy=pts.reduce((s,p)=>s+(p[0]-mx)*(p[1]-my),0);
+  const b=sxx?sxy/sxx:0;return {a:my-b*mx,b};
+}
+const V42_GOOD="#009B91",V42_BAD="#F5AA41",V42_GOOD_TXT="#00675F",V42_BAD_TXT="#B86A00",V42_META="#8C9A97";
+function v42IndOpts(ind,coord){
+  // Meta e sentido do Avanço por indicador. Nos dados, Clientes não lidos e Erro de leitura
+  // já vêm invertidos (acima de 100% = bom); OPEX vem como realizado ÷ orçado (acima de 100% = ruim).
+  const t=execNorm(ind);
+  if(t.includes("CAPEX"))return {ref:.9,refLbl:"meta 90%",lowerBetter:false};
+  if(t.includes("OPEX"))return {ref:1,refLbl:"meta 100%",lowerBetter:true};
+  return {ref:1,refLbl:"meta 100%",lowerBetter:false};
+}
+function v42HasCurrent(row){return Number.isFinite(numericAdvance(row))}
+function v42Tangents(P){ /* curva monotônica (Fritsch–Carlson): suave e sem picos falsos entre os pontos */
+  const n=P.length,d=[],m=[];
+  for(let i=0;i<n-1;i++)d.push((P[i+1].y-P[i].y)/((P[i+1].x-P[i].x)||1));
+  m[0]=d[0];m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++)m[i]=d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){
+    if(d[i]===0){m[i]=0;m[i+1]=0;continue}
+    const a=m[i]/d[i],b=m[i+1]/d[i],h=a*a+b*b;
+    if(h>9){const t=3/Math.sqrt(h);m[i]=t*a*d[i];m[i+1]=t*b*d[i]}
+  }
+  return m;
+}
+function v42SegPath(P,i,M){
+  const p1=P[i-1],p2=P[i],dx=(p2.x-p1.x)/3;
+  return `M${p1.x.toFixed(1)} ${p1.y.toFixed(1)} C${(p1.x+dx).toFixed(1)} ${(p1.y+M[i-1]*dx).toFixed(1)} ${(p2.x-dx).toFixed(1)} ${(p2.y-M[i]*dx).toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+}
+function v41LineSVG(series,formatter,W,opts){
+  opts=opts||{};
+  const isScore=formatter==="score",fmt=isScore?(v=>v41Num(v)):(v=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"%");
+  const ref=opts.ref??(isScore?V41_META:1),refLbl=opts.refLbl??(isScore?"meta "+v41Num(V41_META,1):"meta 100%");
+  const good=v=>opts.lowerBetter?v<=ref+1e-9:v>=ref-1e-9;
+  const colOf=v=>good(v)?V42_GOOD:V42_BAD,txtOf=v=>good(v)?V42_GOOD_TXT:V42_BAD_TXT;
+  const labels=[...new Set(series.flatMap(s=>s.points.map(p=>p.label)))];
+  const proj=V41_OPTS.trend&&labels.length>=2;             // tendência projeta o mês seguinte
+  const slots=labels.length+(proj?1:0);
+  const H=isScore?250:210,top=26,bottom=H-28;
+  const firstLbl=labels.length<=3,L=firstLbl?96:52,R=W-(isScore?118:104);
+  const x=i=>slots===1?(L+R)/2:L+i*(R-L)/(slots-1);
+  const valsOf=se=>labels.map(lab=>{const p=se.points.find(q=>q.label===lab);return p&&Number.isFinite(p.value)?p.value:null});
+  const extra=[];
+  series.forEach(se=>{const v=valsOf(se);
+    if(V41_OPTS.mean){const f=v.filter(Number.isFinite);if(f.length)extra.push(f.reduce((a,b)=>a+b,0)/f.length)}
+    if(proj){const f=v41Fit(v);if(f)extra.push(f.a,f.a+f.b*labels.length)}
+  });
+  const d=v41Domain(series.flatMap(s=>s.points.map(p=>p.value)).concat(extra),ref,isScore?"score":"percent");
+  const y=v=>bottom-(v-d.lo)/(d.hi-d.lo)*(bottom-top);
+  const hl=series.some(s=>s.name===regionSelect.value)&&series.length>1?regionSelect.value:null;
+  const tickFmt=t=>isScore?t.toLocaleString("pt-BR",{minimumFractionDigits:d.step<1?(d.step<.1?2:1):0,maximumFractionDigits:2}):(t*100).toLocaleString("pt-BR",{maximumFractionDigits:d.step<.01?1:0})+"%";
+  const xEnd=x(slots-1);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  s+=`<text x="2" y="11" font-size="10" font-weight="700" fill="#6E807C" letter-spacing=".04em">${isScore?"NOTA":"% DA META"}</text>`;
+  d.ticks.forEach(t=>{s+=`<text x="2" y="${y(t)+4}" font-size="10.5" fill="#9AA9A6">${tickFmt(t)}</text>`});
+  // meta sempre visível; fora da escala, fica no extremo superior ou inferior
+  const yRef=Math.max(top-4,Math.min(bottom+2,y(ref)));
+  s+=`<line x1="${L-8}" x2="${xEnd+8}" y1="${yRef}" y2="${yRef}" stroke="${V42_META}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s+=`<text x="${(L+xEnd)/2}" y="${yRef-5}" font-size="10.5" font-weight="700" fill="${V42_META}" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">${refLbl}</text>`;
+  labels.forEach((lab,i)=>{s+=`<text x="${x(i)}" y="${H-8}" font-size="11" font-weight="700" fill="#5E706C" text-anchor="middle">${svgTextEscape(v41ShortMonth(lab))}</text>`});
+  if(proj)s+=`<text x="${xEnd}" y="${H-8}" font-size="11" font-weight="700" fill="#9AA9A6" text-anchor="middle">Projeção</text>`;
+  const ordered=[...series].sort((a,b)=>(a.name===hl)-(b.name===hl));
+  ordered.forEach(se=>{
+    const on=!hl||se.name===hl,op=on?1:.32,v=valsOf(se),last=labels.length-1;
+    if(V41_OPTS.mean){const f=v.filter(Number.isFinite);if(f.length){const m=f.reduce((a,b)=>a+b,0)/f.length;
+      s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\nMédia do período: ${fmt(m)}`)}"><line x1="${x(0)}" x2="${x(last)}" y1="${y(m)}" y2="${y(m)}" stroke="${colOf(m)}" stroke-width="1.6" stroke-dasharray="2 4" opacity="${on?.9:.35}"/></g>`;
+      if(on&&(hl||series.length===1))s+=`<text x="${x(0)+(x(last)-x(0))*.22}" y="${y(m)-5}" text-anchor="middle" font-size="10" font-weight="700" fill="${txtOf(m)}" paint-order="stroke" stroke="#fff" stroke-width="3">média ${fmt(m)}</text>`;}}
+    if(proj){const f=v41Fit(v);if(f){
+      const y0=f.a,yl=f.a+f.b*last,yp=f.a+f.b*labels.length;
+      s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\nTendência: ${f.b>=0?"+":"−"}${fmt(Math.abs(f.b))} por mês\nProjeção: ${fmt(yp)}`)}">`+
+         `<line x1="${x(0)}" x2="${x(labels.length)}" y1="${y(y0)}" y2="${y(yp)}" stroke="#14302C" stroke-width="1.6" stroke-dasharray="7 5" opacity="${on?.5:.2}"/>`+
+         `<circle cx="${x(labels.length)}" cy="${y(yp)}" r="${on?5:4}" fill="#fff" stroke="${colOf(yp)}" stroke-width="2.4" opacity="${on?1:.35}"/></g>`;
+      if(on)s+=`<text x="${x(labels.length)+9}" y="${y(yp)+4}" font-size="11" font-weight="700" fill="${txtOf(yp)}">${fmt(yp)}</text>`;}}
+    const pts=labels.map((lab,i)=>Number.isFinite(v[i])?{x:x(i),y:y(v[i]),v:v[i],lab}:null).filter(Boolean);
+    // cada trecho assume a cor do ponto de chegada: caiu para fora da meta = laranja; voltou para a meta = verde
+    const M=pts.length>2?v42Tangents(pts):null;
+    for(let i=1;i<pts.length;i++){
+      const seg=pts.length>2?v42SegPath(pts,i,M):`M${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)} L${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+      s+=`<path d="${seg}" fill="none" stroke="${colOf(pts[i].v)}" stroke-width="${on?3:2}" stroke-linecap="round" opacity="${op}"/>`;
+    }
+    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${colOf(p.v)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
+  });
+  const colLabels=(i,dx,anchor,withName,dy=4)=>{
+    const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,y:y(p.value)}:null}).filter(Boolean);
+    v41Spread(items,14,top+4,bottom-2).forEach(it=>{
+      const on=!hl||it.name===hl;
+      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
+    });
+  };
+  if(labels.length)colLabels(labels.length-1,proj?0:11,proj?"middle":"start",!proj,proj?-11:4);
+  if(firstLbl&&labels.length>1)colLabels(0,-11,"end",false);
+  return s+"</svg>";
+}
+function v41SetOpt(k,on){V41_OPTS[k]=!!on;v41MountCharts()}
+function v41GoTo(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"})}
+function v41MountCharts(){
+  document.querySelectorAll(".v41-lc").forEach(el=>{
+    const w=el.clientWidth,spec=V41_CHARTS[+el.dataset.lc];
+    if(!w||!spec)return;
+    el.innerHTML=v41LineSVG(spec.series,spec.formatter,Math.max(300,w),spec.opts);
+  });
+}
+let v41ResizeT;window.addEventListener("resize",()=>{clearTimeout(v41ResizeT);v41ResizeT=setTimeout(v41MountCharts,150)});
 
 function chartBounds(values,kind="percent"){
   const finite=values.filter(v=>Number.isFinite(v));
@@ -2890,106 +3685,16 @@ function groupedBarChart(data){
   </svg>`;
 }
 
-function multiSeriesBarChart(series,formatter="score"){
+function multiSeriesBarChart(series,formatter="score",opts=null){
   const usable=series
     .map(s=>({...s,points:s.points.filter(p=>Number.isFinite(p.value))}))
     .filter(s=>s.points.length);
-
   if(!usable.length){
     return `<div class="empty-state">Não há dados disponíveis.</div>`;
   }
-
-  const labels=[...new Set(usable.flatMap(s=>s.points.map(p=>p.label)))];
-  const allValues=usable.flatMap(s=>s.points.map(p=>p.value));
-
-  const W=980,H=295;
-  const margin={top:38,right:22,bottom:50,left:24};
-  const innerW=W-margin.left-margin.right;
-  const innerH=H-margin.top-margin.bottom;
-
-  const bounds=chartBounds(
-    allValues,
-    formatter==="score" ? "score" : "percent"
-  );
-
-  const y=v=>margin.top+(bounds.max-v)/(bounds.max-bounds.min)*innerH;
-  const fmt=formatter==="percent" ? pctLabel : scoreLabel;
-
-  // Paleta mais neutra para Evolução Temporal.
-  const palette=["#009B91","#B8873B","#666666","#5F9E99","#A58E6C"];
-  const labelPalette=["#005852","#7A5928","#414141","#466F6B","#705F49"];
-
-  const groupW=innerW/Math.max(labels.length,1);
-  const barW=Math.min(50,groupW/(usable.length+1));
-
-  let bars="";
-
-  labels.forEach((lab,li)=>{
-    const center=margin.left+groupW*(li+.5);
-
-    usable.forEach((ser,si)=>{
-      const p=ser.points.find(x=>x.label===lab);
-      if(!p)return;
-
-      const x=center-(usable.length*barW)/2+si*barW;
-      const top=y(p.value);
-      const base=H-margin.bottom;
-      const h=Math.max(2,base-top);
-
-      const labelColor=
-        ser.name==="Oeste" ? "#466F6B" :
-        ser.name==="Vale" ? "#705F49" :
-        labelPalette[si%labelPalette.length];
-
-      const tip=`${ser.name}\n${lab}: ${fmt(p.value)}`;
-
-      bars+=`
-        <g class="chart-mark" data-tooltip="${attrEscape(tip)}">
-          <rect
-            x="${x}"
-            y="${top}"
-            width="${barW-5}"
-            height="${h}"
-            rx="4"
-            fill="${palette[si%palette.length]}"
-          />
-          <text
-            x="${x+(barW-5)/2}"
-            y="${top-7}"
-            text-anchor="middle"
-            font-size="11"
-            font-weight="900"
-            fill="${labelColor}"
-          >${fmt(p.value)}</text>
-        </g>
-      `;
-    });
-
-    bars+=`
-      <text
-        x="${center}"
-        y="${H-24}"
-        text-anchor="middle"
-        font-size="12"
-        font-weight="800"
-        fill="#354844"
-      >${svgTextEscape(lab)}</text>
-    `;
-  });
-
-  const legend=usable.map((s,si)=>`
-    <span class="legend-item">
-      <span class="legend-swatch" style="background:${palette[si%palette.length]}"></span>
-      ${svgTextEscape(s.name)}
-    </span>
-  `).join("");
-
-  return `
-    <div class="chart-legend">${legend}</div>
-    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-      ${bars}
-    </svg>
-  `;
+  const id=V41_CHARTS.push({series:usable,formatter,opts})-1;
+  const legend=`<span class="legend-item"><span class="legend-swatch" style="background:#009B91"></span>Na meta</span><span class="legend-item"><span class="legend-swatch" style="background:#F5AA41"></span>Fora da meta</span><span class="legend-item"><span class="v42-meta-sw"></span>Meta</span>${usable.length>1?`<span class="legend-item v42-leg-note">Destaque: região do filtro da Visão Geral</span>`:""}`;
+  return `<div class="chart-legend">${legend}</div><div class="v41-lc" data-lc="${id}"></div>`;
 }
 
 function previousPointsForRow(row){
@@ -3110,9 +3815,9 @@ function renderAllCoordinationRanking(region){
     return a.coord.localeCompare(b.coord,"pt-BR")||a.region.localeCompare(b.region,"pt-BR");
   });
 
-  const rows=items.map((item,idx)=>`<tr class="${item.region===region?"selected-region":""}">
+  const rows=items.map((item,idx)=>`<tr class="${idx<3?`rank-${idx+1} podium podium-${idx+1}`:""} ${item.region===region?"selected-region":""}">
       <td class="rank-pos rank-cell"><span class="rank-number">${idx+1}º</span></td>
-      <td><div class="rank-name">${item.coord} – ${item.region}</div></td>
+      <td><div class="rank-name">${item.coord} – ${item.region}${idx<3?`<span class="v42-medal">${["Ouro","Prata","Bronze"][idx]}</span>`:""}</div></td>
       <td class="rank-score">${formatScore(item.score)}</td>
       <td class="rank-score">${item.irl===null?"—":item.irl.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:3})}</td>
     </tr>`).join("");
@@ -3136,7 +3841,7 @@ function renderAllRegionTables(){
             :coord;
 
         return `<section class="card all-tables-card">
-          <div class="region-table-title">${region} — ${label}</div>
+          ${v41TableHead(region,coord,label)}
           ${table(rowsFor(region,coord),"",null,true)}
         </section>`;
       })
@@ -3231,19 +3936,28 @@ function execIndicatorsForBlock(block){
 }
 function execRowsForIndicator(block,ind){
   return REGION_ORDER.map(region=>{
-    const candidates=DATA.filter(r=>execBlockName(r)===block&&r["Região"]===region&&execCanonicalIndicator(r["Indicador"])===ind);
-    if(!candidates.length)return null;
-    const ps=candidates.map(r=>number(r["Planejado"])).filter(Number.isFinite);
-    const rs=candidates.map(r=>number(r["Realizado"])).filter(Number.isFinite);
+    const all=DATA.filter(r=>execBlockName(r)===block&&r["Região"]===region&&execCanonicalIndicator(r["Indicador"])===ind);
+    if(!all.length)return null;
+    // A Gerência já consolida as coordenações: usar só ela quando existir (evita dupla contagem).
+    const mgr=all.filter(r=>r["Coordenação"]==="Gerência");
+    const base=mgr.length?mgr:all;
+    const ps=base.map(r=>number(r["Planejado"])).filter(Number.isFinite);
+    const rs=base.map(r=>number(r["Realizado"])).filter(Number.isFinite);
     if(!ps.length||!rs.length)return null;
     const type=execAggType(ind);
     const p=execAggregate(ps,type),real=execAggregate(rs,type);
-    const source=candidates.find(r=>!execEfficiencyOK(r["Eficiência"]))||candidates[0];
+    const pts=base.map(r=>number(r["Pontos"])).filter(Number.isFinite);
+    const points=pts.length?pts.reduce((a,b)=>a+b,0)/pts.length:null;
+    const source=all.find(r=>!execEfficiencyOK(r["Eficiência"]))||all[0];
     return {
       region,planned:p,real,
-      ok:candidates.every(r=>execEfficiencyOK(r["Eficiência"])),
+      // ok: regra original (Eficiência) — continua decidindo o fluxo de justificativas
+      ok:all.every(r=>execEfficiencyOK(r["Eficiência"])),
+      // status: visual, pela pontuação obtida
+      status:points===null?"na":points>=.999?"ok":points>0?"part":"bad",
+      points,fromMgr:mgr.length>0,
       source,
-      sources:candidates
+      sources:all
     };
   }).filter(Boolean);
 }
@@ -3253,8 +3967,8 @@ function execGeneralAttainment(planned,real,ind){
   const t=execNorm(ind);
   const eps=Math.max(1e-9,Math.abs(p)*1e-9);
   // Faixas históricas específicas do projeto. Não estender tolerância aos demais indicadores.
-  if(t.includes("CAPEX"))return r>=p*.90-eps&&r<=p*1.10+eps;
-  if(t.includes("OPEX"))return r>=p*.85-eps&&r<=p*1.15+eps;
+  if(t.includes("CAPEX"))return r>=p*.90-eps;
+  if(t.includes("OPEX"))return r<=p+eps;
   if(t.includes("RECLAM")||t.includes("CLIENTES NAO LIDOS")||t.includes("ERRO DE LEITURA"))return r<=p+eps;
   // Demais indicadores: meta mínima de realização (inclusive IEN, IQG e prazo).
   return r+eps>=p;
@@ -3292,12 +4006,14 @@ function execJustificationsForBlock(block){
 }
 async function execLoadJustifications(){
   try{
+    const token=await window.__SSC_GET_ACCESS_TOKEN?.();
+    if(!token)throw new Error('Sessão necessária para consultar justificativas');
     const url=new URL(`${EXEC_SUPABASE_URL}/rest/v1/superintendencia_justificativas`);
     url.searchParams.set("select","*");
     url.searchParams.set("periodo",`eq.${EXEC_PERIOD}`);
     url.searchParams.set("semana_inicio",`eq.${EXEC_WEEK_START}`);
     const r=await fetch(url,{
-      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`}
+      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${token}`}
     });
     if(!r.ok)throw new Error(await r.text());
     const data=await r.json();
@@ -3315,62 +4031,39 @@ async function execLoadJustifications(){
 }
 function execSummary(){
   const blocks=[...new Set(DATA.map(execBlockName).filter(x=>x&&x!=="Outros"))];
-  const regional=[];
-  blocks.forEach(b=>execIndicatorsForBlock(b).forEach(ind=>{
-    if(execIsIRL(ind))return;
-    regional.push(...execRowsForIndicator(b,ind));
-  }));
-  const total=regional.length,hit=regional.filter(x=>x.ok).length,miss=total-hit;
-  const hp=total?Math.round(hit/total*100):0,mp=total?Math.round(miss/total*100):0;
+  const regional=[];let nInd=0;
+  blocks.forEach(b=>execIndicatorsForBlock(b).forEach(ind=>{nInd++;regional.push(...execRowsForIndicator(b,ind))}));
+  const c={ok:0,part:0,bad:0};regional.forEach(x=>{if(x.status in c)c[x.status]++});
+  const n=c.ok+c.part+c.bad||1;
   const el=document.getElementById("comparisonSummary");
   if(!el)return;
-  el.innerHTML=`
-    <div class="exec-kpi">
-      <div class="exec-kpi-icon">✓</div>
-      <div class="exec-kpi-copy"><small>Metas atingidas</small><strong>${hit}/${total}</strong></div>
-      <div class="exec-kpi-rate">${hp}%</div>
-      <div class="exec-kpi-track"><i style="width:${hp}%"></i></div>
-    </div>
-    <div class="exec-kpi pending">
-      <div class="exec-kpi-icon">!</div>
-      <div class="exec-kpi-copy"><small>Metas pendentes</small><strong>${miss}/${total}</strong></div>
-      <div class="exec-kpi-rate">${mp}%</div>
-      <div class="exec-kpi-track"><i style="width:${mp}%"></i></div>
-    </div>`;
+  el.classList.add("v41-sum");
+  const kpi=(lbl,v,col)=>`<div class="v41-kpi">${v41Ring(v/n,col)}<div><small>${lbl}</small><b>${v}<i> / ${n} · ${Math.round(v/n*100)}%</i></b></div></div>`;
+  el.innerHTML=kpi("Pontuação Máxima",c.ok,"#009B91")+kpi("Pontuação Parcial",c.part,"#E9A33A")+kpi("Sem Pontuação",c.bad,"#F5AA41")+
+    `<div class="v41-kpi">${v41Ring(1,"#005852")}<div><small>Avaliações</small><b>${nInd}<i> indicadores × regiões</i></b></div></div>`;
 }
 function execVerticalChart(rows,ind,compact){
-  const values=rows.flatMap(x=>[number(x.planned),number(x.real)]).filter(Number.isFinite);
-  if(!values.length)return `<div class="exec-vchart exec-empty">Sem dados para o período</div>`;
-  const low=Math.min(...values),high=Math.max(...values),spread=high-low;
-  const reference=Math.max(Math.abs(high),Math.abs(low),1);
-  const safe=spread>reference*.00001?spread:Math.max(reference*.08,.01);
-  const min=low-safe*.38,max=high+safe*.35,range=max-min;
-  const pos=v=>Math.max(0,Math.min(100,(v-min)/range*100));
-  const H=226,adjusted=min>0.00001;
-  return `<div class="exec-chart-shell">
-    <div class="exec-axis-note"><span>${adjusted?'Eixo Y com origem ajustada':'Eixo Y adaptativo'}</span><span>${execFmt(min,ind)} — ${execFmt(max,ind)}</span></div>
-    <div class="exec-vchart">${rows.map(x=>{
-      const plan=pos(x.planned),real=pos(x.real),py=plan/100*H,ry=real/100*H;
-      const higher=x.planned>x.real+Math.max(1e-9,Math.abs(x.planned)*1e-9);
-      // Centro de cada rótulo próximo ao ponto que representa; desvia quando muito próximos.
-      let metaY=py+(higher?5:-18),realY=higher?Math.max(4,ry-18):ry+6;
-      const close=Math.abs(metaY-realY)<21;
-      if(close){metaY+=higher?7:-9;realY+=higher?-10:12;}
-      metaY=Math.max(3,Math.min(H-15,metaY));realY=Math.max(4,Math.min(H-15,realY));
-      const delta=x.planned===0||x.planned===null?null:(x.real-x.planned)/Math.abs(x.planned)*100;
-      const diff=delta===null?'—':`${delta>0?'+':''}${delta.toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
-      return `<div class="exec-vcol" title="${x.region}: Meta ${execFmt(x.planned,ind)}; Realizado ${execFmt(x.real,ind)}; desvio ${diff}">
-        <div class="exec-vplot ${adjusted?'exec-plot-truncated':''}">
-          <div class="exec-vbar ${x.ok?'met':'missed'}" style="height:${Math.max(5,real)}%"></div>
-          <div class="exec-target-marker" style="bottom:${plan}%"></div>
-          <span class="exec-label meta ${close?'collision':''}" style="bottom:${metaY}px"><b>Meta</b> ${execFmt(x.planned,ind)}</span>
-          <span class="exec-label real ${x.ok?'met':'missed'} ${close?'collision':''}" style="bottom:${realY}px">${execFmt(x.real,ind)}</span>
-          ${adjusted?'<span class="exec-axis-break" title="Eixo Y com origem ajustada">∿</span>':''}
-        </div>
-        <div class="exec-vregion">${x.region}</div>
-        <div class="exec-region-delta ${x.ok?'met':'missed'}">Δ ${diff}</div>
+  // Desvio do realizado em relação à meta de cada região (centro = meta).
+  const valid=rows.filter(x=>Number.isFinite(x.planned)&&Number.isFinite(x.real)&&Math.abs(x.planned)>1e-12);
+  if(!valid.length)return `<div class="exec-empty">Sem dados para o período</div>`;
+  const dev=x=>x.real/x.planned-1;
+  const maxAbs=Math.max(.02,...valid.map(x=>Math.abs(dev(x))));
+  const step=v41NiceStep(maxAbs,2),lim=Math.ceil(maxAbs*1.1/step)*step;
+  const pp=v=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:lim<.1?1:0})+" p.p.";
+  const lower=v41LowerBetter(ind);
+  return `<div class="v41-dev">
+    <div class="v41-dev-axis"><span></span><div class="v41-dev-scale"><span>−${pp(lim)}</span><span>meta</span><span>+${pp(lim)}</span></div><span></span></div>
+    ${rows.map(x=>{
+      const ok=Number.isFinite(x.planned)&&Math.abs(x.planned)>1e-12&&Number.isFinite(x.real);
+      const d=ok?dev(x):0,w=Math.min(50,Math.abs(d)/lim*50),side=d>=0?"right":"left";
+      const tip=`${x.region}: realizado ${execFmt(x.real,ind)} · meta ${execFmt(x.planned,ind)}${ok?` · ${v41Pct(1+d)} da meta`:""}${x.fromMgr?"":" · agregado das coordenações"}`;
+      return `<div class="v41-dev-row ${x.status||"na"}" title="${attrEscape(tip)}">
+        <span class="v41-dev-reg">${x.region}</span>
+        <div class="v41-dev-track"><i class="v41-dev-mid"></i>${ok?`<b class="v41-dev-bar ${side}" style="width:${w.toFixed(2)}%"></b>`:""}</div>
+        <span class="v41-dev-val"><b>${ok?v41Pct(1+d):"–"}</b><small>${v41FmtCompact(x.real,ind)} / ${v41FmtCompact(x.planned,ind)}</small></span>
       </div>`;
-    }).join('')}</div>
+    }).join("")}
+    <div class="v41-dev-foot">${lower?"Quanto menor, melhor: barra à direita (acima da meta) é desfavorável. ":""}Escala ajustada aos desvios (±${pp(lim)}). Coluna da direita: % da meta · realizado / meta.</div>
   </div>`;
 }
 
@@ -3396,21 +4089,15 @@ function execMetaGaugeSVG(planned,real,ok){
   </svg>`;
 }
 function execGeneralBox(rows,ind){
-  const g=execGeneral(rows,ind),cls=g.ok?"met":"missed";
-  const diff=g.planned===null||Math.abs(g.planned)<1e-12?null:(g.real-g.planned)/Math.abs(g.planned)*100;
-  const dtext=diff===null?"—":`${diff>0?"+":""}${diff.toLocaleString("pt-BR",{maximumFractionDigits:1})}%`;
-  const indicatorRule=execNorm(ind);
-  const allowedRange=indicatorRule.includes("CAPEX")?" · Faixa: 90–110%":indicatorRule.includes("OPEX")?" · Faixa: 85–115%":"";
-  return `<div class="exec-general exec-general-with-gauge">
-    <div class="exec-general-info">
-      <div class="exec-general-label">CONSOLIDADO GERAL</div>
-      <div class="exec-general-values">
-        <div><small>Planejado (meta)</small><strong>${execFmt(g.planned,ind)}</strong></div>
-        <div><small>Realizado</small><strong>${execFmt(g.real,ind)}</strong></div>
-      </div>
-      <div class="exec-general-status ${cls}"><span class="exec-dot">${g.ok?"✓":"!"}</span>${g.ok?"Meta atingida":"Meta pendente"}<span class="exec-tolerance-rule">${allowedRange}</span><span class="exec-general-delta">Δ ${dtext}</span></div>
-    </div>
-    <div class="exec-meta-gauge-wrap">${execMetaGaugeSVG(g.planned,g.real,g.ok)}</div>
+  const g=execGeneral(rows,ind);
+  const att=Number.isFinite(g.planned)&&Math.abs(g.planned)>1e-12&&Number.isFinite(g.real)?g.real/g.planned:null;
+  const t=execNorm(ind);
+  const rule=t.includes("CAPEX")?"Na meta: realizado ≥ 90% do orçado":t.includes("OPEX")?"Na meta: realizado ≤ 100% do orçado":v41LowerBetter(ind)?"Na meta: realizado ≤ meta":"Na meta: realizado ≥ meta";
+  const nOk=rows.filter(x=>x.status==="ok").length;
+  return `<div class="v41-gen">
+    <div class="v41-gen-k"><small>Consolidado</small><b class="${g.ok?"ok":"bad"}">${att===null?"—":v41Pct(att)}</b><small>da meta</small></div>
+    <div class="v41-gen-v"><div><small>Meta</small><b>${v41FmtCompact(g.planned,ind)}</b></div><div><small>Realizado</small><b>${v41FmtCompact(g.real,ind)}</b></div><div><small>Regiões c/ pontuação máxima</small><b>${nOk}/${rows.length}</b></div></div>
+    <div class="v41-gen-rule">${rule}</div>
   </div>`;
 }
 
@@ -3437,33 +4124,44 @@ function execIRLGaugeSVG(value,big=true){
 function execIRLClass(v){
   const n=number(v);
   if(n===null)return "Sem dado";
-  if(n<=1)return "Seguro";
-  if(n<=2)return "Aceitável";
-  if(n<=3)return "Tolerável";
-  return "Crítico";
+  if(n<=.25)return "Seguro";
+  if(n<=.45)return "Aceitável";
+  if(n<=.65)return "Tolerável";
+  if(n<=.85)return "Crítico";
+  return "Intolerável";
 }
 function execIRLIndicator(block,ind,rows){
-  const all=rows.map(x=>x.real).filter(Number.isFinite);
-  const general=all.length?all.reduce((a,b)=>a+b,0)/all.length:0;
-  return `<div class="exec-indicator">
-    <div class="exec-indicator-head" style="grid-template-columns:1fr">
-      <div class="exec-indicator-title">${ind} — classificação por faixa de risco</div>
+  const vals=rows.map(x=>x.real).filter(Number.isFinite);
+  const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+  const max=Math.max(1,...vals.map(v=>v+.05));
+  const pos=v=>Math.max(0,Math.min(100,v/max*100));
+  const bands=[[0,.25,"#009B91"],[.25,.45,"#7FCFC8"],[.45,.65,"#F8CB7E"],[.65,.85,"#F5AA41"],[.85,max,"#C4453D"]];
+  const cls=v=>execNorm(execIRLClass(v)).toLowerCase();
+  const allSafe=vals.every(v=>v<=.25);
+  return `<div class="exec-indicator v41-ind">
+    <div class="v41-ind-title">${ind} — classificação por faixa de risco</div>
+    <div class="v41-gen">
+      <div class="v41-gen-k"><small>Média</small><b class="${allSafe?"ok":"bad"}">${avg===null?"—":v41Num(avg)}</b><span class="v41-irl-cls ${avg===null?"":cls(avg)}">${execIRLClass(avg)}</span></div>
+      <div class="v41-gen-v"><div><small>Regiões na faixa Seguro</small><b>${vals.filter(v=>v<=.25).length}/${vals.length}</b></div><div><small>Regiões c/ pontuação máxima</small><b>${rows.filter(x=>x.status==="ok").length}/${rows.length}</b></div></div>
+      <div class="v41-gen-rule">Média das coordenações da região</div>
     </div>
-    <div class="exec-irl-main">${execIRLGaugeSVG(general,true)}</div>
-    <div class="exec-irl-general-class">Consolidado geral · ${execIRLClass(general)}</div>
-    <div class="exec-irl-regions">
-      ${rows.map(x=>{const cl=execIRLClass(x.real),cn=execNorm(cl).toLowerCase();return `<div class="exec-irl-mini">${execIRLGaugeSVG(x.real,false)}<strong>${Number((x.real||0).toFixed(2)).toLocaleString("pt-BR")}</strong><span>${x.region}</span><em class="exec-irl-class ${cn}">${cl}</em></div>`}).join("")}
+    <div class="v41-irl">
+      <div class="v41-irl-head"><span></span><div><div class="v41-irl-bands">${bands.map(([a,b,c])=>`<i style="width:${(Math.min(b,max)-a)/max*100}%;background:${c}"></i>`).join("")}</div>
+        <div class="v41-irl-lbls">${[0,.25,.45,.65,.85].map(t=>`<span style="left:${pos(t)}%">${v41Num(t)}</span>`).join("")}</div></div><span></span></div>
+      ${rows.map(x=>`<div class="v41-irl-row" title="${attrEscape(`${x.region}: IRL ${v41Num(x.real)} · ${execIRLClass(x.real)}`)}">
+        <span class="v41-dev-reg">${x.region}</span>
+        <div class="v41-irl-track"><i style="left:${pos(x.real)}%"></i></div>
+        <span class="v41-dev-val"><b style="color:#14302C">${v41Num(x.real)}</b><span class="v41-irl-cls ${cls(x.real)}">${execIRLClass(x.real)}</span></span>
+      </div>`).join("")}
     </div>
   </div>`;
 }
 function execIndicator(block,ind){
   const rows=execRowsForIndicator(block,ind);
   if(execIsIRL(ind))return execIRLIndicator(block,ind,rows);
-  return `<div class="exec-indicator">
-    <div class="exec-indicator-head">
-      <div class="exec-indicator-title">${ind}</div>
-      ${execGeneralBox(rows,ind)}
-    </div>
+  return `<div class="exec-indicator v41-ind">
+    <div class="v41-ind-title">${ind}</div>
+    ${execGeneralBox(rows,ind)}
     ${execVerticalChart(rows,ind,false)}
   </div>`;
 }
@@ -3615,10 +4313,12 @@ async function execSaveJust(i,encoded,fromTable=false){
   const feedback=document.getElementById("execJustModalSaveStatus");
   if(footerSave){footerSave.disabled=true;footerSave.textContent="Salvando...";}
   try{
+    const token=await window.__SSC_GET_ACCESS_TOKEN?.();
+    if(!token)throw new Error('Sessão necessária para salvar justificativas');
     const r=await fetch(url,{
       method,
       headers:{
-        apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`,
+        apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${token}`,
         "Content-Type":"application/json",Prefer:"return=representation"
       },
       body:JSON.stringify(payload)
@@ -3646,9 +4346,11 @@ async function execDeleteTableJust(encoded){
   if(!confirm("Apagar esta justificativa? O registro será marcado como excluído no histórico."))return;
   const url=`${EXEC_SUPABASE_URL}/rest/v1/superintendencia_justificativas?id=eq.${encodeURIComponent(saved.id)}`;
   try{
+    const token=await window.__SSC_GET_ACCESS_TOKEN?.();
+    if(!token)throw new Error('Sessão necessária para editar justificativas');
     const r=await fetch(url,{
       method:"PATCH",
-      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${EXEC_SUPABASE_KEY}`,
+      headers:{apikey:EXEC_SUPABASE_KEY,Authorization:`Bearer ${token}`,
         "Content-Type":"application/json",Prefer:"return=representation"},
       body:JSON.stringify({apagado:true,apagado_em:new Date().toISOString()})
     });
@@ -3761,8 +4463,7 @@ function buildRegionExportHTML(region,type,scope){
   <h1>Exportação ${type==="cards"?"Cards":"Email"}</h1>
   <p>Regional selecionada: <strong>${region}</strong> · Conteúdo: <strong>${scope==="cards"?"Cards":"Regional"}</strong> · Período: <strong>${CURRENT_PERIOD}</strong></p>
   ${sections}
-  
-</body></html>`;
+  </body></html>`;
 }
 
 function downloadRegionTables(){
@@ -3831,6 +4532,7 @@ function populateEvolutionFilters(){
 }
 
 function updateEvolutionAll(){
+  V41_CHARTS.length=0;
   const regions=selectedEvolutionRegions();
   updateRegionToggleLabel();
   const periods=selectedPeriods();
@@ -3864,16 +4566,17 @@ function updateEvolutionAll(){
     const charts=indicators.map(ind=>{
       const series=regions.map(region=>{
         const row=DATA.find(r=>r["Região"]===region&&r["Coordenação"]===coord&&r["Indicador"]===ind);
-        if(!row)return null;
+        if(!row||!v42HasCurrent(row))return null;
         return {name:region,points:periods.map(period=>({label:period,value:periodValueForRow(row,period)}))};
       }).filter(Boolean).filter(s=>s.points.some(p=>Number.isFinite(p.value)));
       if(!series.length)return "";
-      return `<div class="chart-box"><h3 class="chart-title">${ind}</h3>${multiSeriesBarChart(series,"percent")}</div>`;
+      return `<div class="chart-box"><h3 class="chart-title">${ind}</h3><span class="v41-ind-sub">Avanço do indicador${execNorm(ind).includes("OPEX")?" · quanto menor, melhor":""}</span>${multiSeriesBarChart(series,"percent",v42IndOpts(ind,coord))}</div>`;
     }).join("");
     if(!charts)return "";
     const label=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
     return `<section class="sector-subsection">${sectionHeadingHTML(coord,label)}<div class="comparison-grid">${charts}</div></section>`;
   }).join("");
+  v41MountCharts();
 }
 
 
@@ -3956,8 +4659,9 @@ function confCoordCard(region,coord){
     const max=peso===null?null:peso*10;
     if(max===null)semPeso++; else somaMax+=max;
     somaScore+=score||0;
-    return `<tr>
-      <td>${confEsc(row["Indicador"])}</td>
+    const st=v41Status(row),stTxt={ok:"Pontuação máxima",part:"Pontuação parcial",bad:"Sem pontuação"}[st]||"";
+    return `<tr class="v42-row-${st}">
+      <td><div class="v42-ci ${st}"><b>${confEsc(row["Indicador"])}</b>${stTxt?`<span class="t">${stTxt}</span>`:""}</div></td>
       <td class="num">${confWeight(peso)}</td>
       <td class="num">${formatDataValue(row["Planejado"],row["Indicador"])}</td>
       <td class="num">${formatDataValue(row["Realizado"],row["Indicador"])}</td>
@@ -4063,6 +4767,7 @@ function switchView(view){
 }
 
 function render(region){
+  renderHero(region);
   renderRankings(region);
   renderAllCoordinationRanking(region);
   renderManager(region);
@@ -4147,78 +4852,67 @@ function inicializarPainel(){
   }
 }
 
-// A versão anterior declarava esta função, mas nunca a executava:
-// o layout carregava sem dados e sem ativar as interações.
-inicializarPainel();
-
-
-window.__CARREGAR_DADOS_SEGUROS = function(rows, scope){
-  DATA = rows;
-  // Somente regiões com linhas autorizadas podem entrar nos filtros.
-  regionSelect.innerHTML = '';
-  const allowed = new Set(rows.map(x => x['Região']));
-  REGION_ORDER.filter(r => allowed.has(r)).forEach(r => {
-    const op = document.createElement('option'); op.value=r; op.textContent=r; regionSelect.appendChild(op);
+// Carregamento exclusivo pelo Supabase após autenticação e políticas RLS.
+// Nunca incluir dados privados em HTML publicado no GitHub.
+window.__SSC_SET_CONTEXT = (comp, fotos) => {
+  const [y,m]=String(comp||'2026-10').split('-').map(Number);
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  EXEC_PERIOD=(meses[m-1]||'Outubro')+'/'+y;
+  CURRENT_PERIOD=EXEC_PERIOD;
+  const d=new Date(y,m-2,1);
+  PREVIOUS_PERIOD=meses[d.getMonth()]+'/'+d.getFullYear();
+  const ultima=(fotos||[]).filter(x=>x.inicio_semana).sort((a,b)=>b.inicio_semana.localeCompare(a.inicio_semana))[0];
+  if(ultima){EXEC_WEEK_START=ultima.inicio_semana;EXEC_WEEK_END=ultima.fim_semana;}
+  document.querySelectorAll('.comparison-period-pill').forEach(el=>el.textContent=EXEC_PERIOD);
+  document.querySelectorAll('#view-tables .filter select:not([id]),#view-conference .filter select:not([id])').forEach(el=>{
+    const op=el.querySelector('option');if(op)op.textContent=EXEC_PERIOD;
   });
-  if(scope !== 'criador' && scope !== 'superint'){
-    document.querySelectorAll('#rankingOverview,#miniRankings').forEach(el=>{
-      const section=el.closest('.ranking-section');
-      if(section)section.style.display='none';
-      else el.style.display='none';
-    });
+};
+window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
+  DATA=Array.isArray(rows)?rows:[];
+  if(!DATA.length)throw new Error('Não existem indicadores autorizados para este perfil nesta competência.');
+  const restrito=!['criador','superint'].includes(role);
+  document.querySelectorAll('.ranking-section, #rankingOverview, #miniRankings, #allCoordinationRanking').forEach(el=>{
+    // Ranking detalhado entre regionais: somente criador/superintendência.
+    if(restrito)el.style.display='none';else el.style.removeProperty('display');
+  });
+  if(restrito){
+    const comparison=document.querySelector('[data-view="comparison"]');
+    if(comparison)comparison.style.display='none';
+    const compSection=document.getElementById('view-comparison');
+    if(compSection)compSection.style.display='none';
   }
   inicializarPainel();
 };
+
 </script>
 
 
 
 <div id="chartTooltip" class="chart-tooltip"></div>
 
-<div class="auth-screen" id="su-auth">
-  <div class="auth-box">
-    <h2>Análise — Superintendência</h2>
-    <p>Entre com seu acesso individual. Novas contas precisam ser aprovadas pelo criador.</p>
-    <form id="su-form"><input type="email" id="su-email" placeholder="E-mail" required autocomplete="username"/>
-    <input type="password" id="su-pass" placeholder="Senha (mínimo 6 caracteres)" required autocomplete="current-password" minlength="6"/>
-    <button type="submit">Entrar</button></form>
-    <button type="button" id="su-cadastrar" style="background:#e8f4f2;color:#005852">Solicitar acesso</button>
-    <form id="su-solicitacao" hidden style="margin-top:14px;border-top:1px solid #dce9e5;padding-top:14px">
-      <h3>Solicitação de acesso</h3>
-      <p>Informe seus dados. O criador confirmará a função e a área antes da liberação.</p>
-      <label for="su-nome">Nome</label>
-      <input id="su-nome" type="text" maxlength="120" autocomplete="name" required placeholder="Nome completo">
-      <label for="su-email-novo">E-mail</label>
-      <input id="su-email-novo" type="email" autocomplete="email" required placeholder="E-mail">
-      <label for="su-pass-novo">Senha</label>
-      <input id="su-pass-novo" type="password" autocomplete="new-password" minlength="8" required placeholder="Senha (mínimo de 8 caracteres)">
-      <label for="su-funcao">Função</label>
-      <select id="su-funcao" required>
-        <option value="">Selecione a função</option>
-        <option value="gerente">Gerente</option>
-        <option value="coordenador">Coordenador</option>
-        <option value="superint">Superintendência</option>
-      </select>
-      <div id="su-regional-grupo">
-        <label for="su-regional">Regional</label>
-        <select id="su-regional">
-          <option value="">Selecione a regional</option>
-          <option value="Baixada">Baixada</option><option value="Centro Sul">Centro Sul</option>
-          <option value="Leste">Leste</option><option value="Oeste">Oeste</option><option value="Vale">Vale</option>
-        </select>
-      </div>
-      <div id="su-coordenacao-grupo" hidden>
-        <label for="su-coordenacao">Coordenação</label>
-        <select id="su-coordenacao"></select>
-      </div>
-      <button type="submit">Enviar solicitação</button>
-      <button type="button" id="su-voltar" style="background:#e8f4f2;color:#005852">Voltar ao login</button>
-    </form>
-    <p id="su-msg" aria-live="polite"></p>
-  </div>
-</div>
+<div class="auth-screen" id="su-auth"><div class="auth-box">
+  <h2>Análise — Superintendência</h2><p>Acesso individual. Cadastros novos dependem de aprovação do Criador.</p>
+  <form id="su-form">
+    <input type="email" id="su-email" placeholder="E-mail" autocomplete="username" required>
+    <input type="password" id="su-pass" placeholder="Senha" autocomplete="current-password" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <button type="button" id="su-cadastrar">Solicitar acesso</button>
+  <form id="su-solicitacao" hidden>
+    <h3>Solicitação de acesso</h3>
+    <label for="su-nome">Nome</label><input id="su-nome" autocomplete="name" maxlength="120" required>
+    <label for="su-email-novo">E-mail</label><input id="su-email-novo" type="email" autocomplete="email" required>
+    <label for="su-pass-novo">Senha</label><input id="su-pass-novo" type="password" minlength="8" autocomplete="new-password" required>
+    <label for="su-funcao">Função</label>
+    <select id="su-funcao" required><option value="">Selecione a função</option><option value="gerente">Gerente</option><option value="coordenador">Coordenador</option><option value="superint">Superintendência</option></select>
+    <div id="su-regional-grupo"><label for="su-regional">Regional</label><select id="su-regional"><option value="">Selecione</option><option>Baixada</option><option>Centro Sul</option><option>Leste</option><option>Oeste</option><option>Vale</option></select></div>
+    <div id="su-coordenacao-grupo" hidden><label for="su-coordenacao">Coordenação</label><select id="su-coordenacao"></select></div>
+    <button type="submit">Enviar solicitação</button>
+    <button id="su-voltar" type="button">Voltar ao login</button>
+  </form><p id="su-msg" aria-live="polite"></p>
+</div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script src="./config.js"></script>
-<script type="module" src="./plataforma.js?v=20261115-login-fix05"></script>
+<script type="module" src="./plataforma.js?v=v43ssc01"></script>
 </body>
 </html>
