@@ -165,16 +165,61 @@ function renderRanking(){
   const sorted=ok.filter(r=>r.competencia===mes).sort((a,b)=>Number(b.score)-Number(a.score));
   $('su-rank-content').innerHTML=sorted.length?`<table><thead><tr><th>Posição</th><th>Regional</th><th>Score</th></tr></thead><tbody>${sorted.map((r,i)=>`<tr><td>${i+1}º</td><td>${escapeHTML(r.regiao)}</td><td>${fmt(Number(r.score))}</td></tr>`).join('')}</tbody></table>`:'<p class="su-muted">Nenhum ranking divulgado.</p>';
 }
+
+const REGIONAIS=['Baixada','Centro Sul','Leste','Oeste','Vale'];
+const COORDENACOES=['Varejo','Projetos Especiais e Grandes Clientes','Leitura','Construção'];
+const coordsDaRegional=r=>COORDENACOES.filter(c=>(r==='Baixada'||c!=='Construção')&&(r!=='Vale'||['Varejo','Leitura'].includes(c)));
+const selectOpts=(items,selected)=>'<option value="">Selecione</option>'+items.map(v=>'<option value="'+escapeHTML(v)+'" '+(v===selected?'selected':'')+'>'+escapeHTML(v)+'</option>').join('');
 async function listarUsuarios(){
   const users=await getAll('perfis');
-  $('su-users').innerHTML=users.map(u=>`<div style="padding:12px;margin:8px 0;border:1px solid #dce9e5;border-radius:9px"><b>${escapeHTML(u.nome||u.email)}</b> · ${escapeHTML(u.email)}<br><span class="su-muted">${escapeHTML(u.aprovado?u.perfil:'Aguardando aprovação')}</span><div class="su-controls"><select id="role-${u.usuario_id}">${['pendente','superint','gerente','coordenador'].map(t=>`<option value="${t}" ${u.perfil===t?'selected':''}>${t}</option>`).join('')}</select><input id="reg-${u.usuario_id}" placeholder="Regional (quando aplicável)" value="${escapeHTML(u.regiao||'')}"><input id="co-${u.usuario_id}" placeholder="Coordenação (quando aplicável)" value="${escapeHTML(u.coordenacao||'')}"><button class="su-btn" data-user="${u.usuario_id}" ${u.perfil==='criador'?'disabled':''}>Salvar acesso</button></div></div>`).join('');
-  $('su-users').querySelectorAll('button[data-user]').forEach(b=>b.addEventListener('click',async()=>{
-    const id=b.dataset.user;
-    const role=$('role-'+id).value;
-    if(!confirm('Confirmar alteração deste acesso?'))return;
-    const {error}=await db.rpc('admin_aprovar',{p_usuario:id,p_perfil:role,p_regiao:$('reg-'+id).value||null,p_coordenacao:$('co-'+id).value||null,p_aprovado:role!=='pendente'});
-    if(error)alert(error.message);else await listarUsuarios();
-  }));
+  users.sort((a,b)=>Number(a.aprovado)-Number(b.aprovado)||a.email.localeCompare(b.email));
+  const container=$('su-users');container.innerHTML='';
+  for(const u of users){
+    const row=document.createElement('div');
+    row.style='padding:14px;margin:9px 0;border:1px solid #dce9e5;border-radius:10px;background:#fff';
+    const roleValue=u.aprovado?u.perfil:(u.solicitacao_perfil||'pendente');
+    const regionValue=u.aprovado?u.regiao:u.solicitacao_regiao;
+    const coordValue=u.aprovado?u.coordenacao:u.solicitacao_coordenacao;
+    row.innerHTML='<b>'+escapeHTML(u.nome||u.email)+'</b> · '+escapeHTML(u.email)+
+      '<div class="su-muted">'+(u.aprovado?'Aprovado: '+escapeHTML(u.perfil):'Aguardando: '+escapeHTML(u.solicitacao_perfil||'perfil não informado'))+'</div>'+
+      '<div class="su-controls" style="margin:10px 0"><label>Função <select class="adm-role">'+selectOpts(['pendente','criador','superint','gerente','coordenador'],roleValue)+'</select></label>'+
+      '<label class="adm-reg-wrap">Regional <select class="adm-reg">'+selectOpts(REGIONAIS,regionValue)+'</select></label>'+
+      '<label class="adm-coord-wrap">Coordenação <select class="adm-coord"></select></label></div>'+
+      '<div class="su-controls"><button type="button" class="su-btn adm-save">Salvar / Aprovar</button>'+
+      '<button type="button" class="su-btn adm-delete" style="background:#ad3030">Excluir conta</button></div>'+
+      '<p class="su-muted adm-status" aria-live="polite"></p>';
+    container.appendChild(row);
+    const role=row.querySelector('.adm-role'),reg=row.querySelector('.adm-reg'),co=row.querySelector('.adm-coord');
+    const status=row.querySelector('.adm-status');
+    const configure=()=>{
+      row.querySelector('.adm-reg-wrap').hidden=!['gerente','coordenador'].includes(role.value);
+      row.querySelector('.adm-coord-wrap').hidden=role.value!=='coordenador';
+      const items=coordsDaRegional(reg.value);
+      const chosen=items.includes(co.value)?co.value:coordValue;
+      co.innerHTML=selectOpts(items,chosen);
+    };
+    role.addEventListener('change',configure);reg.addEventListener('change',configure);configure();
+    const self=u.usuario_id===perfil.usuario_id;
+    row.querySelector('.adm-delete').disabled=self;
+    row.querySelector('.adm-delete').title=self?'Não pode excluir a própria conta':'Excluir permanentemente';
+    row.querySelector('.adm-save').addEventListener('click',async()=>{
+      const t=role.value;
+      if(t==='gerente'&&!reg.value||t==='coordenador'&&(!reg.value||!co.value)){status.textContent='Selecione regional e coordenação';return}
+      if(self&&t!=='criador'){status.textContent='Não é possível remover seu próprio acesso de criador';return}
+      status.textContent='Salvando...';
+      const {error}=await db.rpc('admin_aprovar',{p_usuario:u.usuario_id,p_perfil:t,p_regiao:['gerente','coordenador'].includes(t)?reg.value:null,p_coordenacao:t==='coordenador'?co.value:null,p_aprovado:t!=='pendente'});
+      if(error){status.textContent=error.message;return}
+      await listarUsuarios();
+    });
+    row.querySelector('.adm-delete').addEventListener('click',async()=>{
+      if(self)return;
+      if(!confirm('Excluir definitivamente a conta '+u.email+'? Esta operação removerá o cadastro e o acesso.'))return;
+      status.textContent='Excluindo...';
+      const {error}=await db.rpc('admin_excluir_usuario',{p_usuario:u.usuario_id});
+      if(error){status.textContent=error.message;return}
+      await listarUsuarios();
+    });
+  }
 }
 async function liberarRanking(){
   const comp=$('su-release').value;
@@ -196,10 +241,37 @@ $('su-form').addEventListener('submit',async e=>{
   if(error){err(error);return}
   try{await iniciar()}catch(ex){err(ex)}
 });
-$('su-cadastrar').addEventListener('click',async()=>{
-  msg.textContent='Registrando...';
-  const {error}=await db.auth.signUp({email:$('su-email').value.trim(),password:$('su-pass').value});
-  msg.textContent=error?error.message:'Solicitação registrada. Confirme seu e-mail se solicitado e aguarde a aprovação do criador.';
+
+$('su-cadastrar').addEventListener('click',()=>{
+  $('su-form').hidden=true;$('su-cadastrar').hidden=true;$('su-solicitacao').hidden=false;msg.textContent='';
+});
+$('su-voltar').addEventListener('click',()=>{
+  $('su-form').hidden=false;$('su-cadastrar').hidden=false;$('su-solicitacao').hidden=true;msg.textContent='';
+});
+function ajustarSolicitacao(){
+ const f=$('su-funcao').value,r=$('su-regional').value;
+ $('su-regional-grupo').hidden=!f||f==='superint';
+ $('su-coordenacao-grupo').hidden=f!=='coordenador';
+ $('su-coordenacao').innerHTML=selectOpts(coordsDaRegional(r),'');
+}
+$('su-funcao').addEventListener('change',ajustarSolicitacao);
+$('su-regional').addEventListener('change',ajustarSolicitacao);
+ajustarSolicitacao();
+$('su-solicitacao').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const f=$('su-funcao').value,r=$('su-regional').value,c=$('su-coordenacao').value;
+ if(!['gerente','coordenador','superint'].includes(f)||f!=='superint'&&!REGIONAIS.includes(r)||f==='coordenador'&&!coordsDaRegional(r).includes(c)){
+   msg.textContent='Informe corretamente função, regional e coordenação.';return;
+ }
+ const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+ msg.textContent='Enviando solicitação...';
+ const {error}=await db.auth.signUp({email:$('su-email-novo').value.trim(),password:$('su-pass-novo').value,options:{data:{
+   nome:$('su-nome').value.trim(),funcao:f,regional:f==='superint'?null:r,coordenacao:f==='coordenador'?c:null
+ }}});
+ button.disabled=false;
+ if(error){err(error);return}
+ e.currentTarget.reset();ajustarSolicitacao();
+ msg.textContent='Solicitação enviada. Confirme seu e-mail se solicitado. Um criador precisará aprovar o acesso.';
 });
 $('su-sair').addEventListener('click',async()=>{await db.auth.signOut();document.body.classList.remove('auth-ok');auth.style.display='grid';location.reload()});
 const {data:{session}}=await db.auth.getSession();
