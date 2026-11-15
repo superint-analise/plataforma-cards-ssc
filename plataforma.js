@@ -37,9 +37,13 @@ async function loadProfile(){
 }
 async function iniciar(){
   await loadProfile();
-  notasMensais=await getAll('notas_mensais','competencia,nivel,regiao,coordenacao,score');
-  const monthRows=await getAll('indicadores_mensais','competencia');
-  const comps=[...new Set(monthRows.map(x=>x.competencia))].sort().reverse();
+  const [notas,historico]=await Promise.all([
+    getAll('notas_mensais','competencia,nivel,regiao,coordenacao,score'),
+    getAll('indicadores_mensais','competencia,dados')
+  ]);
+  notasMensais=notas;
+  const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
+  window.__SSC_SET_HISTORY?.(historico,notas);
   if(!comps.length)throw Error('Conta aprovada. Ainda não há indicadores publicados.');
   const {data:ctl,error:e}=await db.from('controle_publicacao').select('ranking_liberado_ate').eq('id',1).single();
   if(e)throw e;
@@ -60,7 +64,7 @@ async function trocarCompetencia(comp){
   ranking=r;
   window.__SSC_SET_CONTEXT?.(comp,semanas);
   window.__CARREGAR_DADOS_SEGUROS(m.map(x=>x.dados),perfil.perfil);
-  renderSemanas();renderRanking();
+  window.__SSC_SET_PUBLIC_RANKING?.(r,comp,liberado,perfil.perfil);
   const compSel=$('su-comp');if(compSel)compSel.value=comp;
 }
 function navegar(view){
@@ -78,25 +82,14 @@ function addSection(view,title,inner){
   main.appendChild(section);
 }
 function montarSecoes(comps){
-  if($('view-semanal'))return;
-  const menu=`<div class="su-controls"><label>Competência <select id="su-comp">${comps.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('')}</select></label></div>`;
-  addSection('semanal','Evolução Semanal',`<h2>Evolução semanal</h2><p class="su-muted">Histórico temporário da competência: Score, Avanço e Planejado x Realizado.</p>${menu}<div class="su-controls"><select id="su-visao"><option value="Score">Score</option><option value="Avanço">Avanço</option><option value="Realizado">Valores reais</option></select><select id="su-reg"></select><select id="su-coord"></select><select id="su-ind"></select></div><div id="su-grafico"></div><div id="su-tabela"></div>`);
-  addSection('historico-mensal','Evolução Mensal',`<h2>Evolução mensal das notas oficiais</h2><p class="su-muted">Até setembro/2026, notas transcritas dos registros; a partir de outubro/2026, notas calculadas. Sem recalcular as notas antigas.</p><div class="su-controls"><label>Regional <select id="su-hist-reg"></select></label><label>Coordenação <select id="su-hist-coord"></select></label></div><div id="su-hist-plot"></div><div id="su-hist-table"></div>`);
-  addSection('ranking-oficial','Ranking Oficial',`<h2>Ranking geral das regionais</h2><p class="su-muted">Apenas competências divulgadas para gerentes e coordenadores.</p><div class="su-controls"><select id="su-mes-rank"></select></div><div id="su-rank-content"></div>`);
+  if($('view-administracao'))return;
   if(perfil.perfil==='criador')addSection('administracao','Administração',`<h2>Administração de acessos</h2><div id="su-users"></div><hr><h2>Liberação do ranking</h2><p class="su-muted">A liberação não altera a base nem exige nova execução do CMD.</p><div class="su-controls"><select id="su-release">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-release-btn">Liberar competência</button></div><p id="su-release-status"></p><hr><h2>Limpeza do histórico semanal</h2><p class="su-muted">Disponível somente após o ranking divulgado e a carga da competência seguinte.</p><div class="su-controls"><select id="su-clean">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-clean-btn">Excluir semanas da competência selecionada</button></div><p id="su-clean-status"></p>`);
-  $('su-comp').value=competencia;
-  $('su-comp').addEventListener('change',async e=>{try{await trocarCompetencia(e.target.value)}catch(ex){alert(ex.message)}});
-  ['su-visao','su-reg','su-coord','su-ind'].forEach(id=>$(id).addEventListener('change',()=>renderSemanas(id)));
-  $('su-mes-rank').addEventListener('change',renderRanking);
-  $('su-hist-reg').addEventListener('change',()=>renderHistorico('reg'));
-  $('su-hist-coord').addEventListener('change',()=>renderHistorico('coord'));
   if(perfil.perfil==='criador'){
     $('su-release').value=liberado;
     $('su-release-btn').addEventListener('click',liberarRanking);
     $('su-clean-btn').addEventListener('click',limparSemanas);
-    listarUsuarios();
+    listarUsuarios().catch(err);
   }
-  renderSemanas();renderRanking();renderHistorico();
 }
 function populate(id,values,keep){
   const el=$(id);if(!el)return;
