@@ -263,15 +263,28 @@ $('su-solicitacao').addEventListener('submit',async e=>{
  if(!['gerente','coordenador','superint'].includes(f)||f!=='superint'&&!REGIONAIS.includes(r)||f==='coordenador'&&!coordsDaRegional(r).includes(c)){
    msg.textContent='Informe corretamente função, regional e coordenação.';return;
  }
- const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+ const form=e.currentTarget;
+ const button=form.querySelector('button[type="submit"]');
+ button.disabled=true;
  msg.textContent='Enviando solicitação...';
- const {error}=await db.auth.signUp({email:$('su-email-novo').value.trim(),password:$('su-pass-novo').value,options:{data:{
-   nome:$('su-nome').value.trim(),funcao:f,regional:f==='superint'?null:r,coordenacao:f==='coordenador'?c:null
- }}});
- button.disabled=false;
- if(error){err(error);return}
- e.currentTarget.reset();ajustarSolicitacao();
- msg.textContent='Solicitação enviada. Confirme seu e-mail se solicitado. Um criador precisará aprovar o acesso.';
+ try {
+   const signup=db.auth.signUp({email:$('su-email-novo').value.trim(),password:$('su-pass-novo').value,options:{data:{
+     nome:$('su-nome').value.trim(),funcao:f,regional:f==='superint'?null:r,coordenacao:f==='coordenador'?c:null
+   }}});
+   const result=await Promise.race([
+     signup,
+     new Promise((_,reject)=>setTimeout(()=>reject(new Error('A solicitação demorou mais que o esperado. Confira se sua conta já existe antes de tentar novamente.')),20000))
+   ]);
+   if(result.error)throw result.error;
+   form.reset();
+   ajustarSolicitacao();
+   msg.textContent='Solicitação processada. Se sua conta já existir, utilize Entrar em vez de reenviar. Caso seja nova, confirme o e-mail se solicitado e aguarde aprovação.';
+ } catch(ex) {
+   console.error('Cadastro:',ex);
+   msg.textContent=ex?.message||'Não foi possível concluir a solicitação. Tente novamente.';
+ } finally {
+   button.disabled=false;
+ }
 });
 $('su-sair').addEventListener('click',async()=>{await db.auth.signOut();document.body.classList.remove('auth-ok');auth.style.display='grid';location.reload()});
 const {data:{session}}=await db.auth.getSession();
