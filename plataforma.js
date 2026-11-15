@@ -8,6 +8,7 @@ if (!conf.SUPABASE_URL || conf.SUPABASE_URL.includes('SEU-NOVO') || !conf.SUPABA
   throw Error('Configuração ausente');
 }
 const db = createClient(conf.SUPABASE_URL,conf.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+window.__SSC_GET_ACCESS_TOKEN=async()=>{const {data,error}=await db.auth.getSession();if(error)throw error;return data?.session?.access_token||null;};
 let perfil=null, competencia=null, semanas=[], ranking=[], notasMensais=[], liberado='';
 const nomes = {criador:'Criador',superint:'Superintendência',gerente:'Gerente',coordenador:'Coordenador'};
 const escapeHTML = s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
@@ -57,6 +58,7 @@ async function trocarCompetencia(comp){
   ]);
   semanas=s;
   ranking=r;
+  window.__SSC_SET_CONTEXT?.(comp,semanas);
   window.__CARREGAR_DADOS_SEGUROS(m.map(x=>x.dados),perfil.perfil);
   renderSemanas();renderRanking();
   const compSel=$('su-comp');if(compSel)compSel.value=comp;
