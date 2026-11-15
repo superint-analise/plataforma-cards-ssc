@@ -2225,6 +2225,10 @@ body.auth-ok .su-toolbar{display:flex}
 .su-screen table{min-width:0;width:100%}.su-screen th,.su-screen td{font-size:11px;padding:10px;border:1px solid #e2e9e7}
 .su-screen .su-muted{font-size:12px;color:#697e79}
 [hidden]{display:none!important}
+
+/* SSC: justificativas fora do escopo atual — preservar pontuação v43. */
+.table-just-cell,.table-just-toolbar,.exec-block-just-link,.exec-justifications,
+.exec-modal-bg,#execJustModalBg,.table-just-action,.toggle-just-management{display:none!important}
 </style>
 </head>
 
@@ -2394,7 +2398,7 @@ body.auth-ok .su-toolbar{display:flex}
     <div class="page-head">
       <div class="page-title">
         <h1>Indicadores do Mês</h1>
-        <p>Resultado de cada indicador por coordenação, com acompanhamento das justificativas.</p>
+        <p>Resultado de cada indicador por coordenação, com acompanhamento dos indicadores.</p>
       </div>
 
       <div class="filters">
@@ -4005,6 +4009,10 @@ function execJustificationsForBlock(block){
   return out;
 }
 async function execLoadJustifications(){
+  // Funcionalidade de justificativas suspensa nesta etapa.
+  EXEC_JUST_MAP.clear(); EXEC_JUST_DELETED_MAP.clear();
+  return;
+
   try{
     const token=await window.__SSC_GET_ACCESS_TOKEN?.();
     if(!token)throw new Error('Sessão necessária para consultar justificativas');
@@ -4280,6 +4288,9 @@ function execUpdateCount(i){
   if(ta&&ct)ct.textContent=`${ta.value.length}/${EXEC_JUST_MAX}`;
 }
 async function execSaveJust(i,encoded,fromTable=false){
+  // Justificativas reservadas para projeto futuro.
+  return;
+
   if(!fromTable)return;
   const row=JSON.parse(decodeURIComponent(encoded));
   if(fromTable && execEfficiencyOK(row["Eficiência"])){
