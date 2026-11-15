@@ -13,7 +13,7 @@ const nomes = {criador:'Criador',superint:'Superintendência',gerente:'Gerente',
 const escapeHTML = s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fmt = v => v===null || v===undefined || v==='' ? '—' : typeof v==='number' ? v.toLocaleString('pt-BR',{maximumFractionDigits:3}) : String(v);
 const err = e => {console.error(e);msg.textContent=e?.message || String(e)};
-async function getAll(table,select='*',filters=()=>{}) {
+async function getAll(table,select='*',filters=q=>q) {
   const out=[];
   for(let from=0;from<100000;from+=1000){
     let q=db.from(table).select(select).range(from,from+999);
