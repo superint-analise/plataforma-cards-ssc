@@ -3760,20 +3760,6 @@ function buildRegionExportHTML(region,type,scope){
   <p>Regional selecionada: <strong>${region}</strong> · Conteúdo: <strong>${scope==="cards"?"Cards":"Regional"}</strong> · Período: <strong>${CURRENT_PERIOD}</strong></p>
   ${sections}
   
-<div class="auth-screen" id="su-auth">
-  <div class="auth-box">
-    <h2>Análise — Superintendência</h2>
-    <p>Entre com seu acesso individual. Novas contas precisam ser aprovadas pelo criador.</p>
-    <form id="su-form"><input type="email" id="su-email" placeholder="E-mail" required autocomplete="username"/>
-    <input type="password" id="su-pass" placeholder="Senha (mínimo 6 caracteres)" required autocomplete="current-password" minlength="6"/>
-    <button type="submit">Entrar</button></form>
-    <button type="button" id="su-cadastrar" style="background:#e8f4f2;color:#005852">Solicitar cadastro</button>
-    <p id="su-msg" aria-live="polite"></p>
-  </div>
-</div>
-<div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script src="./config.js"></script>
-<script type="module" src="./plataforma.js"></script>
 </body></html>`;
 }
 
@@ -4186,5 +4172,20 @@ window.__CARREGAR_DADOS_SEGUROS = function(rows, scope){
 
 
 <div id="chartTooltip" class="chart-tooltip"></div>
+
+<div class="auth-screen" id="su-auth">
+  <div class="auth-box">
+    <h2>Análise — Superintendência</h2>
+    <p>Entre com seu acesso individual. Novas contas precisam ser aprovadas pelo criador.</p>
+    <form id="su-form"><input type="email" id="su-email" placeholder="E-mail" required autocomplete="username"/>
+    <input type="password" id="su-pass" placeholder="Senha (mínimo 6 caracteres)" required autocomplete="current-password" minlength="6"/>
+    <button type="submit">Entrar</button></form>
+    <button type="button" id="su-cadastrar" style="background:#e8f4f2;color:#005852">Solicitar cadastro</button>
+    <p id="su-msg" aria-live="polite"></p>
+  </div>
+</div>
+<div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
+<script src="./config.js"></script>
+<script type="module" src="./plataforma.js"></script>
 </body>
 </html>
