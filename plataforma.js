@@ -49,6 +49,7 @@ async function iniciar(){
       q=>q.eq('regiao','Superintendência').order('competencia',{ascending:true}));
   }
   const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
+  competenciasDisponiveis=comps;
   window.__SSC_SET_HISTORY?.(historico,notas);
   window.__SSC_SET_WEEKS?.(fotografias);
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -73,6 +74,7 @@ async function iniciar(){
   if(e)throw e;
   liberado=ctl.ranking_liberado_ate;
   competencia=comps[0];
+  configurarMesComparacao();
   document.body.classList.add('auth-ok');auth.style.display='none';
   await trocarCompetencia(competencia);
   montarSecoes(comps);
@@ -88,7 +90,7 @@ async function trocarCompetencia(comp){
   ranking=r;
   window.__SSC_SET_CONTEXT?.(comp,semanas);
   window.__CARREGAR_DADOS_SEGUROS(m.map(x=>x.dados),perfil.perfil);
-  window.__SSC_SET_PUBLIC_RANKING?.(r,comp,liberado,perfil.perfil);
+  await mostrarRankingAutorizado();
   for(const id of ['sscPeriodoPrincipal','sscPeriodTables','sscPeriodComparison','sscPeriodMemory']){
     const sel=$(id);
     if(sel && [...sel.options].some(opt=>opt.value===comp))sel.value=comp;
@@ -126,59 +128,133 @@ const competenciaLabel=comp=>{
   return MONTH_LABELS[m-1]?MONTH_LABELS[m-1]+'/'+y:comp;
 };
 let comparisonRequest=0;
+let competenciasDisponiveis=[];
+const acessoCompleto=()=>perfil&&['criador','superint'].includes(perfil.perfil);
+const proximaCompetencia=comp=>{
+  const [ano,mes]=String(comp||'').split('-').map(Number);
+  if(!ano||!mes)return '';
+  return mes===12?String(ano+1)+'-01':ano+'-'+String(mes+1).padStart(2,'0');
+};
+const mesesComparaveis=()=>competenciasDisponiveis
+  .filter(c=>acessoCompleto() || (liberado && c<=liberado))
+  .sort().reverse();
+function configurarMesComparacao(){
+  const sel=$('sscCompMonthSelect');if(!sel)return;
+  const permitidos=mesesComparaveis();
+  const previo=sel.value;
+  sel.innerHTML=permitidos.map(c=>'<option value="'+c+'">'+escapeHTML(competenciaLabel(c))+'</option>').join('');
+  if(permitidos.includes(previo))sel.value=previo;
+  else if(permitidos.includes(competencia))sel.value=competencia;
+  else if(permitidos.length)sel.value=permitidos[0];
+  if(!sel.dataset.sscBound){
+    sel.dataset.sscBound='true';
+    sel.addEventListener('change',()=>renderComparacaoHistorica());
+  }
+}
+const formatarNota=n=>Number.isFinite(Number(n))?Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+function linhasRankingHistorico(lista,regiaoDestaque){
+  const ordenadas=(Array.isArray(lista)?lista:[])
+    .filter(x=>x&&x.regiao&&x.score!==null&&x.score!==undefined&&Number.isFinite(Number(x.score)))
+    .sort((a,b)=>Number(b.score)-Number(a.score)||String(a.regiao).localeCompare(String(b.regiao),'pt-BR'));
+  return ordenadas.map((r,i)=>{
+    const score=Number(r.score);
+    const marker=score>=8.5?'#009B91':'#F5AA41';
+    const nome=escapeHTML(r.regiao);
+    const cls=r.regiao===regiaoDestaque?' style="border-color:#009B91"':'';
+    return '<div class="ssc-historical-item"'+cls+'>'+
+      '<span class="ssc-historical-pos">'+(i+1)+'º</span>'+
+      '<strong>'+nome+'</strong>'+
+      '<div class="ssc-historical-track"><i style="width:'+Math.max(0,Math.min(100,score*10))+'%;background:'+marker+'"></i></div>'+
+      '<span class="ssc-historical-score">'+formatarNota(score)+'</span></div>';
+  }).join('');
+}
+async function buscarHistoricoAutorizado(mes){
+  // A RPC usa a competência EM ANÁLISE e devolve o mês anterior.
+  // Logo, para consultar setembro enviamos outubro, e nunca o inverso.
+  const {data,error}=await db.rpc('comparacao_historica_perfil',{p_competencia_analise:proximaCompetencia(mes)});
+  if(error)throw error;
+  if(!data?.liberado||data.competencia!==mes)throw Error('O período solicitado ainda não está liberado para comparação.');
+  return data;
+}
+async function mostrarRankingAutorizado(){
+  const box=$('sscAuthorizedRanking');
+  const sec=box?.closest('.ranking-section');
+  const sections=document.querySelectorAll('#view-general .ranking-section');
+  const restrito=!acessoCompleto();
+  if(sections.length){
+    sections.forEach((el,i)=>{
+      if(restrito && i>0)el.style.display='none';
+      else el.style.removeProperty('display');
+    });
+  }
+  if(!box||!sec)return;
+  sec.classList.toggle('ssc-historical-mode',restrito);
+  box.hidden=!restrito;
+  if(!restrito)return;
+  const mes=mesesComparaveis()[0];
+  if(!mes){box.innerHTML='<h2>Ranking oficial</h2><p>Nenhum mês liberado para comparação entre Regionais.</p>';return}
+  box.innerHTML='<h2>Ranking das Gerências · '+escapeHTML(competenciaLabel(mes))+'</h2><p class="ssc-rank-caption">Ranking divulgado. As suas notas e indicadores operacionais permanecem no mês selecionado.</p><p>Carregando classificação autorizada…</p>';
+  try{
+    const data=await buscarHistoricoAutorizado(mes);
+    if(!acessoCompleto()&&mes!==mesesComparaveis()[0])return;
+    const content=linhasRankingHistorico(data.resultados,perfil.regiao);
+    box.innerHTML='<h2>Ranking oficial das Gerências · '+escapeHTML(competenciaLabel(mes))+'</h2>'+
+      '<p class="ssc-rank-caption">Classificação compartilhada após liberação. Indicadores e notas da sua área seguem o período selecionado.</p>'+
+      (content?'<div class="ssc-rank-list">'+content+'</div>':'<p>Nenhum resultado autorizado para este período.</p>');
+  }catch(e){
+    console.error('Ranking autorizado:',e);
+    box.innerHTML='<h2>Ranking oficial</h2><p>Não foi possível consultar o ranking liberado: '+escapeHTML(e.message)+'</p>';
+  }
+}
 window.__SSC_RENDER_COMPARISON=()=>renderComparacaoHistorica();
 async function renderComparacaoHistorica(){
-  const container=$('sscComparisonOfficial');
+  const container=$('sscComparisonOfficial'),visual=$('sscComparisonVisual'),sel=$('sscCompMonthSelect');
   if(!container||!perfil||!competencia)return;
-  const visual=$('sscComparisonVisual');
-  // Apenas os perfis com acesso integral podem ver os gráficos consolidados.
-  // Gerentes e coordenadores continuam na comparação histórica autorizada por RPC/RLS.
-  const acessoIntegral=['criador','superint'].includes(perfil.perfil);
+  configurarMesComparacao();
+  const mes=sel?.value,seq=++comparisonRequest;
+  const integral=acessoCompleto();
+  if(!mes){
+    if(visual)visual.hidden=true;
+    container.innerHTML='<p>Nenhuma competência liberada para comparação.</p>';
+    return;
+  }
+  const atualIntegral=integral&&mes===competencia;
+  // A visualização gráfica atual utiliza apenas os dados já autorizados no mês em análise.
   if(visual){
-    visual.hidden=!acessoIntegral;
-    if(acessoIntegral) {
+    visual.hidden=!atualIntegral;
+    if(atualIntegral){
       try{window.__SSC_RENDER_COMPARISON_VISUAL?.()}
-      catch(e){console.error('Comparação executiva:',e);visual.hidden=true}
+      catch(ex){console.error('Comparação executiva:',ex);visual.hidden=true}
     }
   }
-  const seq=++comparisonRequest;
-  container.innerHTML='<p class="su-muted">Carregando comparação histórica autorizada…</p>';
-  try {
-    const {data,error}=await db.rpc('comparacao_historica_perfil',{p_competencia_analise:competencia});
-    if(error)throw error;
+  const pill=document.querySelector('.comparison-period-pill');
+  if(pill)pill.textContent=(atualIntegral?'Comparação do mês em análise: ':'Comparação oficial: ')+competenciaLabel(mes);
+  if(atualIntegral){
+    container.hidden=true;
+    container.innerHTML='';
+    return;
+  }
+  container.hidden=false;
+  container.innerHTML='<p>Carregando comparação oficial de '+escapeHTML(competenciaLabel(mes))+'…</p>';
+  if(!integral && (!liberado||mes>liberado)){
+    container.innerHTML='<p>Este período ainda não foi liberado para comparação entre Regionais.</p>';
+    return;
+  }
+  try{
+    const data=await buscarHistoricoAutorizado(mes);
     if(seq!==comparisonRequest)return;
-    const month=competenciaLabel(data.competencia);
-    if(!data.liberado){
-      container.innerHTML='<h2>Comparação · '+escapeHTML(month)+'</h2><p>Os resultados deste mês ainda não foram liberados pelo Criador.</p>';
-      return;
-    }
+    const lista=Array.isArray(data.resultados)?data.resultados:[];
     const isCoord=perfil.perfil==='coordenador';
-    const coord=String(perfil.coordenacao||'');
-    const list=Array.isArray(data.resultados)?data.resultados:[];
-    const title=isCoord?'Comparação da Coordenação '+coord:'Comparação das Gerências';
-    if(isCoord&&list.length===1){
-      container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período de referência: '+escapeHTML(month)+'</p><p>A coordenação '+escapeHTML(coord)+' está presente somente na regional '+escapeHTML(list[0].regiao)+'. Não existem outras coordenações equivalentes para comparação.</p>';
-      return;
-    }
-    const rows=list.map((r,i)=>'<tr class="'+(r.regiao===perfil.regiao?'self':'')+'"><td>'+(i+1)+'º</td><td>'+escapeHTML(r.regiao)+'</td><td>'+escapeHTML(isCoord?r.coordenacao:'Gerência')+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
-    const indicators=Array.isArray(data.indicadores)?data.indicadores:[];
-    const blocks=new Map();
-    for(const ind of indicators){
-      const name=String(ind.indicador||'');
-      if(!blocks.has(name))blocks.set(name,[]);
-      blocks.get(name).push(ind);
-    }
-    const indicatorsHTML=[...blocks].map(([name,items])=>{
-      if(isCoord&&items.length<2)return '';
-      const tr=items.map(item=>'<tr class="'+(item.regiao===perfil.regiao?'self':'')+'"><td>'+escapeHTML(item.regiao)+'</td><td>'+escapeHTML(fmt(item.planejado))+'</td><td>'+escapeHTML(fmt(item.realizado))+'</td><td>'+escapeHTML(fmt(item.avanco))+'</td></tr>').join('');
-      return '<details class="ssc-comp-detail"><summary>'+escapeHTML(name)+' · '+items.length+' regionais</summary><table class="ssc-comp-table"><thead><tr><th>Regional</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr></thead><tbody>'+tr+'</tbody></table></details>';
-    }).filter(Boolean).join('');
-    container.innerHTML='<h2>'+(acessoIntegral?'Comparação histórica oficial · ': '')+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. Dados consolidados do mês anterior, sem acesso às bases detalhadas de outras áreas.</p>'+
-    (rows?'<table class="ssc-comp-table"><thead><tr><th>Posição</th><th>Regional</th><th>Coordenação</th><th>Score</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Não há resultados disponíveis para essa comparação.</p>')+
-    (indicatorsHTML?'<h3>Indicadores comparáveis</h3>'+indicatorsHTML:'');
+    const titulo=isCoord?'Comparação da Coordenação '+String(perfil.coordenacao||''):'Comparação das Gerências';
+    const content=linhasRankingHistorico(lista,perfil.regiao);
+    const info=isCoord&&lista.length===1?
+      '<p>Existe apenas uma Regional autorizada nesta comparação de Coordenação.</p>':'';
+    container.innerHTML='<div class="ssc-comparison-past"><h2>'+escapeHTML(titulo)+' · '+escapeHTML(competenciaLabel(mes))+'</h2>'+
+      '<p class="ssc-rank-caption">Resultados históricos autorizados para o período selecionado.</p>'+
+      (content?content:'<p>Não existem resultados comparáveis neste período.</p>')+info+'</div>';
   }catch(e){
     console.error('Comparação histórica:',e);
-    if(seq===comparisonRequest)container.innerHTML='<p>Não foi possível carregar a comparação autorizada. '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
+    if(seq===comparisonRequest)container.innerHTML='<p>Não foi possível carregar a comparação autorizada: '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
   }
 }
 function montarSuperintendencia(comps){
@@ -350,7 +426,7 @@ async function liberarRanking(){
   if(!confirm(`Liberar o ranking geral até ${comp} para todos os perfis autorizados?`))return;
   const {error}=await db.rpc('admin_liberar_ranking',{p_competencia:comp});
   $('su-release-status').textContent=error?error.message:`Liberado até ${comp}.`;
-  if(!error){liberado=comp;renderRanking()}
+  if(!error){liberado=comp;configurarMesComparacao();await mostrarRankingAutorizado();renderRanking();}
 }
 async function limparSemanas(){
   const comp=$('su-clean').value;
