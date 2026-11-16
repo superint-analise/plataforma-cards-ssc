@@ -121,6 +121,7 @@ const competenciaLabel=comp=>{
   return MONTH_LABELS[m-1]?MONTH_LABELS[m-1]+'/'+y:comp;
 };
 let comparisonRequest=0;
+window.__SSC_RENDER_COMPARISON=()=>renderComparacaoHistorica();
 async function renderComparacaoHistorica(){
   const container=$('sscComparisonOfficial');
   if(!container||!perfil||!competencia)return;
@@ -144,7 +145,21 @@ async function renderComparacaoHistorica(){
       return;
     }
     const rows=list.map((r,i)=>'<tr class="'+(r.regiao===perfil.regiao?'self':'')+'"><td>'+(i+1)+'º</td><td>'+escapeHTML(r.regiao)+'</td><td>'+escapeHTML(isCoord?r.coordenacao:'Gerência')+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
-    container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. A comparação apresenta somente as notas oficiais consolidadas do mês anterior, sem dados detalhados de outras áreas.</p>'+(rows?'<table class="ssc-comp-table"><thead><tr><th>Posição</th><th>Regional</th><th>Coordenação</th><th>Score</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Não há resultados disponíveis para essa comparação.</p>');
+    const indicators=Array.isArray(data.indicadores)?data.indicadores:[];
+    const blocks=new Map();
+    for(const ind of indicators){
+      const name=String(ind.indicador||'');
+      if(!blocks.has(name))blocks.set(name,[]);
+      blocks.get(name).push(ind);
+    }
+    const indicatorsHTML=[...blocks].map(([name,items])=>{
+      if(isCoord&&items.length<2)return '';
+      const tr=items.map(item=>'<tr class="'+(item.regiao===perfil.regiao?'self':'')+'"><td>'+escapeHTML(item.regiao)+'</td><td>'+escapeHTML(fmt(item.planejado))+'</td><td>'+escapeHTML(fmt(item.realizado))+'</td><td>'+escapeHTML(fmt(item.avanco))+'</td></tr>').join('');
+      return '<details class="ssc-comp-detail"><summary>'+escapeHTML(name)+' · '+items.length+' regionais</summary><table class="ssc-comp-table"><thead><tr><th>Regional</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr></thead><tbody>'+tr+'</tbody></table></details>';
+    }).filter(Boolean).join('');
+    container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. Dados consolidados do mês anterior, sem acesso às bases detalhadas de outras áreas.</p>'+
+    (rows?'<table class="ssc-comp-table"><thead><tr><th>Posição</th><th>Regional</th><th>Coordenação</th><th>Score</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Não há resultados disponíveis para essa comparação.</p>')+
+    (indicatorsHTML?'<h3>Indicadores comparáveis</h3>'+indicatorsHTML:'');
   }catch(e){
     console.error('Comparação histórica:',e);
     if(seq===comparisonRequest)container.innerHTML='<p>Não foi possível carregar a comparação autorizada. '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
