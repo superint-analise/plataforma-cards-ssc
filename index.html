@@ -2776,6 +2776,25 @@ body.v50-dark .ssc-comp-period-filter label{color:#50ebe1}
     pointer-events: auto !important;
 }
 
+
+/* Vale — duas coordenações: comparativo horizontal no espaço original do radar */
+.v50-vale-chart{padding:21px 12px 10px;min-height:254px;--v50-vale-g:#009B91}
+.v50-vale-meta-title{text-align:right;margin:0 13% 4px 0;color:var(--v-good,#009B91);font-size:11px;font-weight:900}
+.v50-vale-meta-title span{display:block;line-height:9px}
+.v50-vale-item{margin:0 0 22px}
+.v50-vale-label{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:7px;color:var(--v-ink,#173D39)}
+.v50-vale-label strong{font-weight:850}.v50-vale-label span{font-weight:900}
+.v50-vale-label span.ok{color:var(--v-good,#009B91)}.v50-vale-label span.bad{color:var(--v-bad,#F5AA41)}
+.v50-vale-bars{position:relative;display:grid;gap:5px}
+.v50-vale-bar{height:16px;border-radius:4px;background:rgba(127,127,127,.12);overflow:hidden}
+.v50-vale-bar.previous{height:12px}
+.v50-vale-bar i{display:block;height:100%;border-radius:4px}
+.v50-vale-bar.previous i{background:#94A3B8}
+.v50-vale-meta{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--v-ink,#005852);z-index:2;pointer-events:none}
+.v50-vale-previous{margin-top:5px;font-size:10px;color:var(--v-muted,#94A3B8);text-align:right}
+.v50-vale-ticks{display:flex;justify-content:space-between;color:var(--v-muted,#94A3B8);font-size:10px;margin:-6px 0 11px}
+body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
+
 </style>
 </head>
 
@@ -4730,13 +4749,15 @@ function execCanonicalIndicator(ind){
   }
   return String(ind??"").trim();
 }
+let EXEC_COMPARISON_DATA=null;
+const execComparisonRows=()=>EXEC_COMPARISON_DATA===null?DATA:EXEC_COMPARISON_DATA;
 function execIndicatorsForBlock(block){
-  const rows=DATA.filter(r=>execBlockName(r)===block);
+  const rows=execComparisonRows().filter(r=>execBlockName(r)===block);
   return [...new Set(rows.map(r=>execCanonicalIndicator(r["Indicador"])).filter(Boolean))];
 }
 function execRowsForIndicator(block,ind){
   return REGION_ORDER.map(region=>{
-    const all=DATA.filter(r=>execBlockName(r)===block&&r["Região"]===region&&execCanonicalIndicator(r["Indicador"])===ind);
+    const all=execComparisonRows().filter(r=>execBlockName(r)===block&&r["Região"]===region&&execCanonicalIndicator(r["Indicador"])===ind);
     if(!all.length)return null;
     // A Gerência já consolida as coordenações: usar só ela quando existir (evita dupla contagem).
     const mgr=all.filter(r=>r["Coordenação"]==="Gerência");
@@ -4749,12 +4770,13 @@ function execRowsForIndicator(block,ind){
     const pts=base.map(r=>number(r["Pontos"])).filter(Number.isFinite);
     const points=pts.length?pts.reduce((a,b)=>a+b,0)/pts.length:null;
     const source=all.find(r=>!execEfficiencyOK(r["Eficiência"]))||all[0];
+    const historical=EXEC_COMPARISON_DATA!==null;
+    const historicGood=execIsIRL(ind)?real<=.25+1e-9:execGeneralAttainment(p,real,ind);
     return {
       region,planned:p,real,
-      // ok: regra original (Eficiência) — continua decidindo o fluxo de justificativas
-      ok:all.every(r=>execEfficiencyOK(r["Eficiência"])),
-      // status: visual, pela pontuação obtida
-      status:points===null?"na":points>=.999?"ok":points>0?"part":"bad",
+      // Histórico autorizado fornece realizado/planejado, mas não a pontuação oficial.
+      ok:historical?historicGood:all.every(r=>execEfficiencyOK(r["Eficiência"])),
+      status:historical?(historicGood?"ok":"bad"):(points===null?"na":points>=.999?"ok":points>0?"part":"bad"),
       points,fromMgr:mgr.length>0,
       source,
       sources:all
@@ -4834,7 +4856,7 @@ async function execLoadJustifications(){
   }catch(e){console.warn("Justificativas da Comparação:",e)}
 }
 function execSummary(){
-  const blocks=[...new Set(DATA.map(execBlockName).filter(x=>x&&x!=="Outros"))];
+  const blocks=[...new Set(execComparisonRows().map(execBlockName).filter(x=>x&&x!=="Outros"))];
   const regional=[];let nInd=0;
   blocks.forEach(b=>execIndicatorsForBlock(b).forEach(ind=>{nInd++;regional.push(...execRowsForIndicator(b,ind))}));
   const c={ok:0,part:0,bad:0};regional.forEach(x=>{if(x.status in c)c[x.status]++});
@@ -4843,7 +4865,7 @@ function execSummary(){
   if(!el)return;
   el.classList.add("v41-sum");
   const kpi=(lbl,v,col)=>`<div class="v41-kpi">${v41Ring(v/n,col)}<div><small>${lbl}</small><b>${v}<i> / ${n} · ${Math.round(v/n*100)}%</i></b></div></div>`;
-  el.innerHTML=kpi("Pontuação Máxima",c.ok,"#009B91")+kpi("Pontuação Parcial",c.part,"#E9A33A")+kpi("Sem Pontuação",c.bad,"#F5AA41")+
+  el.innerHTML=kpi(EXEC_COMPARISON_DATA?"Meta atingida":"Pontuação Máxima",c.ok,"#009B91")+kpi(EXEC_COMPARISON_DATA?"Sem avaliação":"Pontuação Parcial",c.part,"#E9A33A")+kpi(EXEC_COMPARISON_DATA?"Meta não atingida":"Sem Pontuação",c.bad,"#F5AA41")+
     `<div class="v41-kpi">${v41Ring(1,"#005852")}<div><small>Avaliações</small><b>${nInd}<i> indicadores × regiões</i></b></div></div>`;
 }
 function execVerticalChart(rows,ind,compact){
@@ -4900,7 +4922,7 @@ function execGeneralBox(rows,ind){
   const nOk=rows.filter(x=>x.status==="ok").length;
   return `<div class="v41-gen">
     <div class="v41-gen-k"><small>Consolidado</small><b class="${g.ok?"ok":"bad"}">${att===null?"—":v41Pct(att)}</b><small>da meta</small></div>
-    <div class="v41-gen-v"><div><small>Meta</small><b>${v41FmtCompact(g.planned,ind)}</b></div><div><small>Realizado</small><b>${v41FmtCompact(g.real,ind)}</b></div><div><small>Regiões c/ pontuação máxima</small><b>${nOk}/${rows.length}</b></div></div>
+    <div class="v41-gen-v"><div><small>Meta</small><b>${v41FmtCompact(g.planned,ind)}</b></div><div><small>Realizado</small><b>${v41FmtCompact(g.real,ind)}</b></div><div><small>${EXEC_COMPARISON_DATA?"Regiões na meta":"Regiões c/ pontuação máxima"}</small><b>${nOk}/${rows.length}</b></div></div>
     <div class="v41-gen-rule">${rule}</div>
   </div>`;
 }
@@ -4946,7 +4968,7 @@ function execIRLIndicator(block,ind,rows){
     <div class="v41-ind-title">${ind} — classificação por faixa de risco</div>
     <div class="v41-gen">
       <div class="v41-gen-k"><small>Média</small><b class="${allSafe?"ok":"bad"}">${avg===null?"—":v41Num(avg)}</b><span class="v41-irl-cls ${avg===null?"":cls(avg)}">${execIRLClass(avg)}</span></div>
-      <div class="v41-gen-v"><div><small>Regiões na faixa Seguro</small><b>${vals.filter(v=>v<=.25).length}/${vals.length}</b></div><div><small>Regiões c/ pontuação máxima</small><b>${rows.filter(x=>x.status==="ok").length}/${rows.length}</b></div></div>
+      <div class="v41-gen-v"><div><small>Regiões na faixa Seguro</small><b>${vals.filter(v=>v<=.25).length}/${vals.length}</b></div><div><small>${EXEC_COMPARISON_DATA?"Regiões na meta":"Regiões c/ pontuação máxima"}</small><b>${rows.filter(x=>x.status==="ok").length}/${rows.length}</b></div></div>
       <div class="v41-gen-rule">Média das coordenações da região</div>
     </div>
     <div class="v41-irl">
@@ -5005,6 +5027,7 @@ function execPaintComparison(){
   comparisonSections.innerHTML=`<div class="exec-block-grid">${order.map(execRenderBlock).join("")}</div>`;
 }
 async function renderComparisonAll(){
+  EXEC_COMPARISON_DATA=null;
   // Exibir indicadores imediatamente; a rede não pode bloquear o painel.
   execPaintComparison();
   await execLoadJustifications();
@@ -5766,8 +5789,30 @@ function v50Ring(score){
     <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="5" class="v50-ring-meta"/>
   </svg>`;
 }
+function v50ValeBars(coords,region){
+  const short=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
+  const vals=coords.map(c=>({name:short(c),now:totalScore(rowsFor(region,c)),prev:v50CoordPrev(rowsFor(region,c))}));
+  const toW=v=>Number.isFinite(v)?Math.max(0,Math.min(100,v*10)):0;
+  const percent=v=>toW(v).toFixed(2)+"%";
+  const rows=vals.map(x=>`<div class="v50-vale-item">
+    <div class="v50-vale-label"><strong>${x.name}</strong><span class="${x.now>=V41_META?"ok":"bad"}">${formatScore(x.now)}</span></div>
+    <div class="v50-vale-bars">
+      <div class="v50-vale-bar" title="${v41ShortMonth(CURRENT_PERIOD)}: ${formatScore(x.now)}"><i style="width:${percent(x.now)};background:${x.now>=V41_META?"#009B91":"#F5AA41"}"></i></div>
+      <div class="v50-vale-bar previous" title="${v41ShortMonth(PREVIOUS_PERIOD)}: ${Number.isFinite(x.prev)?formatScore(x.prev):"Indisponível"}"><i style="width:${percent(x.prev)}"></i></div>
+      <div class="v50-vale-meta" style="left:85%" title="Meta: 8,5"></div>
+    </div>
+    <div class="v50-vale-previous">${v41ShortMonth(PREVIOUS_PERIOD)}: ${Number.isFinite(x.prev)?formatScore(x.prev):"Sem registro"}</div>
+  </div>`).join("");
+  return `<div class="v50-vale-chart">
+    <div class="v50-vale-meta-title">Meta 8,5 <span>↓</span></div>
+    ${rows}
+    <div class="v50-vale-ticks">${[0,2,4,6,8,10].map(n=>`<span>${n}</span>`).join("")}</div>
+    <div class="v50-rad-leg"><span><i class="now"></i>${v41ShortMonth(CURRENT_PERIOD)} — verde ≥ 8,5 / laranja &lt; 8,5</span><span><i class="prev"></i>${v41ShortMonth(PREVIOUS_PERIOD)} — cinza</span><span><i class="meta"></i>Meta 8,5</span></div>
+  </div>`;
+}
 function v50Radar(region){
   const coords=COORD_ORDER.filter(c=>c!=="Gerência"&&rowsFor(region,c).length);
+  if(region==="Vale"&&coords.length===2)return v50ValeBars(coords,region);
   if(coords.length<3)return `<div class="v50-empty">Radar disponível a partir de 3 coordenações.</div>`;
   const now=coords.map(c=>totalScore(rowsFor(region,c))),prev=coords.map(c=>v50CoordPrev(rowsFor(region,c)));
   const all=now.concat(prev.filter(Number.isFinite)).concat([V41_META]);
@@ -5988,6 +6033,21 @@ function inicializarPainel(){
 try{document.getElementById("v50ThemeLbl").textContent=document.body.classList.contains("v50-dark")?"Tema claro":"Tema escuro"}catch(e){}
 window.__SSC_RENDER_TABLES=()=>renderAllRegionTables();
 window.__SSC_RENDER_COMPARISON_VISUAL=()=>renderComparisonAll();
+window.__SSC_RENDER_COMPARISON_HISTORICAL=records=>{
+  const blockByIndicator=new Map(DATA.map(r=>[execNorm(r["Indicador"]),r["Blocos"]]));
+  EXEC_COMPARISON_DATA=(Array.isArray(records)?records:[]).map(r=>({
+    "Região":String(r.regiao||""),
+    "Coordenação":String(r.coordenacao||"Gerência"),
+    "Indicador":String(r.indicador||""),
+    "Blocos":blockByIndicator.get(execNorm(r.indicador))||"",
+    "Planejado":r.planejado,
+    "Realizado":r.realizado,
+    "Avanço":r.avanco,
+    "Pontos":null,
+    "Eficiência":null
+  }));
+  execPaintComparison();
+};
 window.__SSC_RENDER_MEMORY=()=>renderConference();
 // Carregamento exclusivo pelo Supabase após autenticação e políticas RLS.
 // Nunca incluir dados privados em HTML publicado no GitHub.
