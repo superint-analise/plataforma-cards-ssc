@@ -2253,6 +2253,15 @@ body.auth-ok .su-toolbar{display:flex}
 .ssc-week-card b{color:#005852}
 .ssc-week-impact{padding-left:20px;display:grid;gap:8px}
 .ssc-week-impact strong{color:#bd5a1b}
+
+.ssc-comp-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.ssc-comp-table th,.ssc-comp-table td{padding:12px;border-bottom:1px solid #e0e9e6;text-align:left}
+.ssc-comp-table th{background:#005951;color:#fff}
+.ssc-comp-table tr.self{background:#e7f7f2;font-weight:800}
+.ssc-comp-note{color:#657772;font-size:12px;margin-top:10px}
+.ssc-sup-score{font-weight:900;font-size:32px;color:#005951}
+.ssc-sup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0}
+.ssc-sup-grid>div{border:1px solid #d9e9e4;border-radius:12px;padding:15px}
 </style>
 </head>
 
@@ -2451,27 +2460,15 @@ body.auth-ok .su-toolbar{display:flex}
     <div id="allRegionTables"></div>
   </section>
 
-  <section id="view-comparison" class="view-section executive-comparison-view">
-    <div class="page-head executive-comparison-head">
-      <div class="page-title">
-        <h1>Comparação entre Regiões</h1>
-        <p>Desempenho dos principais indicadores por região em relação às suas metas individuais.</p>
-      </div>
-      <div class="filters"><div class="filter"><label>Período</label><select id="sscPeriodComparison" aria-label="Mês da comparação"></select></div></div>
-    </div>
-
-    <div id="comparisonSummary" class="exec-summary"></div>
-
-    <div class="exec-legend">
-      <span><i class="v41-sw mid"></i>Meta da região (centro)</span>
-      <span><i class="v41-sw ok"></i>Pontuação máxima</span>
-      <span><i class="v41-sw part"></i>Pontuação parcial</span>
-      <span><i class="v41-sw bad"></i>Sem pontuação</span>
-      <span>Barra = desvio do realizado em relação à meta</span>
-    </div>
-
-    <div id="comparisonSections"></div>
-  </section>
+  <section id="view-comparison" class="view-section">
+  <div class="page-head"><div class="page-title">
+    <h1>Comparação entre Regiões</h1>
+    <p>Resultados consolidados do mês anterior ao período em análise, respeitando o perfil e a liberação oficial.</p>
+  </div></div>
+  <div id="sscComparisonOfficial" class="card" aria-live="polite">
+    <p>Selecione um período na Visão Geral para consultar o mês anterior.</p>
+  </div>
+</section>
 
   <section id="view-conference" class="view-section">
     <div class="page-head">
@@ -5018,7 +5015,7 @@ function switchView(view){
   }
 
   if(view==="comparison"){
-    renderComparisonAll();
+    window.__SSC_RENDER_COMPARISON?.();
   }
 
   if(view==="conference"){
@@ -5157,12 +5154,11 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
     // Ranking detalhado entre regionais: somente criador/superintendência.
     if(restrito)el.style.display='none';else el.style.removeProperty('display');
   });
-  if(restrito){
-    const comparison=document.querySelector('[data-view="comparison"]');
-    if(comparison)comparison.style.display='none';
-    const compSection=document.getElementById('view-comparison');
-    if(compSection)compSection.style.display='none';
-  }
+  // Comparação histórica autorizada a todos os perfis por consulta protegida.
+  const comparison=document.querySelector('[data-view="comparison"]');
+  if(comparison)comparison.style.removeProperty('display');
+  const compSection=document.getElementById('view-comparison');
+  if(compSection)compSection.style.removeProperty('display');
   inicializarPainel();
 };
 
