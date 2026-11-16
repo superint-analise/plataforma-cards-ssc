@@ -3408,6 +3408,27 @@ function renderHero(region){
   const lostTotal=impacts.reduce((s,r)=>s+v41Lost(r),0)/nc;
   const coordShort=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
   const dCls=d===null?"":d>0.0049?"up":d<-0.0049?"down":"";
+  const semDetalhamento=rows.length>0&&!rows.some(r=>number(r["Pontos"])!==null&&number(r["Peso"])!==null);
+  if(semDetalhamento){
+    const label=window.__SSC_ROLE==="coordenador"?"Coordenação analisada":"Gerência analisada";
+    const nota=window.__SSC_ROLE==="coordenador"
+      ?(coords.length?totalScore(rowsFor(region,coords[0])):null):now;
+    const notaAnterior=window.__SSC_ROLE==="coordenador"&&coords.length
+      ?SSC_HIST_NOTAS.get([PREVIOUS_PERIOD,"Coordenação",region,coords[0]].join("¦")):prev;
+    const diff=Number.isFinite(nota)&&Number.isFinite(notaAnterior)?nota-notaAnterior:null;
+    el.innerHTML=`<div class="v41-hero"><div class="v41-id">
+      <div class="v41-eyebrow">${label} · ${CURRENT_PERIOD}</div>
+      <div class="v41-region">${region}${window.__SSC_ROLE==="coordenador"&&coords[0]?" · "+coords[0]:""}</div>
+      <div class="v41-big"><b>${formatScore(nota)}</b><small>/10 · nota oficial</small></div>
+      </div><div class="v41-kpis">
+      <div class="v41-k"><small>Mês anterior</small><b>${formatScore(Number.isFinite(notaAnterior)?notaAnterior:null)}</b><span>${PREVIOUS_PERIOD}</span></div>
+      <div class="v41-k"><small>Variação mensal</small><b>${diff===null?"–":v41Signed(diff)}</b><span>comparação com mês anterior</span></div>
+      <div class="v41-k"><small>Meta 8,5</small><b>${Number.isFinite(nota)?v41Signed(nota-V41_META):"–"}</b><span>distância para a meta</span></div>
+      </div><div class="v41-impacts"><div class="v41-imp-h"><div class="v41-eyebrow">Detalhamento histórico</div></div>
+      <div class="none">Planejado, Realizado e Avanço disponíveis. O histórico não possui Pontos, Peso e Score detalhados para todos os indicadores; por isso, estes cartões não são calculados com zeros.</div>
+      </div></div>`;
+    return;
+  }
   el.innerHTML=`<div class="v41-hero">
     <div class="v41-id">
       <div class="v41-eyebrow">Gerência analisada · ${CURRENT_PERIOD}</div>
@@ -4840,7 +4861,9 @@ function switchView(view){
   }
 
   if(view==="conference"){
-    renderConference();
+    const check=window.__SSC_OPEN_MEMORY?.();
+    if(check&&typeof check.then==="function")check.then(()=>renderConference()).catch(console.error);
+    else renderConference();
   }
 
   if(view==="evolution"){
@@ -4956,6 +4979,7 @@ window.__SSC_SET_CONTEXT = (comp, fotos) => {
   });
 };
 window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
+  window.__SSC_ROLE=role;
   DATA=Array.isArray(rows)?rows.map(r=>{
     const anterior=SSC_HIST_ROWS.get(sscRowKey(PREVIOUS_PERIOD,r));
     const old=anterior?.["Indicador"]==="IRL"?anterior?.["Avanço"]:anterior?.["Avanço"];
