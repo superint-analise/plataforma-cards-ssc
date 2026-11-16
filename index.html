@@ -3408,7 +3408,7 @@ function renderHero(region){
   const lostTotal=impacts.reduce((s,r)=>s+v41Lost(r),0)/nc;
   const coordShort=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
   const dCls=d===null?"":d>0.0049?"up":d<-0.0049?"down":"";
-  const semDetalhamento=rows.length>0&&!rows.some(r=>number(r["Pontos"])!==null&&number(r["Peso"])!==null);
+  const semDetalhamento=window.__SSC_ROLE==="coordenador"||(rows.length>0&&!rows.some(r=>number(r["Pontos"])!==null&&number(r["Peso"])!==null));
   if(semDetalhamento){
     const label=window.__SSC_ROLE==="coordenador"?"Coordenação analisada":"Gerência analisada";
     const nota=window.__SSC_ROLE==="coordenador"
@@ -4810,8 +4810,13 @@ function confRegionBlock(region){
   const coords=COORD_ORDER.filter(c=>c!=="Gerência");
   const cards=coords.map(c=>confCoordCard(region,c)).join("");
   if(!cards)return "";
-  const media=SSC_HIST_NOTAS.get([CURRENT_PERIOD,"Gerência",region,"Gerência"].join("¦"));
-  return `<div class="conf-region-title">${confEsc(region)} — Nota oficial da Gerência: ${formatScore(Number.isFinite(media)?media:null)}</div>`+cards;
+  const acessCoord=coords.filter(c=>rowsFor(region,c).length);
+  const isCoord=window.__SSC_ROLE==="coordenador";
+  const media=isCoord&&acessCoord.length
+    ?SSC_HIST_NOTAS.get([CURRENT_PERIOD,"Coordenação",region,acessCoord[0]].join("¦"))
+    :SSC_HIST_NOTAS.get([CURRENT_PERIOD,"Gerência",region,"Gerência"].join("¦"));
+  const legenda=isCoord?"Coordenação "+(acessCoord[0]||""):"Gerência";
+  return `<div class="conf-region-title">${confEsc(region)} — Nota oficial da ${confEsc(legenda)}: ${formatScore(Number.isFinite(media)?media:null)}</div>`+cards;
 }
 
 const confRegion=document.getElementById("confRegion");
