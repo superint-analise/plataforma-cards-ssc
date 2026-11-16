@@ -2721,6 +2721,37 @@ body:not(.auth-ok) .auth-screen #su-msg{color:#ffdc9d!important;font-weight:700}
 #view-administracao .su-btn.adm-delete{background:#ad3030!important;color:#fff!important}
 #view-administracao .adm-status,#view-administracao .su-muted.adm-status{color:#375d56!important}
 
+
+/* SSC v53 — rankings compartilhados somente até competência liberada */
+#view-general .ranking-section.ssc-historical-mode{display:block!important}
+#view-general .ranking-section.ssc-historical-mode> :not(#sscAuthorizedRanking){display:none!important}
+#sscAuthorizedRanking[hidden]{display:none!important}
+.ssc-authorized-ranking{padding:2px 0 9px}
+.ssc-authorized-ranking h2{margin:0 0 5px;font-size:20px}
+.ssc-authorized-ranking .ssc-rank-caption{font-size:12px;opacity:.82;margin:0 0 16px}
+.ssc-authorized-ranking .ssc-rank-list{display:grid;gap:10px}
+.ssc-authorized-ranking .ssc-rank-item{display:grid;grid-template-columns:39px minmax(110px,1fr) minmax(130px,2fr) 65px;align-items:center;gap:12px;padding:11px 12px;border:1px solid rgba(0,155,145,.22);border-radius:12px;background:rgba(0,155,145,.055)}
+.ssc-authorized-ranking .ssc-rank-place{font-weight:900;color:#009B91}
+.ssc-authorized-ranking .ssc-rank-name{font-weight:750}
+.ssc-authorized-ranking .ssc-rank-track{height:11px;border-radius:8px;background:rgba(127,127,127,.16);overflow:hidden}
+.ssc-authorized-ranking .ssc-rank-track i{display:block;height:100%;border-radius:8px}
+.ssc-authorized-ranking .ssc-rank-score{font-weight:900;text-align:right}
+.ssc-comp-period-filter{display:flex;flex-direction:column;gap:5px;min-width:200px;align-self:center}
+.ssc-comp-period-filter label{font-size:10px;font-weight:800;color:#009B91}
+.ssc-comp-period-filter select{border:1px solid #a9d7cf;background:#fff;color:#005852;min-height:36px;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:700}
+.ssc-comp-period-filter .comparison-period-pill{background:transparent;padding:0;border:0;font-size:9px}
+body.v50-dark .ssc-comp-period-filter select{background:#103b39;color:#e1fff9;border-color:#377970}
+body.v50-dark .ssc-comp-period-filter label{color:#50ebe1}
+.ssc-comparison-past{padding:14px 8px}
+.ssc-comparison-past h2{font-size:19px;margin:0 0 6px}
+.ssc-comparison-past .ssc-rank-caption{font-size:11px;opacity:.8;margin:0 0 14px}
+.ssc-comparison-past .ssc-historical-item{display:grid;grid-template-columns:36px minmax(100px,1fr) minmax(120px,2fr) 64px;gap:12px;align-items:center;padding:12px;margin:7px 0;border:1px solid rgba(0,155,145,.2);border-radius:12px;background:rgba(0,155,145,.045)}
+.ssc-comparison-past .ssc-historical-track{height:10px;border-radius:7px;background:rgba(127,127,127,.15);overflow:hidden}
+.ssc-comparison-past .ssc-historical-track i{display:block;height:100%}
+.ssc-comparison-past .ssc-historical-pos{font-weight:900;color:#009B91}
+.ssc-comparison-past .ssc-historical-score{text-align:right;font-weight:900}
+@media(max-width:680px){.ssc-authorized-ranking .ssc-rank-item,.ssc-comparison-past .ssc-historical-item{grid-template-columns:30px minmax(95px,1fr) 48px}.ssc-rank-track,.ssc-historical-track{display:none}.ssc-comp-period-filter{min-width:145px}}
+
 </style>
 </head>
 
@@ -2861,6 +2892,7 @@ body:not(.auth-ok) .auth-screen #su-msg{color:#ffdc9d!important;font-weight:700}
       <div id="v50Podium"></div>
       <div id="rankingOverview"></div>
       <div id="miniRankings" class="mini-rankings"></div>
+      <div id="sscAuthorizedRanking" class="ssc-authorized-ranking" hidden aria-live="polite"></div>
     </section>
 
     <section class="card ranking-section coord-all-ranking">
@@ -2923,7 +2955,7 @@ body:not(.auth-ok) .auth-screen #su-msg{color:#ffdc9d!important;font-weight:700}
     <div class="page-title"><h1>Comparação entre Regiões</h1>
       <p>Análise executiva por dimensão, meta e desempenho de cada regional.</p>
     </div>
-    <div class="comparison-period-pill">Período em análise</div>
+    <div class="ssc-comp-period-filter"><label for="sscCompMonthSelect">Mês da comparação</label><select id="sscCompMonthSelect" aria-label="Mês da comparação"></select><small class="comparison-period-pill">Período em análise</small></div>
   </div>
   <div id="sscComparisonVisual" hidden>
     <div id="comparisonSummary" class="exec-summary"></div>
