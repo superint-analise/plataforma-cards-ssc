@@ -2373,6 +2373,58 @@ body:not(.auth-ok) .auth-screen>.auth-box{
  .auth-screen,.auth-screen *{scroll-behavior:auto!important;transition:none!important}
 }
 
+
+/* Comparação - identidade executiva restaurada (sem tabelas planas) */
+.ssc-comparison-period{background:#e6f5f1;border:1px solid #bbdbd3;padding:9px 16px;border-radius:10px;color:#005852;font-size:12px;font-weight:800;align-self:center}
+.ssc-comp-premium{display:grid;gap:16px}
+.ssc-comp-premium .exec-summary{max-width:none;margin:0;grid-template-columns:repeat(auto-fit,minmax(175px,1fr))}
+.ssc-comp-kpi{display:flex;align-items:center;gap:12px;border:1px solid #dbe9e5;border-radius:12px;background:#fff;padding:13px 17px;box-shadow:0 4px 17px #0058520c}
+.ssc-comp-kpi .k-icon{width:40px;height:40px;display:grid;place-items:center;background:#e6f5f1;border-radius:50%;font-size:19px}
+.ssc-comp-kpi small{font-size:11px;color:#65817c;display:block}
+.ssc-comp-kpi b{font-size:22px;color:#005852;font-variant-numeric:tabular-nums}
+.ssc-comp-board{border:1px solid #dcebe7;background:#fff;border-radius:14px;padding:17px;box-shadow:0 6px 20px #00585210}
+.ssc-comp-board h2{font-size:17px;color:#005852;margin:0 0 5px}
+.ssc-comp-ranks{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:13px}
+.ssc-rank-tile{border:1px solid #dce8e5;border-radius:11px;background:#f7faf9;padding:12px;display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center}
+.ssc-rank-tile.self{border-color:#009B91;background:#e9f8f4}
+.ssc-rank-pos{display:grid;place-items:center;background:#d8efea;color:#00655d;border-radius:50%;height:32px;width:32px;font-size:12px;font-weight:800}
+.ssc-rank-tile strong{font-size:13px;color:#264b46}
+.ssc-rank-tile b{font-size:16px;color:#005852}
+.ssc-comp-premium .exec-block-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ssc-comp-premium .exec-block{min-width:0}
+.ssc-comp-indicator{padding:11px 13px;border-bottom:1px solid #e9f1ef}
+.ssc-comp-indicator h3{font-size:13px;color:#123d37;margin:0 0 11px}
+.ssc-dev-row{display:grid;grid-template-columns:minmax(75px,1fr) minmax(120px,1.7fr) auto;gap:10px;align-items:center;margin:8px 0;font-size:11px}
+.ssc-dev-row .reg{font-weight:700;color:#244c46;min-width:0}
+.ssc-dev-track{height:11px;border-radius:8px;background:linear-gradient(90deg,#f7e8e4 0 49.7%,#9fb3ae 49.7% 50.3%,#e4f3ee 50.3% 100%);position:relative;overflow:hidden}
+.ssc-dev-bar{position:absolute;top:2px;height:7px;border-radius:4px}
+.ssc-dev-row .value{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:800;color:#005852}
+.ssc-comp-note{margin:9px 0;color:#607670;font-size:12px}
+#view-superintendencia .ssc-super-page{display:grid;gap:17px}
+#view-superintendencia .ssc-super-hero{background:linear-gradient(120deg,#003e41,#006c67 58%,#00998b);color:white;border-radius:20px;padding:23px 27px;box-shadow:0 15px 35px #003e4126;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+#view-superintendencia .ssc-super-hero h2{font-size:21px;color:white;margin:0 0 8px}
+#view-superintendencia .ssc-super-hero p{margin:0;opacity:.85;font-size:12px}
+#view-superintendencia .ssc-super-hero b{font-size:43px;font-weight:850;font-variant-numeric:tabular-nums}
+#view-superintendencia .ssc-super-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#view-superintendencia .ssc-super-kpis article{background:#fff;border:1px solid #dce9e5;border-radius:13px;box-shadow:0 6px 20px #0058520c;padding:16px}
+#view-superintendencia .ssc-super-kpis small{display:block;color:#6c827e;font-size:11px;margin-bottom:7px}
+#view-superintendencia .ssc-super-kpis b{font-size:24px;color:#005852;font-variant-numeric:tabular-nums}
+#view-superintendencia .ssc-super-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#view-superintendencia .ssc-super-chart{background:#fff;border:1px solid #dce9e5;border-radius:15px;padding:17px;box-shadow:0 6px 20px #0058520c;min-width:0}
+#view-superintendencia .ssc-super-chart header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#view-superintendencia .ssc-super-chart h3{font-size:16px;color:#005852;margin:0}
+#view-superintendencia .ssc-super-chart select{min-height:36px;border:1px solid #cadfda;border-radius:8px;color:#005852;background:#fff;max-width:100%;font-size:12px;padding:5px 8px}
+#view-superintendencia .ssc-super-chart svg{width:100%;height:auto;display:block;overflow:visible;margin-top:18px}
+#view-superintendencia .ssc-super-chart p{font-size:11px;color:#718681;margin:8px 0 0}
+#view-superintendencia .ssc-super-legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#587571}
+#view-superintendencia .ssc-super-legend i{display:inline-block;height:3px;width:16px;vertical-align:middle;margin-right:5px}
+#view-superintendencia .ssc-super-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+#view-superintendencia .ssc-super-tiles article{border:1px solid #deebe8;border-radius:12px;padding:13px 15px;background:#fff}
+#view-superintendencia .ssc-super-tiles strong{display:block;font-size:12px;color:#005852}
+#view-superintendencia .ssc-super-tiles small{display:block;font-size:10px;color:#667f79;margin:5px 0}
+#view-superintendencia .ssc-super-tiles b{font-size:19px;color:#00695f}
+@media(max-width:900px){.ssc-comp-premium .exec-block-grid,#view-superintendencia .ssc-super-charts{grid-template-columns:1fr}}
+@media(max-width:620px){#view-superintendencia .ssc-super-kpis{grid-template-columns:1fr}.ssc-dev-row{grid-template-columns:minmax(65px,1fr) minmax(100px,1.2fr) auto}}
 </style>
 </head>
 
@@ -2580,15 +2632,27 @@ body:not(.auth-ok) .auth-screen>.auth-box{
     <div id="allRegionTables"></div>
   </section>
 
-  <section id="view-comparison" class="view-section">
-  <div class="page-head"><div class="page-title">
-    <h1>Comparação entre Regiões</h1>
-    <p>Resultados consolidados do mês anterior ao período em análise, respeitando o perfil e a liberação oficial.</p>
-  </div></div>
-  <div id="sscComparisonOfficial" class="card" aria-live="polite">
-    <p>Selecione um período na Visão Geral para consultar o mês anterior.</p>
-  </div>
-</section>
+  <section id="view-comparison" class="view-section executive-comparison-view">
+    <div class="page-head executive-comparison-head">
+      <div class="page-title">
+        <h1>Comparação entre Regiões</h1>
+        <p>Comparação do mês anterior liberado, respeitando as regionais e coordenações autorizadas.</p>
+      </div>
+      <div class="ssc-comparison-period" id="sscComparisonPeriod">Mês anterior ao analisado</div>
+    </div>
+
+    <div id="sscComparisonOfficial" class="ssc-comp-premium" aria-live="polite"><div class="exec-summary" id="sscCompKpis"></div><div id="sscCompRanking"></div><div class="exec-block-grid" id="sscCompVisuals"></div></div>
+
+    <div class="exec-legend">
+      <span><i class="v41-sw mid"></i>Meta da regional (linha central)</span>
+      <span><i class="v41-sw ok"></i>Meta atingida</span>
+      <span><i class="v41-sw part"></i>Próximo da meta</span>
+      <span><i class="v41-sw bad"></i>Abaixo da meta</span>
+      <span>Barra = desvio do realizado em relação à meta</span>
+    </div>
+
+    
+  </section>
 
   <section id="view-conference" class="view-section">
     <div class="page-head">
