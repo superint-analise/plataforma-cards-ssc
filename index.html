@@ -4772,8 +4772,29 @@ function confFormatCalc(row){
   return `<span class="conf-calc-val">${txt}</span><span class="conf-calc-formula">${confEsc(formula)}</span>`;
 }
 
+function confChaveIndicador(ind){
+  const t=execNorm(ind);
+  if(t==="IRL")return "IRL";
+  if(t.startsWith("IEN"))return "IEN";
+  if(t.includes("RECLAM")&&t.includes("PROCED"))return "RECLAMACAO";
+  if(t.includes("ATENDIMENTO NO PRAZO"))return "ATENDIMENTO";
+  if(t.includes("IQG"))return "IQG";
+  if(t.includes("ARRECAD"))return "ARRECADACAO";
+  if(t.includes("PLANO FISICO PERDAS"))return "PF_PERDAS";
+  if(t.includes("PLANO FISICO CORE"))return "PF_CORE";
+  if(t.includes("CAPEX"))return "CAPEX";
+  if(t.includes("OPEX"))return "OPEX";
+  if(t.includes("CORTE NO DISJUNTOR"))return "CORTE_DISJUNTOR";
+  if(t.includes("CLIENTES NAO LIDOS"))return "NAO_LIDOS";
+  if(t.includes("ERRO DE LEITURA"))return "ERRO_LEITURA";
+  if(t.includes("ADERENCIA")&&t.includes("FATURA"))return "ADERENCIA_FATURA";
+  if(t.startsWith("AIS")||t.includes("AIS%"))return "AIS";
+  return null;
+}
+
 function confFormatRanges(row){
-  const faixas=CONF_FAIXAS[row["Critério"]];
+  const criterio=CONF_FAIXAS[row["Critério"]]?row["Critério"]:confChaveIndicador(row["Indicador"]);
+  const faixas=CONF_FAIXAS[criterio];
   if(!faixas)return '<span class="conf-nocrit">Critérios detalhados não disponíveis neste histórico</span>';
   const pts=number(row["Pontos"]);
   return `<div class="conf-ranges">${faixas.map(([label,p])=>{
