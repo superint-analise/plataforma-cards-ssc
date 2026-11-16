@@ -4737,7 +4737,8 @@ function populateEvolutionFilters(){
 function sscRenderWeeklySummary(regions){
   const box=document.getElementById("sscWeekSummary");
   if(!box)return;
-  const weeks=[...SSC_WEEK_META.entries()].sort((a,b)=>a[1].start.localeCompare(b[1].start));
+  const currentSelection=new Set(selectedPeriods());
+  const weeks=[...SSC_WEEK_META.entries()].filter(([label])=>currentSelection.has(label)).sort((a,b)=>a[1].start.localeCompare(b[1].start));
   const latest=weeks[weeks.length-1];
   if(!latest){box.hidden=true;box.innerHTML="";return;}
   const [label,snap]=latest;
