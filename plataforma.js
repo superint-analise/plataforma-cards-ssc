@@ -44,6 +44,15 @@ async function iniciar(){
   notasMensais=notas;
   const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
   window.__SSC_SET_HISTORY?.(historico,notas);
+  const periodSelect=$('sscPeriodoPrincipal');
+  if(periodSelect){
+    const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    periodSelect.innerHTML=comps.map(c=>{const [y,m]=c.split('-');return `<option value="${c}">${meses[Number(m)-1]}/${y}</option>`;}).join('');
+    periodSelect.addEventListener('change',async e=>{
+      const old=competencia;
+      try{await trocarCompetencia(e.target.value)}catch(ex){periodSelect.value=old;err(ex)}
+    });
+  }
   if(!comps.length)throw Error('Conta aprovada. Ainda não há indicadores publicados.');
   const {data:ctl,error:e}=await db.from('controle_publicacao').select('ranking_liberado_ate').eq('id',1).single();
   if(e)throw e;
@@ -65,6 +74,7 @@ async function trocarCompetencia(comp){
   window.__SSC_SET_CONTEXT?.(comp,semanas);
   window.__CARREGAR_DADOS_SEGUROS(m.map(x=>x.dados),perfil.perfil);
   window.__SSC_SET_PUBLIC_RANKING?.(r,comp,liberado,perfil.perfil);
+  const p=$('sscPeriodoPrincipal');if(p)p.value=comp;
   const compSel=$('su-comp');if(compSel)compSel.value=comp;
 }
 function navegar(view){
