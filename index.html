@@ -2240,6 +2240,11 @@ body.auth-ok .su-toolbar{display:flex}
 .ssc-ind-mode label{font-size:12px;font-weight:800;color:#005852}
 .ssc-ind-mode select{max-width:275px;min-height:38px;border:1px solid #c9ddd8;border-radius:8px;padding:5px 12px;background:#fff;color:#005852}
 .ssc-ind-mode span{font-size:11px;color:#607570}
+
+/* Tooltip sobre os pontos de Realizado e Planejado — cursor e área de interação. */
+#view-evolution .chart-mark{cursor:crosshair}
+#view-evolution .chart-mark circle{pointer-events:all}
+#chartTooltip{pointer-events:none;white-space:pre-line}
 </style>
 </head>
 
@@ -4749,7 +4754,13 @@ function setupChartTooltips(){
   document.addEventListener("mouseleave",()=>{tooltip.style.display="none";});
 }
 
-setupChartTooltips();
+// O elemento #chartTooltip é criado depois deste script no HTML.
+// Instalar os eventos somente após a montagem do DOM.
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",setupChartTooltips,{once:true});
+}else{
+  setupChartTooltips();
+}
 
 function confWeight(v){
   const n=number(v);
