@@ -2279,6 +2279,30 @@ body.auth-ok .su-toolbar{display:flex}
 .ssc-geral-card b{font-size:29px;color:#007e75}
 .ssc-geral-card span{font-size:11px;color:#63807c}
 
+/* Ajuste do viewport na autenticação: evitar barra de rolagem residual
+   sem cortar formulários longos ou afetar o painel após o login. */
+body:not(.auth-ok){height:100dvh;max-height:100dvh;overflow:hidden!important}
+body:not(.auth-ok) .auth-screen{
+  position:fixed;inset:0;
+  width:100%;height:100dvh;min-height:0;
+  max-width:100%;max-height:100dvh;
+  margin:0;box-sizing:border-box;
+  padding:clamp(10px,2vh,18px);
+  overflow:hidden!important;
+  overscroll-behavior:contain;
+}
+body:not(.auth-ok) .auth-screen>.auth-box{
+  margin:0 auto;
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+}
+@media(max-height:600px){
+  body:not(.auth-ok) .auth-screen{place-items:start center;overflow-y:auto!important}
+  body:not(.auth-ok) .auth-screen>.auth-box{margin:auto;max-height:none}
+}
+
 /* SSC • Identidade visual do login — imagem de referência enviada pelo usuário.
    Aplicar exclusivamente à tela de autenticação; dashboard e RLS intactos. */
 .auth-screen{
