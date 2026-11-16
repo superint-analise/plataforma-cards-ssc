@@ -2212,7 +2212,7 @@ body.auth-ok .auth-screen{display:none!important}
 .auth-box h2{font-size:21px;color:#005852;margin:0 0 14px}
 .auth-box p{font-size:12px;color:#566c69;line-height:1.6}
 .auth-box form{display:grid;gap:10px}.auth-box input,.auth-box select{width:100%;min-height:40px;padding:9px 11px;border:1px solid #c4d8d4;border-radius:7px;background:white;font:inherit;color:#203c38}
-.auth-box label{display:block;font-size:11px;color:#244c47;font-weight:700;margin:3px 0 -7px}
+.auth-box label{display:block;font-size:11px;color:#244c47;font-weight:700;margin:6px 0 0;line-height:1.5;position:static}
 .auth-box button,.su-btn{cursor:pointer;padding:10px 14px;border:0;border-radius:7px;background:#00877d;color:#fff;font-weight:700}
 .auth-box button:disabled,.su-btn:disabled{opacity:.5;cursor:not-allowed}
 #su-cadastrar,#su-voltar{width:100%;margin-top:9px;background:#e7f4f1;color:#005852}
@@ -3585,14 +3585,26 @@ function v41LineSVG(series,formatter,W,opts){
       s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\nTendência histórica: ${slope} por mês`)}">`+
         `<line x1="${x(0)}" x2="${x(last)}" y1="${y(start)}" y2="${y(end)}" stroke="${trendColor}" stroke-width="2.2" stroke-dasharray="7 5" opacity="${on?.95:.42}"/></g>`;
     }}
-    const pts=labels.map((lab,i)=>Number.isFinite(v[i])?{x:x(i),y:y(v[i]),v:v[i],lab}:null).filter(Boolean);
+    const pts=labels.map((lab,i)=>{
+      if(!Number.isFinite(v[i]))return null;
+      const source=se.points.find(p=>p.label===lab);
+      return {x:x(i),y:y(v[i]),v:v[i],meta:Number.isFinite(source?.meta)?source.meta:null,lab};
+    }).filter(Boolean);
+    const pointGood=p=>{
+      if(!isReal)return good(p.v);
+      if(!Number.isFinite(p.meta))return null;
+      const name=execNorm(opts.indicator||"");
+      if(name.includes("CAPEX"))return p.v>=p.meta*.9-1e-9;
+      return opts.lowerBetter?p.v<=p.meta+1e-9:p.v>=p.meta-1e-9;
+    };
+    const pointColor=p=>pointGood(p)===null?"#64748b":pointGood(p)?V42_GOOD:V42_BAD;
     // cada trecho assume a cor do ponto de chegada: caiu para fora da meta = laranja; voltou para a meta = verde
     const M=pts.length>2?v42Tangents(pts):null;
     for(let i=1;i<pts.length;i++){
       const seg=pts.length>2?v42SegPath(pts,i,M):`M${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)} L${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
-      s+=`<path d="${seg}" fill="none" stroke="${colOf(pts[i].v)}" stroke-width="${on?3:2}" stroke-linecap="round" opacity="${op}"/>`;
+      s+=`<path d="${seg}" fill="none" stroke="${pointColor(pts[i])}" stroke-width="${on?3:2}" stroke-linecap="round" opacity="${op}"/>`;
     }
-    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${isReal?"Realizado":good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${colOf(p.v)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
+    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${isReal?"Realizado"+(Number.isFinite(p.meta)?" · meta "+fmt(p.meta):""):good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,y:y(p.value)}:null}).filter(Boolean);
