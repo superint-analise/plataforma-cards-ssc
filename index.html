@@ -4742,7 +4742,7 @@ function confFormatCalc(row){
 
 function confFormatRanges(row){
   const faixas=CONF_FAIXAS[row["Critério"]];
-  if(!faixas)return '<span class="conf-nocrit">sem critério definido</span>';
+  if(!faixas)return '<span class="conf-nocrit">Critérios detalhados não disponíveis neste histórico</span>';
   const pts=number(row["Pontos"]);
   return `<div class="conf-ranges">${faixas.map(([label,p])=>{
     const hit=pts!==null&&Math.abs(pts-p)<1e-9;
@@ -4798,7 +4798,7 @@ function confCoordCard(region,coord){
       </tr></thead>
       <tbody>${body}</tbody>
       <tfoot><tr>
-        <td>Total</td><td class="num">${confWeight(somaMax/10)}</td><td></td><td></td><td></td><td></td><td></td>
+        <td>Total</td><td class="num">${detalhado?confWeight(somaMax/10):"—"}</td><td></td><td></td><td></td><td></td><td></td>
         <td class="num ${maxOk?"":"conf-diff"}">${detalhado?formatScore(somaMax):"—"}</td>
         <td class="num">${formatScore(nota)}</td>
       </tr></tfoot>
@@ -4988,7 +4988,12 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   DATA=Array.isArray(rows)?rows.map(r=>{
     const anterior=SSC_HIST_ROWS.get(sscRowKey(PREVIOUS_PERIOD,r));
     const old=anterior?.["Indicador"]==="IRL"?anterior?.["Avanço"]:anterior?.["Avanço"];
-    return {...r,"Mês Anterior":old??null};
+    const irl=execNorm(r["Indicador"])==="IRL";
+    const realizado=number(r["Realizado"]),realAnterior=number(anterior?.["Realizado"]);
+    const desempenho=irl&&realizado!==null&&realAnterior!==null
+      ?(realizado<realAnterior?"▲":realizado>realAnterior?"▼":"►")
+      :r["Desempenho"];
+    return {...r,"Mês Anterior":old??null,"Desempenho":desempenho};
   }):[];
   if(!DATA.length)throw new Error('Não existem indicadores autorizados para este perfil nesta competência.');
   const restrito=!['criador','superint'].includes(role);
