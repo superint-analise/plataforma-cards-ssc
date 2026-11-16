@@ -130,8 +130,19 @@ window.__SSC_RENDER_COMPARISON=()=>renderComparacaoHistorica();
 async function renderComparacaoHistorica(){
   const container=$('sscComparisonOfficial');
   if(!container||!perfil||!competencia)return;
+  const visual=$('sscComparisonVisual');
+  // Apenas os perfis com acesso integral podem ver os gráficos consolidados.
+  // Gerentes e coordenadores continuam na comparação histórica autorizada por RPC/RLS.
+  const acessoIntegral=['criador','superint'].includes(perfil.perfil);
+  if(visual){
+    visual.hidden=!acessoIntegral;
+    if(acessoIntegral) {
+      try{window.__SSC_RENDER_COMPARISON_VISUAL?.()}
+      catch(e){console.error('Comparação executiva:',e);visual.hidden=true}
+    }
+  }
   const seq=++comparisonRequest;
-  container.innerHTML='<p class="su-muted">Carregando comparação autorizada…</p>';
+  container.innerHTML='<p class="su-muted">Carregando comparação histórica autorizada…</p>';
   try {
     const {data,error}=await db.rpc('comparacao_historica_perfil',{p_competencia_analise:competencia});
     if(error)throw error;
@@ -162,7 +173,7 @@ async function renderComparacaoHistorica(){
       const tr=items.map(item=>'<tr class="'+(item.regiao===perfil.regiao?'self':'')+'"><td>'+escapeHTML(item.regiao)+'</td><td>'+escapeHTML(fmt(item.planejado))+'</td><td>'+escapeHTML(fmt(item.realizado))+'</td><td>'+escapeHTML(fmt(item.avanco))+'</td></tr>').join('');
       return '<details class="ssc-comp-detail"><summary>'+escapeHTML(name)+' · '+items.length+' regionais</summary><table class="ssc-comp-table"><thead><tr><th>Regional</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr></thead><tbody>'+tr+'</tbody></table></details>';
     }).filter(Boolean).join('');
-    container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. Dados consolidados do mês anterior, sem acesso às bases detalhadas de outras áreas.</p>'+
+    container.innerHTML='<h2>'+(acessoIntegral?'Comparação histórica oficial · ': '')+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. Dados consolidados do mês anterior, sem acesso às bases detalhadas de outras áreas.</p>'+
     (rows?'<table class="ssc-comp-table"><thead><tr><th>Posição</th><th>Regional</th><th>Coordenação</th><th>Score</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Não há resultados disponíveis para essa comparação.</p>')+
     (indicatorsHTML?'<h3>Indicadores comparáveis</h3>'+indicatorsHTML:'');
   }catch(e){
