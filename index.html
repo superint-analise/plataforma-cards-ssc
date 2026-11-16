@@ -2291,24 +2291,8 @@ body.auth-ok .su-toolbar{display:flex}
   background-position:center center!important;
   background-size:cover!important;
 }
-.auth-screen::before,.auth-screen::after{
-  position:fixed;z-index:0;pointer-events:none;
-  color:#e8ffff;white-space:pre-line;font-weight:600;
-  font-family:'Segoe UI',Arial,sans-serif;
-  letter-spacing:.20em;line-height:1.5;
-  text-shadow:0 2px 17px rgba(0,23,31,.75);
-  opacity:.92;
-}
-.auth-screen::before{
-  content:"ENERGIA QUE CONECTA\\A PESSOAS E RESULTADOS";
-  left:clamp(25px,6vw,115px);bottom:clamp(30px,16vh,180px);
-  max-width:230px;font-size:clamp(11px,1.2vw,17px);
-}
-.auth-screen::after{
-  content:"DADOS PARA UM AMANHÃ\\A MAIS EFICIENTE";
-  right:clamp(25px,5vw,90px);top:38%;
-  max-width:205px;font-size:clamp(11px,1.04vw,16px);
-}
+/* Nenhuma frase decorativa acrescentada sobre a imagem. */
+.auth-screen::before,.auth-screen::after{content:none!important;display:none!important}
 .auth-screen>.auth-box{
   position:relative;z-index:2;box-sizing:border-box;
   width:min(480px,calc(100vw - 34px));max-height:none;
