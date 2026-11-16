@@ -3615,7 +3615,11 @@ function v41LineSVG(series,formatter,W,opts){
       for(let i=1;i<mp.length;i++){
         s+=`<path d="M${mp[i-1].x.toFixed(1)} ${mp[i-1].y.toFixed(1)} L${mp[i].x.toFixed(1)} ${mp[i].y.toFixed(1)}" stroke="#64748b" stroke-width="2" stroke-dasharray="6 4" fill="none" opacity="${on?.85:.4}"/>`;
       }
-      mp.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\\n${p.lab}\\nMeta: ${fmt(p.v)}`)}"><circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#fff" stroke="#64748b" stroke-width="1.8" opacity="${op}"/></g>`;});
+      mp.forEach(p=>{
+        const realized=se.points.find(item=>item.label===p.lab)?.value;
+        const tooltip=se.name+"\n"+p.lab+"\nRealizado: "+(Number.isFinite(realized)?fmt(realized):"—")+"\nMeta: "+fmt(p.v);
+        s+=`<g class="chart-mark" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#64748b" stroke-width="2" opacity="${op}"/></g>`;
+      });
       if(mp.length){const lastMeta=mp[mp.length-1];s+=`<text x="${lastMeta.x-5}" y="${lastMeta.y-8}" text-anchor="end" font-size="10" fill="#64748b" paint-order="stroke" stroke="#fff" stroke-width="3">Meta ${fmt(lastMeta.v)}</text>`;}
     }
     if(V41_OPTS.mean){const f=v.filter(Number.isFinite);if(f.length){const m=f.reduce((a,b)=>a+b,0)/f.length;
@@ -3648,7 +3652,12 @@ function v41LineSVG(series,formatter,W,opts){
       const seg=pts.length>2?v42SegPath(pts,i,M):`M${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)} L${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
       s+=`<path d="${seg}" fill="none" stroke="${pointColor(pts[i])}" stroke-width="${on?3:2}" stroke-linecap="round" opacity="${op}"/>`;
     }
-    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${isReal?"Realizado"+(Number.isFinite(p.meta)?" · meta "+fmt(p.meta):""):good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
+    pts.forEach(p=>{
+      const tooltip=isReal?
+        se.name+"\n"+p.lab+"\nRealizado: "+fmt(p.v)+"\nMeta: "+(Number.isFinite(p.meta)?fmt(p.meta):"—"):
+        se.name+"\n"+p.lab+": "+fmt(p.v)+"\n"+(good(p.v)?"Na meta":"Fora da meta");
+      s+=`<g class="chart-mark" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`;
+    });
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,y:y(p.value)}:null}).filter(Boolean);
