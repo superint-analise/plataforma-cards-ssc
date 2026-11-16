@@ -2076,7 +2076,7 @@ thead th{letter-spacing:.03em}
 /* ==========================================================
    V42 — cabeçalho das páginas, pódio, evolução e memória de cálculo
    ========================================================== */
-.view-section>.page-head{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:16px;
+.view-section>.page-head{position:relative;overflow:visible;background:#fff;border:1px solid var(--line);border-radius:16px;
   padding:20px 24px 20px 30px;margin-bottom:18px;align-items:center;box-shadow:0 1px 2px rgba(16,48,44,.04),0 8px 24px rgba(16,48,44,.04)}
 .view-section>.page-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,#009B91,#005852)}
 .view-section>.page-head::after{content:"";position:absolute;right:-60px;top:-90px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,155,145,.08),rgba(0,155,145,0) 70%);pointer-events:none}
@@ -2229,6 +2229,12 @@ body.auth-ok .su-toolbar{display:flex}
 /* SSC: justificativas fora do escopo atual — preservar pontuação v43. */
 .table-just-cell,.table-just-toolbar,.exec-block-just-link,.exec-justifications,
 .exec-modal-bg,#execJustModalBg,.table-just-action,.toggle-just-management{display:none!important}
+
+/* SSC: manter o menu expandido sobre os gráficos, sem recortes. */
+#view-evolution .page-head{overflow:visible!important;z-index:20!important}
+#view-evolution .evolution-filter-grid{position:relative;z-index:22}
+#view-evolution .region-dropdown{position:relative;z-index:23}
+#view-evolution .region-menu{z-index:250!important;max-height:280px;overflow-y:auto;box-shadow:0 14px 30px rgba(0,0,0,.18)}
 </style>
 </head>
 
@@ -4492,20 +4498,34 @@ function downloadRegionTables(){
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
 }
 
-function availablePeriods(){
-  return [PREVIOUS_PERIOD,CURRENT_PERIOD];
-}
+const SSC_MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let SSC_HIST_ROWS=new Map(),SSC_HIST_NOTAS=new Map(),SSC_PERIODOS=[];
+function sscPeriodo(ym){const [ano,mes]=String(ym).split('-').map(Number);return SSC_MONTHS[mes-1]+'/'+ano;}
+function sscRowKey(periodo,r){return [periodo,r['Região'],r['Coordenação'],r['Indicador']].join('¦');}
+window.__SSC_SET_HISTORY=(indicadores,notas)=>{
+  SSC_HIST_ROWS=new Map();SSC_HIST_NOTAS=new Map();
+  for(const item of indicadores||[]){
+    const r=item.dados;if(r&&r['Região']&&r['Coordenação']&&r['Indicador'])SSC_HIST_ROWS.set(sscRowKey(sscPeriodo(item.competencia),r),r);
+  }
+  for(const n of notas||[])SSC_HIST_NOTAS.set([sscPeriodo(n.competencia),n.nivel,n.regiao,n.coordenacao].join('¦'),Number(n.score));
+  SSC_PERIODOS=[...new Set((indicadores||[]).map(r=>r.competencia))].sort().map(sscPeriodo);
+};
+function availablePeriods(){return SSC_PERIODOS.length?SSC_PERIODOS:[PREVIOUS_PERIOD,CURRENT_PERIOD];}
 
 function periodValueForRow(row,period){
-  if(period===CURRENT_PERIOD)return numericAdvance(row);
-  if(period===PREVIOUS_PERIOD)return previousAdvance(row);
-  return null;
+  const saved=SSC_HIST_ROWS.get(sscRowKey(period,row));
+  if(saved)return numericAdvance(saved);
+  return period===CURRENT_PERIOD?numericAdvance(row):null;
 }
 
 function scoreForPeriod(rows,period){
-  if(period===CURRENT_PERIOD)return totalScore(rows);
-  if(period===PREVIOUS_PERIOD)return historicalScore(rows);
-  return null;
+  if(!rows?.length)return null;
+  const reg=rows[0]['Região'],coord=rows[0]['Coordenação'];
+  const nivel=coord==='Gerência'?'Gerência':'Coordenação';
+  const official=SSC_HIST_NOTAS.get([period,nivel,reg,coord].join('¦'));
+  if(Number.isFinite(official))return official;
+  const dados=rows.map(r=>SSC_HIST_ROWS.get(sscRowKey(period,r))).filter(Boolean);
+  return dados.length?totalScore(dados):period===CURRENT_PERIOD?totalScore(rows):null;
 }
 
 function selectedPeriods(){
@@ -4784,14 +4804,7 @@ function render(region){
   renderCoords(region);
 }
 
-REGION_ORDER
-  .filter(r=>DATA.some(x=>x["Região"]===r))
-  .forEach(r=>{
-    const o=document.createElement("option");
-    o.value=r;
-    o.textContent=r;
-    regionSelect.appendChild(o);
-  });
+// Regiões são carregadas somente após o Supabase retornar os indicadores.
 
 regionSelect.addEventListener("change",()=>{
   detailArea.classList.remove("open");
@@ -4852,6 +4865,10 @@ detailToggle.addEventListener("click",()=>{
 });
 
 function inicializarPainel(){
+  const regs=REGION_ORDER.filter(reg=>DATA.some(x=>x["Região"]===reg));
+  const prev=regionSelect.value;
+  regionSelect.innerHTML=regs.map(reg=>`<option value="${reg}">${reg}</option>`).join('');
+  if(regs.includes(prev))regionSelect.value=prev;
   populateTableExportRegions();
   if(regionSelect.options.length){
     regionSelect.value=regionSelect.options[0].value;
