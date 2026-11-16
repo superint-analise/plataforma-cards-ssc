@@ -2262,6 +2262,22 @@ body.auth-ok .su-toolbar{display:flex}
 .ssc-sup-score{font-weight:900;font-size:32px;color:#005951}
 .ssc-sup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0}
 .ssc-sup-grid>div{border:1px solid #d9e9e4;border-radius:12px;padding:15px}
+
+.ssc-tables-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.ssc-tables-filters .filter{min-width:190px;flex:1}
+.ssc-multi-region{position:relative;z-index:30}
+#sscTablesRegionToggle{min-height:40px;background:white;border:1px solid #c9deda;border-radius:9px;color:#005852;text-align:left;padding:8px 12px;font-weight:700;width:100%;cursor:pointer}
+.ssc-region-options{position:absolute;top:100%;left:0;min-width:100%;max-height:260px;overflow-y:auto;background:white;box-shadow:0 14px 30px #0002;border:1px solid #dbe9e5;border-radius:9px;padding:8px;z-index:80}
+.ssc-region-options[hidden]{display:none!important}
+.ssc-region-option{display:flex;align-items:center;gap:9px;padding:8px 9px;font-size:12px;white-space:nowrap;cursor:pointer}
+.ssc-region-option input{accent-color:#009b91}
+.ssc-tables-group{margin:14px 0 20px}
+.ssc-geral-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:14px}
+.ssc-geral-card{display:flex;flex-direction:column;gap:7px;padding:18px;border:1px solid #d7e7e2;border-radius:14px;background:#f5faf9}
+.ssc-geral-card small{font-size:10px;color:#547571;font-weight:800}
+.ssc-geral-card strong{font-size:15px;color:#004f49}
+.ssc-geral-card b{font-size:29px;color:#007e75}
+.ssc-geral-card span{font-size:11px;color:#63807c}
 </style>
 </head>
 
@@ -2379,7 +2395,7 @@ body.auth-ok .su-toolbar{display:flex}
 
       <div class="filters">
         <div class="filter">
-          <label>Região</label>
+          <label>Regional</label>
           <select id="regionSelect"></select>
         </div>
 
@@ -2432,7 +2448,16 @@ body.auth-ok .su-toolbar{display:flex}
         <p>Resultado de cada indicador por coordenação, com acompanhamento dos indicadores.</p>
       </div>
 
-      <div class="filters">
+      <div class="filters ssc-tables-filters">
+        <div class="filter ssc-multi-region">
+          <label>Regional</label>
+          <button id="sscTablesRegionToggle" type="button" aria-expanded="false" aria-controls="sscTablesRegionMenu">Todas as regionais</button>
+          <div id="sscTablesRegionMenu" class="ssc-region-options" hidden></div>
+        </div>
+        <div class="filter">
+          <label>Organização</label>
+          <select id="sscTablesOrganization"><option value="padrao">Padrão</option><option value="posicao">Por Posição</option></select>
+        </div>
         <div class="filter">
           <label>Período</label>
           <select id="sscPeriodTables" aria-label="Mês dos indicadores"></select>
@@ -3955,33 +3980,88 @@ function renderAllCoordinationRanking(region){
   </table></div>`;
 }
 
+const sscTableRegionState={selected:null,initialized:false};
+function sscTableAvailableRegions(){return REGION_ORDER.filter(region=>DATA.some(r=>r["Região"]===region));}
+function sscTableSelectedRegions(){
+  const allowed=sscTableAvailableRegions();
+  if(!sscTableRegionState.selected)return allowed;
+  return allowed.filter(r=>sscTableRegionState.selected.has(r));
+}
+function sscTableSyncFilters(){
+  const menu=document.getElementById("sscTablesRegionMenu");
+  const btn=document.getElementById("sscTablesRegionToggle");
+  if(!menu||!btn)return;
+  const allowed=sscTableAvailableRegions();
+  if(sscTableRegionState.selected){
+    sscTableRegionState.selected=new Set([...sscTableRegionState.selected].filter(r=>allowed.includes(r)));
+  }
+  const selected=sscTableSelectedRegions();
+  menu.innerHTML='<label class="ssc-region-option"><input type="checkbox" value="__ALL__" '+(selected.length===allowed.length?'checked':'')+'> Todas</label>'+
+    allowed.map(r=>'<label class="ssc-region-option"><input type="checkbox" value="'+r+'" '+(selected.includes(r)?'checked':'')+'> '+r+'</label>').join('');
+  btn.textContent=selected.length===allowed.length?'Todas as regionais':selected.length===1?selected[0]:selected.length?selected.length+' regionais selecionadas':'Nenhuma regional';
+}
+function sscTableBindFilters(){
+  if(sscTableRegionState.initialized)return;
+  const menu=document.getElementById("sscTablesRegionMenu"),btn=document.getElementById("sscTablesRegionToggle"),organization=document.getElementById("sscTablesOrganization");
+  if(!menu||!btn||!organization)return;
+  sscTableRegionState.initialized=true;
+  btn.addEventListener("click",()=>{
+    menu.hidden=!menu.hidden;
+    btn.setAttribute("aria-expanded",String(!menu.hidden));
+  });
+  menu.addEventListener("change",event=>{
+    const el=event.target;
+    if(!el?.matches('input[type="checkbox"]'))return;
+    const allowed=sscTableAvailableRegions();
+    if(el.value==="__ALL__"){
+      sscTableRegionState.selected=el.checked?null:new Set();
+    }else{
+      if(!sscTableRegionState.selected)sscTableRegionState.selected=new Set(allowed);
+      if(el.checked)sscTableRegionState.selected.add(el.value);
+      else sscTableRegionState.selected.delete(el.value);
+      if(sscTableRegionState.selected.size===allowed.length)sscTableRegionState.selected=null;
+    }
+    renderAllRegionTables();
+  });
+  organization.addEventListener("change",renderAllRegionTables);
+  document.addEventListener("click",e=>{
+    if(!e.target.closest(".ssc-multi-region")){
+      menu.hidden=true;
+      btn.setAttribute("aria-expanded","false");
+    }
+  });
+}
 function renderAllRegionTables(){
   if(!allRegionTables)return;
-
-  allRegionTables.innerHTML=REGION_ORDER.map(region=>{
-    const content=COORD_ORDER
-      .filter(coord=>rowsFor(region,coord).length)
-      .map(coord=>{
-        const label=
-          coord==="Projetos Especiais e Grandes Clientes"
-            ?"Grandes Clientes"
-            :coord;
-
+  sscTableBindFilters();
+  sscTableSyncFilters();
+  const selected=sscTableSelectedRegions();
+  const groups=[];
+  const orientation=document.getElementById("sscTablesOrganization")?.value||"padrao";
+  if(orientation==="posicao"){
+    for(const coord of COORD_ORDER){
+      const entries=selected.filter(reg=>rowsFor(reg,coord).length).map(reg=>({region:reg,coord}));
+      if(entries.length)groups.push({title:coord==="Gerência"?"Gerências":coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord,entries});
+    }
+  }else{
+    for(const region of selected){
+      const entries=COORD_ORDER.filter(coord=>rowsFor(region,coord).length).map(coord=>({region,coord}));
+      if(entries.length)groups.push({title:region,entries});
+    }
+  }
+  const html=groups.map(group=>`
+    <div class="ssc-tables-group">
+      <div class="region-boundary start">${orientation==="posicao"?"ORGANIZAÇÃO — ":"REGIONAL — "}${group.title}</div>
+      ${group.entries.map(({region,coord})=>{
+        const label=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
+        const name=orientation==="posicao"?label+" — "+region:label;
         return `<section class="card all-tables-card">
-          ${v41TableHead(region,coord,label)}
+          ${v41TableHead(region,coord,name)}
           ${table(rowsFor(region,coord),"",null,true)}
         </section>`;
-      })
-      .join("");
-
-    if(!content)return "";
-
-    return `
-      <div class="region-boundary start">INÍCIO — REGIÃO ${region}</div>
-      ${content}
-      <div class="region-boundary end">FIM — REGIÃO ${region}</div>
-    `;
-  }).join("");
+      }).join("")}
+    </div>`).join("");
+  allRegionTables.innerHTML=html||'<div class="card" style="padding:20px">Selecione ao menos uma regional com indicadores disponíveis.</div>';
 }
 
 function execNorm(v){
@@ -5034,6 +5114,23 @@ function switchView(view){
 }
 
 function render(region){
+  const geral=region==="__GERAL__";
+  const hero=document.getElementById("regionHero");
+  const coordSection=document.querySelector("#view-general .coord-section");
+  if(hero)hero.style.display=geral?"none":"";
+  if(coordSection)coordSection.style.display=geral?"none":"";
+  if(geral){
+    renderRankings(REGION_ORDER.find(r=>rowsFor(r,"Gerência").length)||"");
+    renderAllCoordinationRanking(REGION_ORDER.find(r=>DATA.some(x=>x["Região"]===r))||"");
+    const regions=REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r));
+    managerCard.innerHTML='<section class="card manager-card"><div class="manager-head"><div class="manager-title"><h2>Resumo das Gerências</h2><p>Notas oficiais de todas as regionais autorizadas em '+CURRENT_PERIOD+'.</p></div></div>'+
+    '<div class="ssc-geral-cards">'+regions.map(reg=>{
+      const value=regionScore(reg);
+      const score=Number.isFinite(value)?formatScore(value):"—";
+      return '<article class="ssc-geral-card"><small>GERÊNCIA REGIONAL</small><strong>'+reg+'</strong><b>'+score+'</b><span>Nota da Gerência / 10</span></article>';
+    }).join('')+'</div></section>';
+    return;
+  }
   renderHero(region);
   renderRankings(region);
   renderAllCoordinationRanking(region);
@@ -5047,7 +5144,7 @@ regionSelect.addEventListener("change",()=>{
   detailArea.classList.remove("open");
   detailToggle.innerHTML="Ver detalhes das coordenações&nbsp;&nbsp;→";
   render(regionSelect.value);
-  if(tableExportRegion)tableExportRegion.value=regionSelect.value;
+  if(tableExportRegion && regionSelect.value!=="__GERAL__")tableExportRegion.value=regionSelect.value;
 
   if(evolutionRegionMenu.children.length){
     [...evolutionRegionMenu.querySelectorAll('input[type="checkbox"]')].forEach(o=>o.checked=(o.value===regionSelect.value));
@@ -5104,12 +5201,14 @@ detailToggle.addEventListener("click",()=>{
 function inicializarPainel(){
   const regs=REGION_ORDER.filter(reg=>DATA.some(x=>x["Região"]===reg));
   const prev=regionSelect.value;
-  regionSelect.innerHTML=regs.map(reg=>`<option value="${reg}">${reg}</option>`).join('');
-  if(regs.includes(prev))regionSelect.value=prev;
+  const podeGeral=['criador','superint'].includes(window.__SSC_ROLE)&&regs.length>1;
+  regionSelect.innerHTML=(podeGeral?'<option value="__GERAL__">Geral</option>':'')+
+    regs.map(reg=>`<option value="${reg}">${reg}</option>`).join('');
+  if(regs.includes(prev)||(prev==="__GERAL__"&&podeGeral))regionSelect.value=prev;
   populateTableExportRegions();
   if(regionSelect.options.length){
-    if(!regs.includes(prev))regionSelect.value=regs[0];
-    if(tableExportRegion && tableExportRegion.options.length) tableExportRegion.value=regionSelect.value;
+    if(!regs.includes(prev)&&!(prev==="__GERAL__"&&podeGeral))regionSelect.value=regs[0];
+    if(tableExportRegion && tableExportRegion.options.length && regs.includes(regionSelect.value)) tableExportRegion.value=regionSelect.value;
     render(regionSelect.value);
     renderComparisonAll();
     populateEvolutionFilters();
