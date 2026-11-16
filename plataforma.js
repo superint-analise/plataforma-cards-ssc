@@ -44,15 +44,23 @@ async function iniciar(){
   notasMensais=notas;
   const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
   window.__SSC_SET_HISTORY?.(historico,notas);
-  const periodSelect=$('sscPeriodoPrincipal');
-  if(periodSelect){
-    const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    periodSelect.innerHTML=comps.map(c=>{const [y,m]=c.split('-');return `<option value="${c}">${meses[Number(m)-1]}/${y}</option>`;}).join('');
-    periodSelect.addEventListener('change',async e=>{
-      const old=competencia;
-      try{await trocarCompetencia(e.target.value)}catch(ex){periodSelect.value=old;err(ex)}
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const texto=c=>{const [y,m]=c.split('-');return `${meses[Number(m)-1]}/${y}`;};
+  for(const field of ['sscPeriodoPrincipal','sscPeriodTables','sscPeriodComparison','sscPeriodMemory']){
+    const element=$(field);if(!element)continue;
+    const choices=field==='sscPeriodMemory'?comps.slice(0,2):comps;
+    element.innerHTML=choices.map(c=>`<option value="${c}">${texto(c)}</option>`).join('');
+    element.addEventListener('change',async e=>{
+      const value=e.target.value,old=competencia;
+      try{await trocarCompetencia(value)}
+      catch(ex){e.target.value=old;err(ex)}
     });
   }
+  window.__SSC_OPEN_MEMORY=async()=>{
+    if(!comps.includes(competencia)||!comps.slice(0,2).includes(competencia)){
+      await trocarCompetencia(comps[0]);
+    }
+  };
   if(!comps.length)throw Error('Conta aprovada. Ainda não há indicadores publicados.');
   const {data:ctl,error:e}=await db.from('controle_publicacao').select('ranking_liberado_ate').eq('id',1).single();
   if(e)throw e;
@@ -74,8 +82,15 @@ async function trocarCompetencia(comp){
   window.__SSC_SET_CONTEXT?.(comp,semanas);
   window.__CARREGAR_DADOS_SEGUROS(m.map(x=>x.dados),perfil.perfil);
   window.__SSC_SET_PUBLIC_RANKING?.(r,comp,liberado,perfil.perfil);
-  const p=$('sscPeriodoPrincipal');if(p)p.value=comp;
+  for(const id of ['sscPeriodoPrincipal','sscPeriodTables','sscPeriodComparison','sscPeriodMemory']){
+    const sel=$(id);
+    if(sel && [...sel.options].some(opt=>opt.value===comp))sel.value=comp;
+  }
   const compSel=$('su-comp');if(compSel)compSel.value=comp;
+  const active=document.querySelector('.view-section.active')?.id;
+  if(active==='view-tables')window.__SSC_RENDER_TABLES?.();
+  if(active==='view-comparison')window.__SSC_RENDER_COMPARISON?.();
+  if(active==='view-conference')window.__SSC_RENDER_MEMORY?.();
 }
 function navegar(view){
   document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
