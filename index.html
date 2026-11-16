@@ -2424,13 +2424,6 @@ body.auth-ok .su-toolbar{display:flex}
         <select id="tableExportRegion"></select>
       </div>
       <div class="filter">
-        <label>Tipo de exportação</label>
-        <select id="tableExportType">
-          <option value="cards">Cards</option>
-          <option value="email">Email</option>
-        </select>
-      </div>
-      <div class="filter">
         <label>Conteúdo</label>
         <select id="tableExportScope">
           <option value="regional">Regional</option>
@@ -2601,7 +2594,6 @@ const miniRankings=document.getElementById("miniRankings");
 const allRegionTables=document.getElementById("allRegionTables");
 const allCoordinationRanking=document.getElementById("allCoordinationRanking");
 const tableExportRegion=document.getElementById("tableExportRegion");
-const tableExportType=document.getElementById("tableExportType");
 const tableExportScope=document.getElementById("tableExportScope");
 const tableExportButton=document.getElementById("tableExportButton");
 
@@ -2954,17 +2946,7 @@ function table(rows,totalLabel,scoreOverride=null,isTables=false){
       <td>${renderPerformanceRow(r)}</td>
       <td>${formatPreviousMonth(r["Mês Anterior"])}</td>
       <td>${renderEfficiency(r)}</td>
-      ${isTables ? `<td class="table-just-status-cell">${execEfficiencyOK(r["Eficiência"])
-        ? '<span class="table-just-not-required">—</span>'
-        : execSavedJust(r)?.justificativa
-          ? `<div class="table-just-preview"><button type="button" class="table-just-badge saved table-just-open" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">Justificado</button><button class="table-just-snippet" type="button" title="Clique para ler o comentário completo" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execEscapeText(execSavedJust(r).justificativa.slice(0,92))}${execSavedJust(r).justificativa.length>92?'…':''}</button></div>`
-          : '<span class="table-just-badge pending">● Pendente</span>'}</td>
-      <td class="table-just-management"><div class="table-just-row-actions">${execEfficiencyOK(r["Eficiência"])
-        ? '<span class="table-just-not-required">—</span>'
-        : `<button type="button" onclick="execOpenTableJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execSavedJust(r)?.justificativa?'Editar':'Justificar'}</button>${execSavedJust(r)?.justificativa?`<button class="delete" type="button" onclick="execDeleteTableJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">Apagar</button>`:''}`}</div></td>`
-      : `<td class="table-just-cell">${execSavedJust(r)?.justificativa
-        ? `<button class="table-just-readonly table-just-snippet" type="button" title="Clique para ler o comentário completo" onclick="execViewRowJust('${encodeURIComponent(JSON.stringify(r)).replaceAll("'","%27")}')">${execEscapeText(execSavedJust(r).justificativa.slice(0,110))}${execSavedJust(r).justificativa.length>110?'…':''}</button>`
-        : '<span class="table-just-not-required">—</span>'}</td>`}
+
     </tr>`;
   }).join("");
 
@@ -2979,7 +2961,7 @@ function table(rows,totalLabel,scoreOverride=null,isTables=false){
       <div class="table-card-actions">
         <button class="toggle-calc" type="button" onclick="toggleCalcColumns('${tableId}',this)">Mostrar Pontos, Peso e Score</button>
       </div>
-      ${isTables?`<div class="table-just-toolbar"><button class="toggle-just-management" type="button" onclick="toggleJustManagement('${tableId}',this)">${justOpen?'Ocultar':'Mostrar'} ações de justificativa</button></div>`:''}
+
     </div>
     <div class="table-wrap">
       <table id="${tableId}" data-just-table-key="${justTableKey}" class="${justOpen?'show-just-actions':''}">
@@ -2987,7 +2969,6 @@ function table(rows,totalLabel,scoreOverride=null,isTables=false){
           <th>Blocos</th><th>Indicador</th><th>Planejado</th><th>Realizado</th>
           <th class="calc-col">Pontos</th><th class="calc-col">Peso</th><th class="calc-col">Score</th>
           <th>Avanço</th><th>Desempenho</th><th>Mês Anterior</th><th>Eficiência</th>
-          ${isTables?'<th>Justificativa</th><th class="table-just-management">Ações</th>':'<th>Comentário</th>'}
         </tr></thead>
         <tbody>${body}</tbody>
       </table>
@@ -4590,9 +4571,9 @@ function buildRegionExportHTML(region,type,scope){
 }
 
 function downloadRegionTables(){
-  if(!tableExportRegion || !tableExportType || !tableExportScope)return;
+  if(!tableExportRegion || !tableExportScope)return;
   const region=tableExportRegion.value;
-  const type=tableExportType.value;
+  const type="cards";
   const scope=tableExportScope.value;
   if(!region)return;
   const html=buildRegionExportHTML(region,type,scope);
