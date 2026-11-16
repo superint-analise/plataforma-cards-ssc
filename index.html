@@ -3527,7 +3527,8 @@ function v42SegPath(P,i,M){
 }
 function v41LineSVG(series,formatter,W,opts){
   opts=opts||{};
-  const isScore=formatter==="score",fmt=isScore?(v=>v41Num(v)):(v=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"%");
+  const isScore=formatter==="score",isReal=formatter==="real";
+  const fmt=isScore?(v=>v41Num(v)):isReal?(v=>execFmt(v,opts.indicator||"")):(v=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"%");
   const ref=opts.ref??(isScore?V41_META:1),refLbl=opts.refLbl??(isScore?"meta "+v41Num(V41_META,1):"meta 100%");
   const good=v=>opts.lowerBetter?v<=ref+1e-9:v>=ref-1e-9;
   const colOf=v=>good(v)?V42_GOOD:V42_BAD,txtOf=v=>good(v)?V42_GOOD_TXT:V42_BAD_TXT;
@@ -3540,25 +3541,38 @@ function v41LineSVG(series,formatter,W,opts){
   const valsOf=se=>labels.map(lab=>{const p=se.points.find(q=>q.label===lab);return p&&Number.isFinite(p.value)?p.value:null});
   const extra=[];
   series.forEach(se=>{const v=valsOf(se);
+    if(isReal)extra.push(...se.points.map(p=>p.meta).filter(Number.isFinite));
     if(V41_OPTS.mean){const f=v.filter(Number.isFinite);if(f.length)extra.push(f.reduce((a,b)=>a+b,0)/f.length)}
     if(showTrend){const f=v41Fit(v);if(f)extra.push(f.a,f.a+f.b*(labels.length-1))}
   });
-  const d=v41Domain(series.flatMap(s=>s.points.map(p=>p.value)).concat(extra),ref,isScore?"score":"percent");
+  const d=v41Domain(series.flatMap(s=>s.points.map(p=>p.value)).concat(extra),isReal?null:ref,isScore?"score":isReal?"real":"percent");
   const y=v=>bottom-(v-d.lo)/(d.hi-d.lo)*(bottom-top);
   const hl=series.some(s=>s.name===regionSelect.value)&&series.length>1?regionSelect.value:null;
-  const tickFmt=t=>isScore?t.toLocaleString("pt-BR",{minimumFractionDigits:d.step<1?(d.step<.1?2:1):0,maximumFractionDigits:2}):(t*100).toLocaleString("pt-BR",{maximumFractionDigits:d.step<.01?1:0})+"%";
+  const tickFmt=t=>isScore?t.toLocaleString("pt-BR",{minimumFractionDigits:d.step<1?(d.step<.1?2:1):0,maximumFractionDigits:2}):isReal?execFmt(t,opts.indicator||""):(t*100).toLocaleString("pt-BR",{maximumFractionDigits:d.step<.01?1:0})+"%";
   const xEnd=x(slots-1);
   let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
-  s+=`<text x="2" y="11" font-size="10" font-weight="700" fill="#6E807C" letter-spacing=".04em">${isScore?"NOTA":"% DA META"}</text>`;
+  s+=`<text x="2" y="11" font-size="10" font-weight="700" fill="#6E807C" letter-spacing=".04em">${isScore?"NOTA":isReal?"VALOR REAL / META":"% DA META"}</text>`;
   d.ticks.forEach(t=>{s+=`<text x="2" y="${y(t)+4}" font-size="10.5" fill="#9AA9A6">${tickFmt(t)}</text>`});
-  // meta sempre visível; fora da escala, fica no extremo superior ou inferior
-  const yRef=Math.max(top-4,Math.min(bottom+2,y(ref)));
-  s+=`<line x1="${L-8}" x2="${xEnd+8}" y1="${yRef}" y2="${yRef}" stroke="${V42_META}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-  s+=`<text x="${(L+xEnd)/2}" y="${yRef-5}" font-size="10.5" font-weight="700" fill="${V42_META}" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">${refLbl}</text>`;
+  if(!isReal){
+    const yRef=Math.max(top-4,Math.min(bottom+2,y(ref)));
+    s+=`<line x1="${L-8}" x2="${xEnd+8}" y1="${yRef}" y2="${yRef}" stroke="${V42_META}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    s+=`<text x="${(L+xEnd)/2}" y="${yRef-5}" font-size="10.5" font-weight="700" fill="${V42_META}" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">${refLbl}</text>`;
+  }
   labels.forEach((lab,i)=>{s+=`<text x="${x(i)}" y="${H-8}" font-size="11" font-weight="700" fill="#5E706C" text-anchor="middle">${svgTextEscape(v41ShortMonth(lab))}</text>`});
   const ordered=[...series].sort((a,b)=>(a.name===hl)-(b.name===hl));
   ordered.forEach(se=>{
     const on=!hl||se.name===hl,op=on?1:.32,v=valsOf(se),last=labels.length-1;
+    if(isReal){
+      const metas=labels.map(lab=>{
+        const p=se.points.find(q=>q.label===lab);return p&&Number.isFinite(p.meta)?p.meta:null;
+      });
+      const mp=metas.map((a,i)=>Number.isFinite(a)?{x:x(i),y:y(a),v:a,lab:labels[i]}:null).filter(Boolean);
+      for(let i=1;i<mp.length;i++){
+        s+=`<path d="M${mp[i-1].x.toFixed(1)} ${mp[i-1].y.toFixed(1)} L${mp[i].x.toFixed(1)} ${mp[i].y.toFixed(1)}" stroke="#64748b" stroke-width="2" stroke-dasharray="6 4" fill="none" opacity="${on?.85:.4}"/>`;
+      }
+      mp.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\\n${p.lab}\\nMeta: ${fmt(p.v)}`)}"><circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#fff" stroke="#64748b" stroke-width="1.8" opacity="${op}"/></g>`;});
+      if(mp.length){const lastMeta=mp[mp.length-1];s+=`<text x="${lastMeta.x-5}" y="${lastMeta.y-8}" text-anchor="end" font-size="10" fill="#64748b" paint-order="stroke" stroke="#fff" stroke-width="3">Meta ${fmt(lastMeta.v)}</text>`;}
+    }
     if(V41_OPTS.mean){const f=v.filter(Number.isFinite);if(f.length){const m=f.reduce((a,b)=>a+b,0)/f.length;
       s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\nMédia do período: ${fmt(m)}`)}"><line x1="${x(0)}" x2="${x(last)}" y1="${y(m)}" y2="${y(m)}" stroke="${colOf(m)}" stroke-width="1.6" stroke-dasharray="2 4" opacity="${on?.9:.35}"/></g>`;
       if(on&&(hl||series.length===1))s+=`<text x="${x(0)+(x(last)-x(0))*.22}" y="${y(m)-5}" text-anchor="middle" font-size="10" font-weight="700" fill="${txtOf(m)}" paint-order="stroke" stroke="#fff" stroke-width="3">média ${fmt(m)}</text>`;}}
@@ -3577,7 +3591,7 @@ function v41LineSVG(series,formatter,W,opts){
       const seg=pts.length>2?v42SegPath(pts,i,M):`M${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)} L${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
       s+=`<path d="${seg}" fill="none" stroke="${colOf(pts[i].v)}" stroke-width="${on?3:2}" stroke-linecap="round" opacity="${op}"/>`;
     }
-    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${colOf(p.v)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
+    pts.forEach(p=>{s+=`<g class="chart-mark" data-tooltip="${attrEscape(`${se.name}\n${p.lab}: ${fmt(p.v)}\n${isReal?"Realizado":good(p.v)?"Na meta":"Fora da meta"}`)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${colOf(p.v)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`});
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,y:y(p.value)}:null}).filter(Boolean);
@@ -4519,6 +4533,7 @@ const SSC_MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho',
 let SSC_HIST_ROWS=new Map(),SSC_HIST_NOTAS=new Map(),SSC_PERIODOS=[];
 function sscPeriodo(ym){const [ano,mes]=String(ym).split('-').map(Number);return SSC_MONTHS[mes-1]+'/'+ano;}
 function sscRowKey(periodo,r){return [periodo,r['Região'],r['Coordenação'],r['Indicador']].join('¦');}
+document.getElementById('sscIndicatorMode')?.addEventListener('change',()=>updateEvolutionAll());
 window.__SSC_SET_HISTORY=(indicadores,notas)=>{
   SSC_HIST_ROWS=new Map();SSC_HIST_NOTAS=new Map();
   for(const item of indicadores||[]){
@@ -4585,12 +4600,7 @@ function updateEvolutionAll(){
   const periods=selectedPeriods();
 
   // Nota da Gerência = média das notas das coordenações (mesma regra do card).
-  const managerScoreForPeriod=(region,period)=>{
-    const vals=COORD_ORDER.filter(c=>c!=="Gerência")
-      .map(c=>rowsFor(region,c)).filter(rows=>rows.length)
-      .map(rows=>scoreForPeriod(rows,period)).filter(Number.isFinite);
-    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
-  };
+  const managerScoreForPeriod=(region,period)=>v41ManagerScoreAt(region,period);
   const managerSeries=regions.map(region=>({
     name:region,
     points:periods.map(period=>({label:period,value:managerScoreForPeriod(region,period)}))
@@ -4607,17 +4617,27 @@ function updateEvolutionAll(){
     return `<div class="chart-box">${sectionHeadingHTML(coord,coordLabel)}${multiSeriesBarChart(series,"score")}</div>`;
   }).join("");
 
+  const mode=document.getElementById("sscIndicatorMode")?.value||"advance";
   indicatorEvolutionSections.innerHTML=COORD_ORDER.map(coord=>{
     const indicators=[...new Set(DATA.filter(r=>r["Coordenação"]===coord).map(r=>String(r["Indicador"]??"").trim()).filter(Boolean))];
     if(!indicators.length)return "";
     const charts=indicators.map(ind=>{
       const series=regions.map(region=>{
         const row=DATA.find(r=>r["Região"]===region&&r["Coordenação"]===coord&&r["Indicador"]===ind);
-        if(!row||!v42HasCurrent(row))return null;
-        return {name:region,points:periods.map(period=>({label:period,value:periodValueForRow(row,period)}))};
-      }).filter(Boolean).filter(s=>s.points.some(p=>Number.isFinite(p.value)));
+        if(!row)return null;
+        const points=periods.map(period=>{
+          const hist=SSC_HIST_ROWS.get(sscRowKey(period,row));
+          if(!hist)return {label:period,value:null,meta:null};
+          return {label:period,value:mode==="real"?number(hist["Realizado"]):numericAdvance(hist),
+            meta:mode==="real"?number(hist["Planejado"]):null};
+        });
+        return {name:region,points};
+      }).filter(Boolean).filter(se=>se.points.some(p=>Number.isFinite(p.value)));
       if(!series.length)return "";
-      return `<div class="chart-box"><h3 class="chart-title">${ind}</h3><span class="v41-ind-sub">Avanço do indicador${execNorm(ind).includes("OPEX")?" · quanto menor, melhor":""}</span>${multiSeriesBarChart(series,"percent",v42IndOpts(ind,coord))}</div>`;
+      const opts=mode==="real"?{indicator:ind,lowerBetter:v41LowerBetter(ind)}:v42IndOpts(ind,coord);
+      const chartMode=mode==="real"?"real":"percent";
+      const sub=mode==="real"?"Valor Real: realizado (linha colorida) e meta mensal (linha pontilhada)":"Avanço do indicador"+(execNorm(ind).includes("OPEX")?" · quanto menor, melhor":"");
+      return `<div class="chart-box"><h3 class="chart-title">${svgTextEscape(ind)}</h3><span class="v41-ind-sub">${sub}</span>${multiSeriesBarChart(series,chartMode,opts)}</div>`;
     }).join("");
     if(!charts)return "";
     const label=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
