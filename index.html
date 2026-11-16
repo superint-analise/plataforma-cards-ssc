@@ -2247,6 +2247,12 @@ body.auth-ok .su-toolbar{display:flex}
 #chartTooltip{pointer-events:none;white-space:pre-line}
 /* Marcação SVG interativa com hit-area maior e tooltip fora de sobreposições */
 #view-evolution .chart-mark{pointer-events:all;cursor:crosshair}
+
+.ssc-week-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;margin:14px 0}
+.ssc-week-card{border:1px solid #dce9e6;background:#f5faf9;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:5px;font-size:12px}
+.ssc-week-card b{color:#005852}
+.ssc-week-impact{padding-left:20px;display:grid;gap:8px}
+.ssc-week-impact strong{color:#bd5a1b}
 </style>
 </head>
 
@@ -2534,6 +2540,8 @@ body.auth-ok .su-toolbar{display:flex}
     </div>
 
     <div class="ssc-ind-mode"><label for="sscIndicatorMode">Visualizar indicadores por</label><select id="sscIndicatorMode"><option value="advance">Avanço (% da meta)</option><option value="real">Valor Real (Realizado e Planejado)</option></select><span>Em Valor Real, cada mês apresenta sua meta e o respectivo realizado.</span></div>
+
+    <section id="sscWeekSummary" class="card chart-section" hidden aria-label="Indicadores da última semana"></section>
 
     <section id="v42SecManager" class="card chart-section v42-sec-score">
       <span class="v42-kind score"><i></i>Pontuação · nota de 0 a 10</span>
@@ -3357,7 +3365,7 @@ function v41DeltaHTML(d,suffix=""){
   const cls=d>0.0049?"up":d<-0.0049?"down":"flat",arrow=d>0.0049?"▲":d<-0.0049?"▼":"=";
   return `<span class="v41-delta ${cls}">${arrow} ${v41Signed(d)}${suffix?` <small>${suffix}</small>`:""}</span>`;
 }
-function v41ShortMonth(p){const [m,y]=String(p||"").split("/");return (m||"").slice(0,3)+"/"+String(y||"").slice(2)}
+function v41ShortMonth(p){if(SSC_WEEK_LABELS?.has(p))return SSC_WEEK_LABELS.get(p);const [m,y]=String(p||"").split("/");return (m||"").slice(0,3)+"/"+String(y||"").slice(2)}
 function v41Pct(v){
   if(!Number.isFinite(v))return "–";
   const e=Math.abs(v-1),d=e<1e-9?0:e<.0005?2:e<.02?1:0;
@@ -3382,6 +3390,15 @@ function v41Ring(p,col){const r=15,c=2*Math.PI*r;return `<svg width="40" height=
 
 /* ================== V41 — Visão Geral: destaque da nota ================== */
 function v41ManagerScoreAt(region,period){
+  if(SSC_WEEK_META.has(period)){
+    const group=SSC_WEEK_META.get(period).rows.filter(r=>r["Região"]===region && r["Coordenação"]!=="Gerência");
+    const ownCoords=[...new Set(group.map(r=>r["Coordenação"]))];
+    const vals=ownCoords.map(coord=>{
+      const scores=group.filter(r=>r["Coordenação"]===coord).map(r=>number(r["Score"])).filter(Number.isFinite);
+      return scores.length?scores.reduce((a,b)=>a+b,0):null;
+    }).filter(Number.isFinite);
+    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+  }
   const official=SSC_HIST_NOTAS.get([period,'Gerência',region,'Gerência'].join('¦'));
   if(Number.isFinite(official))return official;
   const vals=COORD_ORDER.filter(c=>c!=="Gerência").map(c=>rowsFor(region,c)).filter(r=>r.length)
@@ -3391,7 +3408,7 @@ function v41ManagerScoreAt(region,period){
 function v41YearAvg(region){
   const year=String(CURRENT_PERIOD).split("/")[1];
   const upto=availablePeriods().indexOf(CURRENT_PERIOD);
-  const ps=availablePeriods().filter((p,i)=>String(p).split("/")[1]===year&&(upto<0||i<=upto));
+  const ps=SSC_MONTH_PERIODOS.filter(p=>String(p).split("/")[1]===year&&(upto<0||availablePeriods().indexOf(p)<=upto));
   const v=ps.map(p=>v41ManagerScoreAt(region,p)).filter(Number.isFinite);
   return {avg:v.length?v.reduce((a,b)=>a+b,0)/v.length:null,n:v.length,year,first:ps[0],last:ps[ps.length-1]};
 }
@@ -4603,7 +4620,45 @@ function downloadRegionTables(){
 }
 
 const SSC_MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-let SSC_HIST_ROWS=new Map(),SSC_HIST_NOTAS=new Map(),SSC_PERIODOS=[];
+let SSC_HIST_ROWS=new Map(),SSC_HIST_NOTAS=new Map(),SSC_PERIODOS=[],SSC_MONTH_PERIODOS=[];
+const SSC_WEEK_ROWS=new Map(),SSC_WEEK_META=new Map();
+const SSC_WEEK_LABELS=new Map();
+function sscWeekNumber(competencia,inicio){
+  const [year,month]=competencia.split("-").map(Number);
+  const first=new Date(Date.UTC(year,month-1,1));
+  const firstMonday=Date.UTC(year,month-1,1)-((first.getUTCDay()+6)%7)*86400000;
+  return 1+Math.floor((Date.parse(inicio+"T00:00:00Z")-firstMonday)/604800000);
+}
+function sscRowAt(period,row){
+  return SSC_HIST_ROWS.get(sscRowKey(period,row)) || SSC_WEEK_ROWS.get(sscRowKey(period,row)) || null;
+}
+function sscAtualizarPeriodos(){
+  const values=SSC_MONTH_PERIODOS.map(p=>({label:p,comp:SSC_MONTHS.indexOf(p.split("/")[0])<0?"":p.split("/")[1]+"-"+String(SSC_MONTHS.indexOf(p.split("/")[0])+1).padStart(2,"0"),weekly:false}));
+  const newest=[...SSC_WEEK_META.values()].map(m=>m.comp).sort().slice(-1)[0];
+  if(newest){
+    for(const [label,item] of SSC_WEEK_META){
+      if(item.comp!==newest)continue; // Somente a competência semanal em acompanhamento.
+      values.push({label,comp:item.comp,weekly:true,start:item.start});
+    }
+  }
+  values.sort((a,b)=>a.comp.localeCompare(b.comp)||Number(b.weekly)-Number(a.weekly)||(a.start||"").localeCompare(b.start||""));
+  SSC_PERIODOS=values.map(x=>x.label);
+}
+window.__SSC_SET_WEEKS=(fotografias)=>{
+  SSC_WEEK_ROWS.clear();SSC_WEEK_META.clear();SSC_WEEK_LABELS.clear();
+  for(const f of fotografias||[]){
+    const data=f.dados;
+    if(!data||!f.competencia||!f.inicio_semana)continue;
+    const num=sscWeekNumber(f.competencia,f.inicio_semana);
+    const label="Semana "+num+" "+sscPeriodo(f.competencia);
+    const tag="S"+num+" "+SSC_MONTHS[Number(f.competencia.slice(5))-1].slice(0,3);
+    SSC_WEEK_ROWS.set(sscRowKey(label,data),data);
+    SSC_WEEK_LABELS.set(label,tag);
+    if(!SSC_WEEK_META.has(label))SSC_WEEK_META.set(label,{comp:f.competencia,start:f.inicio_semana,end:f.fim_semana,rows:[]});
+    SSC_WEEK_META.get(label).rows.push(data);
+  }
+  sscAtualizarPeriodos();
+};
 function sscPeriodo(ym){const [ano,mes]=String(ym).split('-').map(Number);return SSC_MONTHS[mes-1]+'/'+ano;}
 function sscRowKey(periodo,r){return [periodo,r['Região'],r['Coordenação'],r['Indicador']].join('¦');}
 document.getElementById('sscIndicatorMode')?.addEventListener('change',()=>updateEvolutionAll());
@@ -4613,17 +4668,25 @@ window.__SSC_SET_HISTORY=(indicadores,notas)=>{
     const r=item.dados;if(r&&r['Região']&&r['Coordenação']&&r['Indicador'])SSC_HIST_ROWS.set(sscRowKey(sscPeriodo(item.competencia),r),r);
   }
   for(const n of notas||[])SSC_HIST_NOTAS.set([sscPeriodo(n.competencia),n.nivel,n.regiao,n.coordenacao].join('¦'),Number(n.score));
-  SSC_PERIODOS=[...new Set((indicadores||[]).map(r=>r.competencia))].sort().map(sscPeriodo);
+  SSC_MONTH_PERIODOS=[...new Set((indicadores||[]).map(r=>r.competencia))].sort().map(sscPeriodo);
+  sscAtualizarPeriodos();
 };
 function availablePeriods(){return SSC_PERIODOS.length?SSC_PERIODOS:[PREVIOUS_PERIOD,CURRENT_PERIOD];}
 
 function periodValueForRow(row,period){
-  const saved=SSC_HIST_ROWS.get(sscRowKey(period,row));
+  const saved=sscRowAt(period,row);
   if(saved)return numericAdvance(saved);
   return period===CURRENT_PERIOD?numericAdvance(row):null;
 }
 
 function scoreForPeriod(rows,period){
+  if(SSC_WEEK_META.has(period)){
+    if(!rows?.length)return null;
+    const region=rows[0]["Região"],coord=rows[0]["Coordenação"];
+    const snapshot=SSC_WEEK_META.get(period).rows.filter(r=>r["Região"]===region && r["Coordenação"]===coord);
+    const scored=snapshot.map(r=>number(r["Score"])).filter(Number.isFinite);
+    return scored.length?scored.reduce((a,b)=>a+b,0):null;
+  }
   if(!rows?.length)return null;
   const reg=rows[0]['Região'],coord=rows[0]['Coordenação'];
   const nivel=coord==='Gerência'?'Gerência':'Coordenação';
@@ -4666,6 +4729,45 @@ function populateEvolutionFilters(){
   updateEvolutionAll();
 }
 
+
+function sscRenderWeeklySummary(regions){
+  const box=document.getElementById("sscWeekSummary");
+  if(!box)return;
+  const weeks=[...SSC_WEEK_META.entries()].sort((a,b)=>a[1].start.localeCompare(b[1].start));
+  const latest=weeks[weeks.length-1];
+  if(!latest){box.hidden=true;box.innerHTML="";return;}
+  const [label,snap]=latest;
+  const rows=snap.rows.filter(r=>regions.includes(r["Região"]) && (r["Coordenação"]!=="Gerência"));
+  if(!rows.length){box.hidden=true;box.innerHTML="";return;}
+  const groups=new Map();
+  for(const r of rows){
+    const k=[r["Região"],r["Coordenação"]].join("¦");
+    if(!groups.has(k))groups.set(k,[]);
+    groups.get(k).push(r);
+  }
+  let impact=[];
+  const cards=[];
+  for(const [key,rs] of groups){
+    const [reg,coord]=key.split("¦"),scores=rs.map(r=>number(r["Score"])).filter(Number.isFinite);
+    const score=scores.length?scores.reduce((a,b)=>a+b,0):null;
+    const gap=score===null?null:Math.max(0,V41_META-score);
+    cards.push('<div class="ssc-week-card"><b>'+svgTextEscape(reg)+' · '+svgTextEscape(coord)+'</b><span>Score: '+(score===null?"—":v41Num(score))+'</span><span>Falta para a meta 8,5: '+(gap===null?"—":v41Num(gap))+'</span></div>');
+    for(const r of rs){
+      const weight=number(r["Peso"]),points=number(r["Pontos"]);
+      if(weight===null||points===null)continue;
+      const lost=Math.max(0,(1-points)*weight*10);
+      if(lost>0)impact.push({reg,coord,ind:r["Indicador"],lost});
+    }
+  }
+  impact.sort((a,b)=>b.lost-a.lost);
+  const summary=impact.slice(0,5).map(x=>'<li><b>'+svgTextEscape(x.ind)+'</b> · '+svgTextEscape(x.reg)+' / '+svgTextEscape(x.coord)+' <strong>−'+v41Num(x.lost)+' ponto(s)</strong></li>').join("");
+  box.hidden=false;
+  box.innerHTML='<span class="v42-kind score"><i></i>Acompanhamento semanal · fotografia cumulativa</span>'+
+    '<h2>'+svgTextEscape(label)+'</h2><p class="section-subtitle">Publicado para '+svgTextEscape(snap.start)+' a '+svgTextEscape(snap.end)+'. Semanas não publicadas não são interpoladas; mês oficial e ranking permanecem intactos.</p>'+
+    '<div class="ssc-week-cards">'+cards.join("")+'</div>'+
+    '<h3>Indicadores com maior perda de pontos</h3>'+(summary?'<ol class="ssc-week-impact">'+summary+'</ol>':'<p>Não foram identificadas perdas de pontos nesta fotografia.</p>');
+}
+
 function updateEvolutionAll(){
   V41_CHARTS.length=0;
   const regions=selectedEvolutionRegions();
@@ -4699,7 +4801,7 @@ function updateEvolutionAll(){
         const row=DATA.find(r=>r["Região"]===region&&r["Coordenação"]===coord&&r["Indicador"]===ind);
         if(!row)return null;
         const points=periods.map(period=>{
-          const hist=SSC_HIST_ROWS.get(sscRowKey(period,row));
+          const hist=sscRowAt(period,row);
           if(!hist)return {label:period,value:null,meta:null};
           return {label:period,value:mode==="real"?number(hist["Realizado"]):numericAdvance(hist),
             meta:mode==="real"?number(hist["Planejado"]):null};
@@ -4716,6 +4818,7 @@ function updateEvolutionAll(){
     const label=coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord;
     return `<section class="sector-subsection">${sectionHeadingHTML(coord,label)}<div class="comparison-grid">${charts}</div></section>`;
   }).join("");
+  sscRenderWeeklySummary(regions);
   v41MountCharts();
 }
 
