@@ -3625,7 +3625,7 @@ function v41LineSVG(series,formatter,W,opts){
       mp.forEach(p=>{
         const realized=se.points.find(item=>item.label===p.lab)?.value;
         const tooltip=se.name+"\n"+p.lab+"\nRealizado: "+(Number.isFinite(realized)?fmt(realized):"—")+"\nMeta: "+fmt(p.v);
-        s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#64748b" stroke-width="2" opacity="${op}" pointer-events="all"/><title>${svgTextEscape(tooltip)}</title></g>`;
+        s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#64748b" stroke-width="2" opacity="${op}" pointer-events="all"/></g>`;
       });
       if(mp.length){const lastMeta=mp[mp.length-1];s+=`<text x="${lastMeta.x-5}" y="${lastMeta.y-8}" text-anchor="end" font-size="10" fill="#64748b" paint-order="stroke" stroke="#fff" stroke-width="3">Meta ${fmt(lastMeta.v)}</text>`;}
     }
@@ -3663,7 +3663,7 @@ function v41LineSVG(series,formatter,W,opts){
       const tooltip=isReal?
         se.name+"\n"+p.lab+"\nRealizado: "+fmt(p.v)+"\nMeta: "+(Number.isFinite(p.meta)?fmt(p.meta):"—"):
         se.name+"\n"+p.lab+": "+fmt(p.v)+"\n"+(good(p.v)?"Na meta":"Fora da meta");
-      s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}" pointer-events="all"/><title>${svgTextEscape(tooltip)}</title></g>`;
+      s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}" pointer-events="all"/></g>`;
     });
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
@@ -4743,48 +4743,8 @@ function sscTipHide(){
   const tip=document.getElementById("chartTooltip");
   if(tip)tip.style.display="none";
 }
-function setupChartTooltips(){
-  const tooltip=document.getElementById("chartTooltip");
-  if(!tooltip)return;
-
-  document.addEventListener("mousemove",event=>{
-    const mark=event.target.closest?.(".chart-mark");
-    if(!mark){
-      tooltip.style.display="none";
-      return;
-    }
-
-    const text=mark.getAttribute("data-tooltip");
-    if(!text){
-      tooltip.style.display="none";
-      return;
-    }
-
-    tooltip.textContent=text;
-    tooltip.style.display="block";
-
-    const gap=14;
-    const rect=tooltip.getBoundingClientRect();
-    let left=event.clientX+gap;
-    let top=event.clientY+gap;
-
-    if(left+rect.width>window.innerWidth-8)left=event.clientX-rect.width-gap;
-    if(top+rect.height>window.innerHeight-8)top=event.clientY-rect.height-gap;
-
-    tooltip.style.left=`${Math.max(8,left)}px`;
-    tooltip.style.top=`${Math.max(8,top)}px`;
-  });
-
-  document.addEventListener("mouseleave",()=>{tooltip.style.display="none";});
-}
-
-// O elemento #chartTooltip é criado depois deste script no HTML.
-// Instalar os eventos somente após a montagem do DOM.
-if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",setupChartTooltips,{once:true});
-}else{
-  setupChartTooltips();
-}
+// Tooltip SVG: apenas eventos diretos em sscTipMove/sscTipHide.
+// O tooltip nativo <title> e os eventos globais foram removidos para evitar duplicidade.
 
 function confWeight(v){
   const n=number(v);
