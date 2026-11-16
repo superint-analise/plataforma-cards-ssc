@@ -2278,6 +2278,93 @@ body.auth-ok .su-toolbar{display:flex}
 .ssc-geral-card strong{font-size:15px;color:#004f49}
 .ssc-geral-card b{font-size:29px;color:#007e75}
 .ssc-geral-card span{font-size:11px;color:#63807c}
+
+/* SSC • Identidade visual do login — imagem de referência enviada pelo usuário.
+   Aplicar exclusivamente à tela de autenticação; dashboard e RLS intactos. */
+.auth-screen{
+  isolation:isolate;
+  overflow-x:hidden;overflow-y:auto;
+  min-height:100dvh;
+  background-color:#002f36!important;
+  background-image:linear-gradient(90deg,rgba(0,26,32,.18),rgba(0,58,62,.06) 54%,rgba(0,25,35,.17)),url('./assets/login-rio.webp')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}
+.auth-screen::before,.auth-screen::after{
+  position:fixed;z-index:0;pointer-events:none;
+  color:#e8ffff;white-space:pre-line;font-weight:600;
+  font-family:'Segoe UI',Arial,sans-serif;
+  letter-spacing:.20em;line-height:1.5;
+  text-shadow:0 2px 17px rgba(0,23,31,.75);
+  opacity:.92;
+}
+.auth-screen::before{
+  content:"ENERGIA QUE CONECTA\\A PESSOAS E RESULTADOS";
+  left:clamp(25px,6vw,115px);bottom:clamp(30px,16vh,180px);
+  max-width:230px;font-size:clamp(11px,1.2vw,17px);
+}
+.auth-screen::after{
+  content:"DADOS PARA UM AMANHÃ\\A MAIS EFICIENTE";
+  right:clamp(25px,5vw,90px);top:38%;
+  max-width:205px;font-size:clamp(11px,1.04vw,16px);
+}
+.auth-screen>.auth-box{
+  position:relative;z-index:2;box-sizing:border-box;
+  width:min(480px,calc(100vw - 34px));max-height:none;
+  margin:24px auto;
+  padding:clamp(26px,3vw,44px);
+  border:1px solid rgba(255,255,255,.70);
+  border-radius:21px;
+  background:linear-gradient(145deg,rgba(249,255,254,.97),rgba(239,250,248,.95));
+  box-shadow:0 20px 75px rgba(0,25,31,.45),0 0 0 1px rgba(255,255,255,.16);
+  backdrop-filter:blur(13px);
+}
+.auth-screen .auth-box h2{
+  color:#005a57;font-size:clamp(22px,2vw,27px);
+  line-height:1.2;font-weight:800;letter-spacing:-.025em;
+  margin:0 0 13px;
+}
+.auth-screen .auth-box p{
+  color:#596f71;font-size:13px;line-height:1.65;margin-bottom:18px;
+}
+.auth-screen .auth-box form{gap:12px}
+.auth-screen .auth-box input,.auth-screen .auth-box select{
+  border:1px solid #d8e5e5;border-radius:11px;
+  min-height:49px;padding:12px 15px;background:rgba(255,255,255,.95);
+  box-shadow:0 5px 14px rgba(0,35,40,.07);
+  font-size:14px;
+}
+.auth-screen .auth-box input:focus,.auth-screen .auth-box select:focus{
+  outline:2px solid #009e93;outline-offset:1px;
+}
+.auth-screen #su-form button[type="submit"]{
+  min-height:50px;border-radius:10px;margin-top:4px;
+  font-size:15px;background:linear-gradient(90deg,#007f7c,#00998a);
+}
+.auth-screen #su-cadastrar{
+  min-height:46px;border-radius:10px;margin-top:10px;
+  font-size:14px;background:#d7f0ec;color:#005a57;
+}
+.auth-screen #su-voltar{
+  border-radius:10px;min-height:44px;
+}
+.auth-screen [hidden]{display:none!important}
+.auth-screen #su-solicitacao{max-height:56vh;overflow-y:auto;padding-right:5px}
+.auth-screen #su-msg{margin:8px 0 0;min-height:16px}
+@media(max-width:1100px){
+ .auth-screen::before,.auth-screen::after{display:none}
+}
+@media(max-width:650px){
+ .auth-screen{padding:18px 13px;background-position:57% center!important}
+ .auth-screen>.auth-box{padding:25px 21px;width:min(440px,100%);margin:14px auto}
+ .auth-screen .auth-box h2{font-size:22px}
+ .auth-screen #su-solicitacao{max-height:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .auth-screen,.auth-screen *{scroll-behavior:auto!important;transition:none!important}
+}
+
 </style>
 </head>
 
