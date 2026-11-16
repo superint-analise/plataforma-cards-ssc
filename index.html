@@ -2703,6 +2703,24 @@ body:not(.auth-ok) .auth-screen #su-msg{color:#ffdc9d!important;font-weight:700}
 @media(max-width:900px){#sscComparisonVisual .exec-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#sscComparisonVisual .exec-block-grid,.mini-rankings{grid-template-columns:1fr}}
 @media(max-width:550px){#sscComparisonVisual .exec-summary{grid-template-columns:1fr}}
 
+
+/* v52: Administração de Acessos — contraste isolado, sem alterar outras páginas. */
+#view-administracao{color:#203c38!important}
+#view-administracao h2,#view-administracao h3{color:#064e48!important;font-weight:850}
+#view-administracao>h2{margin:18px 0 12px}
+#view-administracao p,#view-administracao label,
+#view-administracao .su-muted,#view-administracao #su-release-status,
+#view-administracao #su-clean-status{color:#36534e!important}
+#view-administracao #su-users>div{background:#fff!important;color:#203c38!important;border-color:#c8ded9!important;box-shadow:0 4px 16px rgba(0,70,60,.08)}
+#view-administracao #su-users b{color:#063f3a!important}
+#view-administracao select,#view-administracao input{background:#fff!important;color:#173c37!important;border:1px solid #9bbfb7!important}
+#view-administracao select:focus-visible,#view-administracao input:focus-visible{outline:2px solid #009b91;outline-offset:2px}
+#view-administracao .su-controls label{color:#174941!important;font-weight:800}
+#view-administracao .su-controls .su-btn{color:#fff!important}
+#view-administracao .su-btn:not(.adm-delete){background:#006f66!important;color:#fff!important}
+#view-administracao .su-btn.adm-delete{background:#ad3030!important;color:#fff!important}
+#view-administracao .adm-status,#view-administracao .su-muted.adm-status{color:#375d56!important}
+
 </style>
 </head>
 
@@ -4147,10 +4165,13 @@ function v41LineSVG(series,formatter,W,opts){
     }).filter(Boolean);
     const pointGood=p=>{
       if(!isReal)return good(p.v);
+      const rules=v42IndOpts(opts.indicator||"",opts.coordenacao||"");
+      // IRL no modo Valor Real: comparação do Realizado absoluto com o limite fixo.
+      // Não depende do valor Planejado, que pode estar ausente.
+      if(rules.irl)return Number.isFinite(p.v)?p.v<=.25+1e-9:null;
       if(!Number.isFinite(p.meta)||Math.abs(p.meta)<1e-12)return null;
-      // Realizado / Planejado permite aplicar a meta de cada indicador também no modo Valor Real.
-      const ratio=p.v/p.meta, rules=v42IndOpts(opts.indicator||"",opts.coordenacao||"");
-      if(rules.irl)return p.v<=.25+1e-9;
+      // Demais indicadores: avaliar Realizado / Planejado com regras próprias.
+      const ratio=p.v/p.meta;
       return rules.lowerBetter?ratio<=rules.ref+1e-9:
         ratio>=rules.ref-1e-9 && (rules.upperRef===null||rules.upperRef===undefined||ratio<rules.upperRef-1e-9);
     };
@@ -4177,7 +4198,7 @@ function v41LineSVG(series,formatter,W,opts){
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,meta:p.meta,y:y(p.value)}:null}).filter(Boolean);
     v41Spread(items,14,top+4,bottom-2).forEach(it=>{
       const on=!hl||it.name===hl;
-      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?(Number.isFinite(it.meta)&&Math.abs(it.meta)>1e-12?(v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl?it.v<=.25+1e-9:((it.v/it.meta)>=v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref-1e-9 && (v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef==null || it.v/it.meta<v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef-1e-9)))?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
+      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?((v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl || (Number.isFinite(it.meta)&&Math.abs(it.meta)>1e-12))?(v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl?it.v<=.25+1e-9:((it.v/it.meta)>=v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref-1e-9 && (v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef==null || it.v/it.meta<v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef-1e-9)))?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
     });
   };
   // Valor em todos os meses, com separação vertical quando há mais de uma região.
