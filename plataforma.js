@@ -91,13 +91,15 @@ async function trocarCompetencia(comp){
   const compSel=$('su-comp');if(compSel)compSel.value=comp;
   const active=document.querySelector('.view-section.active')?.id;
   if(active==='view-tables')window.__SSC_RENDER_TABLES?.();
-  if(active==='view-comparison')window.__SSC_RENDER_COMPARISON?.();
+  if(active==='view-comparison')await renderComparacaoHistorica();
   if(active==='view-conference')window.__SSC_RENDER_MEMORY?.();
 }
 function navegar(view){
   document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const sec=$('view-'+view);if(sec)sec.classList.add('active');
+  if(view==='comparison')renderComparacaoHistorica();
+  if(view==='superintendencia')renderSuperintendencia();
   document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
 }
 function addSection(view,title,inner){
@@ -108,7 +110,71 @@ function addSection(view,title,inner){
   const section=document.createElement('section');section.id='view-'+view;section.className='view-section su-screen';section.innerHTML=inner;
   main.appendChild(section);
 }
+const MONTH_LABELS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const competenciaAnterior=comp=>{
+  const [y,m]=String(comp||'').split('-').map(Number);
+  if(!y||!m)return null;
+  return m===1?(y-1)+'-12':y+'-'+String(m-1).padStart(2,'0');
+};
+const competenciaLabel=comp=>{
+  const [y,m]=String(comp||'').split('-').map(Number);
+  return MONTH_LABELS[m-1]?MONTH_LABELS[m-1]+'/'+y:comp;
+};
+let comparisonRequest=0;
+async function renderComparacaoHistorica(){
+  const container=$('sscComparisonOfficial');
+  if(!container||!perfil||!competencia)return;
+  const seq=++comparisonRequest;
+  container.innerHTML='<p class="su-muted">Carregando comparação autorizada…</p>';
+  try {
+    const {data,error}=await db.rpc('comparacao_historica_perfil',{p_competencia_analise:competencia});
+    if(error)throw error;
+    if(seq!==comparisonRequest)return;
+    const month=competenciaLabel(data.competencia);
+    if(!data.liberado){
+      container.innerHTML='<h2>Comparação · '+escapeHTML(month)+'</h2><p>Os resultados deste mês ainda não foram liberados pelo Criador.</p>';
+      return;
+    }
+    const isCoord=perfil.perfil==='coordenador';
+    const coord=String(perfil.coordenacao||'');
+    const list=Array.isArray(data.resultados)?data.resultados:[];
+    const title=isCoord?'Comparação da Coordenação '+coord:'Comparação das Gerências';
+    if(isCoord&&list.length===1){
+      container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período de referência: '+escapeHTML(month)+'</p><p>A coordenação '+escapeHTML(coord)+' está presente somente na regional '+escapeHTML(list[0].regiao)+'. Não existem outras coordenações equivalentes para comparação.</p>';
+      return;
+    }
+    const rows=list.map((r,i)=>'<tr class="'+(r.regiao===perfil.regiao?'self':'')+'"><td>'+(i+1)+'º</td><td>'+escapeHTML(r.regiao)+'</td><td>'+escapeHTML(isCoord?r.coordenacao:'Gerência')+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
+    container.innerHTML='<h2>'+escapeHTML(title)+'</h2><p class="su-muted">Período comparado: <strong>'+escapeHTML(month)+'</strong>. A comparação apresenta somente as notas oficiais consolidadas do mês anterior, sem dados detalhados de outras áreas.</p>'+(rows?'<table class="ssc-comp-table"><thead><tr><th>Posição</th><th>Regional</th><th>Coordenação</th><th>Score</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p>Não há resultados disponíveis para essa comparação.</p>');
+  }catch(e){
+    console.error('Comparação histórica:',e);
+    if(seq===comparisonRequest)container.innerHTML='<p>Não foi possível carregar a comparação autorizada. '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
+  }
+}
+function montarSuperintendencia(comps){
+  if(!['criador','superint'].includes(perfil.perfil))return;
+  if(!$('view-superintendencia')){
+    addSection('superintendencia','Superintendência',`<div class="page-head"><div class="page-title"><h1>Resultados da Superintendência</h1><p>Visão exclusiva para Criadores e Superintendência.</p></div><div class="filters"><div class="filter"><label>Período</label><select id="sscSuperPeriodo" aria-label="Período da Superintendência"></select></div></div></div><div class="card" id="sscSuperResultados"></div>`);
+  }
+  const select=$('sscSuperPeriodo');
+  const permitted=notasMensais.filter(x=>x.nivel==='Superintendência').map(x=>x.competencia);
+  const options=[...new Set(permitted)].sort().reverse();
+  select.innerHTML=options.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(competenciaLabel(c))+'</option>').join('');
+  select.addEventListener('change',()=>renderSuperintendencia());
+  renderSuperintendencia();
+}
+function renderSuperintendencia(){
+  const box=$('sscSuperResultados'),select=$('sscSuperPeriodo');
+  if(!box||!select||!['criador','superint'].includes(perfil.perfil))return;
+  const comp=select.value;
+  const rows=notasMensais.filter(x=>x.nivel==='Superintendência').sort((a,b)=>a.competencia.localeCompare(b.competencia));
+  const current=rows.find(x=>x.competencia===comp),past=rows.filter(x=>x.competencia<comp).at(-1);
+  const currentScore=current?Number(current.score):null,prevScore=past?Number(past.score):null;
+  const variation=Number.isFinite(currentScore)&&Number.isFinite(prevScore)?currentScore-prevScore:null;
+  const chartRows=rows.map(r=>'<tr'+(r.competencia===comp?' class="self"':'')+'><td>'+escapeHTML(competenciaLabel(r.competencia))+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
+  box.innerHTML='<h2>Superintendência · '+escapeHTML(competenciaLabel(comp))+'</h2><div class="ssc-sup-grid"><div><small>Resultado oficial</small><div class="ssc-sup-score">'+(Number.isFinite(currentScore)?fmt(currentScore):'—')+'</div></div><div><small>Mês anterior com resultado</small><div class="ssc-sup-score">'+(Number.isFinite(prevScore)?fmt(prevScore):'—')+'</div></div><div><small>Variação</small><div class="ssc-sup-score">'+(variation===null?'—':(variation>0?'+':'')+fmt(variation))+'</div></div></div><h3>Histórico oficial</h3><table class="ssc-comp-table"><thead><tr><th>Competência</th><th>Resultado</th></tr></thead><tbody>'+chartRows+'</tbody></table><p class="ssc-comp-note">Valores oficiais da Superintendência, preservados como registrados. Não são recalculados a partir das notas das regionais.</p>';
+}
 function montarSecoes(comps){
+  montarSuperintendencia(comps);
   if($('view-administracao'))return;
   if(perfil.perfil==='criador')addSection('administracao','Administração',`<h2>Administração de acessos</h2><div id="su-users"></div><hr><h2>Liberação do ranking</h2><p class="su-muted">A liberação não altera a base nem exige nova execução do CMD.</p><div class="su-controls"><select id="su-release">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-release-btn">Liberar competência</button></div><p id="su-release-status"></p><hr><h2>Limpeza do histórico semanal</h2><p class="su-muted">Disponível somente após o ranking divulgado e a carga da competência seguinte.</p><div class="su-controls"><select id="su-clean">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-clean-btn">Excluir semanas da competência selecionada</button></div><p id="su-clean-status"></p>`);
   if(perfil.perfil==='criador'){
