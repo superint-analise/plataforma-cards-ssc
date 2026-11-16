@@ -2245,6 +2245,8 @@ body.auth-ok .su-toolbar{display:flex}
 #view-evolution .chart-mark{cursor:crosshair}
 #view-evolution .chart-mark circle{pointer-events:all}
 #chartTooltip{pointer-events:none;white-space:pre-line}
+/* Marcação SVG interativa com hit-area maior e tooltip fora de sobreposições */
+#view-evolution .chart-mark{pointer-events:all;cursor:crosshair}
 </style>
 </head>
 
@@ -3623,7 +3625,7 @@ function v41LineSVG(series,formatter,W,opts){
       mp.forEach(p=>{
         const realized=se.points.find(item=>item.label===p.lab)?.value;
         const tooltip=se.name+"\n"+p.lab+"\nRealizado: "+(Number.isFinite(realized)?fmt(realized):"—")+"\nMeta: "+fmt(p.v);
-        s+=`<g class="chart-mark" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#64748b" stroke-width="2" opacity="${op}"/></g>`;
+        s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#64748b" stroke-width="2" opacity="${op}" pointer-events="all"/><title>${svgTextEscape(tooltip)}</title></g>`;
       });
       if(mp.length){const lastMeta=mp[mp.length-1];s+=`<text x="${lastMeta.x-5}" y="${lastMeta.y-8}" text-anchor="end" font-size="10" fill="#64748b" paint-order="stroke" stroke="#fff" stroke-width="3">Meta ${fmt(lastMeta.v)}</text>`;}
     }
@@ -3661,7 +3663,7 @@ function v41LineSVG(series,formatter,W,opts){
       const tooltip=isReal?
         se.name+"\n"+p.lab+"\nRealizado: "+fmt(p.v)+"\nMeta: "+(Number.isFinite(p.meta)?fmt(p.meta):"—"):
         se.name+"\n"+p.lab+": "+fmt(p.v)+"\n"+(good(p.v)?"Na meta":"Fora da meta");
-      s+=`<g class="chart-mark" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}"/></g>`;
+      s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}" pointer-events="all"/><title>${svgTextEscape(tooltip)}</title></g>`;
     });
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
@@ -4719,6 +4721,28 @@ function updateEvolutionAll(){
 
 
 
+function sscTipMove(event,mark){
+  const tooltip=document.getElementById("chartTooltip");
+  if(!tooltip||!mark)return;
+  const text=mark.getAttribute("data-tooltip");
+  if(!text)return;
+  if(tooltip.parentElement!==document.body)document.body.appendChild(tooltip);
+  tooltip.textContent=text;
+  tooltip.style.position="fixed";
+  tooltip.style.zIndex="2147483647";
+  tooltip.style.pointerEvents="none";
+  tooltip.style.display="block";
+  const rect=tooltip.getBoundingClientRect();
+  const gap=15;
+  const left=Math.max(8,Math.min(event.clientX+gap,window.innerWidth-rect.width-8));
+  const top=Math.max(8,Math.min(event.clientY+gap,window.innerHeight-rect.height-8));
+  tooltip.style.left=left+"px";
+  tooltip.style.top=top+"px";
+}
+function sscTipHide(){
+  const tip=document.getElementById("chartTooltip");
+  if(tip)tip.style.display="none";
+}
 function setupChartTooltips(){
   const tooltip=document.getElementById("chartTooltip");
   if(!tooltip)return;
