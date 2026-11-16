@@ -4028,12 +4028,35 @@ function v41Fit(vals){ /* mínimos quadrados sobre o índice do mês */
 }
 const V42_GOOD="#009B91",V42_BAD="#F5AA41",V42_GOOD_TXT="#00675F",V42_BAD_TXT="#B86A00",V42_META="#8C9A97";
 function v42IndOpts(ind,coord){
-  // Meta e sentido do Avanço por indicador. Nos dados, Clientes não lidos e Erro de leitura
-  // já vêm invertidos (acima de 100% = bom); OPEX vem como realizado ÷ orçado (acima de 100% = ruim).
-  const t=execNorm(ind);
-  if(t.includes("CAPEX"))return {ref:.9,refLbl:"meta 90%",lowerBetter:false};
-  if(t.includes("OPEX"))return {ref:1,refLbl:"meta 100%",lowerBetter:true};
-  return {ref:1,refLbl:"meta 100%",lowerBetter:false};
+  // Limites de pontuação máxima correspondentes às regras já existentes na plataforma.
+  // Cor de gráfico e rótulo obedece ao limiar próprio, não a 100% indistintamente.
+  const t=execNorm(ind),c=execNorm(coord);
+  const cfg=(ref,upperRef=null)=>({ref,upperRef,
+    refLbl:"meta "+(ref*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"+(upperRef!==null?" a < "+(upperRef*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%":""),
+    lowerBetter:false});
+  if(t==="IRL")return {ref:.25,refLbl:"IRL ≤ 0,25",lowerBetter:true,irl:true};
+  if(t.includes("CAPEX"))return cfg(.9,1.1);
+  if(t.includes("OPEX"))return cfg(.85,1.15);
+  if(t.includes("ADERENCIA DE ENTREGA DE FATURA"))return cfg(.999);
+  if(t.includes("ERRO DE LEITURA")||t.includes("CLIENTES NAO LIDOS")||t.includes("CORTE NO DISJUNTOR"))return cfg(.996);
+  if(t.includes("CUMPRIMENTO DO PLANO FISICO CORE")){
+    if(c==="VAREJO"||c.includes("GRANDES CLIENTES"))return cfg(.996);
+    return cfg(1);
+  }
+  if(t.includes("AIS% REALIZADO")){
+    if(c==="VAREJO")return cfg(1);
+    return cfg(.996);
+  }
+  if(t.startsWith("IEN")){
+    if(c==="VAREJO"||c.includes("GRANDES CLIENTES"))return cfg(.996);
+    return cfg(1);
+  }
+  if(t.includes("CUMPRIMENTO DO PLANO FISICO PERDAS")){
+    if(c==="VAREJO"||c.includes("GRANDES CLIENTES"))return cfg(.996);
+    return cfg(1);
+  }
+  if(t.includes("RECLAMACAO")||t.includes("ATENDIMENTO NO PRAZO"))return cfg(1);
+  return cfg(1);
 }
 function v42HasCurrent(row){return Number.isFinite(numericAdvance(row))}
 function v42Tangents(P){ /* curva monotônica (Fritsch–Carlson): suave e sem picos falsos entre os pontos */
@@ -4057,7 +4080,9 @@ function v41LineSVG(series,formatter,W,opts){
   const isScore=formatter==="score",isReal=formatter==="real";
   const fmt=isScore?(v=>v41Num(v)):isReal?(v=>execFmt(v,opts.indicator||"")):(v=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"%");
   const ref=opts.ref??(isScore?V41_META:1),refLbl=opts.refLbl??(isScore?"meta "+v41Num(V41_META,1):"meta 100%");
-  const good=v=>opts.lowerBetter?v<=ref+1e-9:v>=ref-1e-9;
+  const good=v=>!Number.isFinite(v)?null:
+    opts.lowerBetter?v<=ref+1e-9:
+    (v>=ref-1e-9 && (opts.upperRef===undefined||opts.upperRef===null||v<opts.upperRef-1e-9));
   const colOf=v=>good(v)?V42_GOOD:V42_BAD,txtOf=v=>good(v)?V42_GOOD_TXT:V42_BAD_TXT;
   const labels=[...new Set(series.flatMap(s=>s.points.map(p=>p.label)))];
   const showTrend=V41_OPTS.trend&&labels.length>=2; // apenas meses observados
@@ -4122,10 +4147,12 @@ function v41LineSVG(series,formatter,W,opts){
     }).filter(Boolean);
     const pointGood=p=>{
       if(!isReal)return good(p.v);
-      if(!Number.isFinite(p.meta))return null;
-      const name=execNorm(opts.indicator||"");
-      if(name.includes("CAPEX"))return p.v>=p.meta*.9-1e-9;
-      return opts.lowerBetter?p.v<=p.meta+1e-9:p.v>=p.meta-1e-9;
+      if(!Number.isFinite(p.meta)||Math.abs(p.meta)<1e-12)return null;
+      // Realizado / Planejado permite aplicar a meta de cada indicador também no modo Valor Real.
+      const ratio=p.v/p.meta, rules=v42IndOpts(opts.indicator||"",opts.coordenacao||"");
+      if(rules.irl)return p.v<=.25+1e-9;
+      return rules.lowerBetter?ratio<=rules.ref+1e-9:
+        ratio>=rules.ref-1e-9 && (rules.upperRef===null||rules.upperRef===undefined||ratio<rules.upperRef-1e-9);
     };
     const pointColor=p=>pointGood(p)===null?"#64748b":pointGood(p)?V42_GOOD:V42_BAD;
     // cada trecho assume a cor do ponto de chegada: caiu para fora da meta = laranja; voltou para a meta = verde
@@ -4150,7 +4177,7 @@ function v41LineSVG(series,formatter,W,opts){
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,meta:p.meta,y:y(p.value)}:null}).filter(Boolean);
     v41Spread(items,14,top+4,bottom-2).forEach(it=>{
       const on=!hl||it.name===hl;
-      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?(Number.isFinite(it.meta)?(opts.lowerBetter?it.v<=it.meta+1e-9:it.v>=it.meta-1e-9)?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
+      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?(Number.isFinite(it.meta)&&Math.abs(it.meta)>1e-12?(v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl?it.v<=.25+1e-9:((it.v/it.meta)>=v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref-1e-9 && (v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef==null || it.v/it.meta<v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef-1e-9)))?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
     });
   };
   // Valor em todos os meses, com separação vertical quando há mais de uma região.
@@ -5331,7 +5358,7 @@ function updateEvolutionAll(){
         return {name:region,points};
       }).filter(Boolean).filter(se=>se.points.some(p=>Number.isFinite(p.value)));
       if(!series.length)return "";
-      const opts=mode==="real"?{indicator:ind,lowerBetter:v41LowerBetter(ind)}:v42IndOpts(ind,coord);
+      const opts=mode==="real"?{indicator:ind,coordenacao:coord,lowerBetter:v41LowerBetter(ind)}:v42IndOpts(ind,coord);
       const chartMode=mode==="real"?"real":"percent";
       const sub=mode==="real"?"Valor Real: realizado (linha colorida) e meta mensal (linha pontilhada)":"Avanço do indicador"+(execNorm(ind).includes("OPEX")?" · quanto menor, melhor":"");
       return `<div class="chart-box"><h3 class="chart-title">${svgTextEscape(ind)}</h3><span class="v41-ind-sub">${sub}</span>${multiSeriesBarChart(series,chartMode,opts)}</div>`;
