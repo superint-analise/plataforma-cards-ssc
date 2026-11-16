@@ -37,13 +37,15 @@ async function loadProfile(){
 }
 async function iniciar(){
   await loadProfile();
-  const [notas,historico]=await Promise.all([
+  const [notas,historico,fotografias]=await Promise.all([
     getAll('notas_mensais','competencia,nivel,regiao,coordenacao,score'),
-    getAll('indicadores_mensais','competencia,dados')
+    getAll('indicadores_mensais','competencia,dados'),
+    getAll('indicadores_semanais','competencia,inicio_semana,fim_semana,regiao,coordenacao,indicador,dados',q=>q.order('inicio_semana',{ascending:true}))
   ]);
   notasMensais=notas;
   const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
   window.__SSC_SET_HISTORY?.(historico,notas);
+  window.__SSC_SET_WEEKS?.(fotografias);
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const texto=c=>{const [y,m]=c.split('-');return `${meses[Number(m)-1]}/${y}`;};
   for(const field of ['sscPeriodoPrincipal','sscPeriodTables','sscPeriodComparison','sscPeriodMemory']){
