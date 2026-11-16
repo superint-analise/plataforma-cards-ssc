@@ -2836,10 +2836,14 @@ function rowsFor(region,coord){
 }
 
 function totalScore(rows){
-  return rows.reduce(
-    (s,r)=>s+(number(r["Score"])||0),
-    0
-  );
+  if(!rows.length)return null;
+  const a=rows[0],has=rows.some(r=>number(r["Score"])!==null);
+  if(!has){
+    const level=a["Coordenação"]==="Gerência"?"Gerência":"Coordenação";
+    const official=SSC_HIST_NOTAS.get([CURRENT_PERIOD,level,a["Região"],a["Coordenação"]].join('¦'));
+    return Number.isFinite(official)?official:null;
+  }
+  return rows.reduce((sum,r)=>sum+(number(r["Score"])||0),0);
 }
 
 function coordinationScores(region){
@@ -2857,9 +2861,10 @@ function coordinationScores(region){
 }
 
 function regionScore(region){
-  const scores=coordinationScores(region).map(x=>x.score);
-  if(!scores.length)return 0;
-  return scores.reduce((a,b)=>a+b,0)/scores.length;
+  const official=SSC_HIST_NOTAS.get([CURRENT_PERIOD,'Gerência',region,'Gerência'].join('¦'));
+  if(Number.isFinite(official))return official;
+  const scores=coordinationScores(region).map(x=>x.score).filter(Number.isFinite);
+  return scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:null;
 }
 
 function rankingFor(region){
@@ -3339,8 +3344,8 @@ function v41Status(r){const p=number(r?.["Pontos"]);if(p===null)return "na";retu
 function v41Counts(rows){const c={ok:0,part:0,bad:0};rows.forEach(r=>{const s=v41Status(r);if(s in c)c[s]++});return c}
 function v41Lost(r){const p=number(r?.["Pontos"]),w=v41Weight(r);return p===null||w===null?0:(1-p)*w*10}
 function v41RegionPrev(region){
-  const v=COORD_ORDER.filter(c=>c!=="Gerência").map(c=>rowsFor(region,c)).filter(r=>r.length).map(historicalScore).filter(Number.isFinite);
-  return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+  const official=SSC_HIST_NOTAS.get([PREVIOUS_PERIOD,'Gerência',region,'Gerência'].join('¦'));
+  return Number.isFinite(official)?official:null;
 }
 function v41Num(v,d=2){return Number.isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"–"}
 function v41Signed(v,d=2){return !Number.isFinite(v)?"–":(v>0.0049?"+":v<-0.0049?"−":"±")+v41Num(Math.abs(v),d)}
@@ -3374,13 +3379,16 @@ function v41Ring(p,col){const r=15,c=2*Math.PI*r;return `<svg width="40" height=
 
 /* ================== V41 — Visão Geral: destaque da nota ================== */
 function v41ManagerScoreAt(region,period){
+  const official=SSC_HIST_NOTAS.get([period,'Gerência',region,'Gerência'].join('¦'));
+  if(Number.isFinite(official))return official;
   const vals=COORD_ORDER.filter(c=>c!=="Gerência").map(c=>rowsFor(region,c)).filter(r=>r.length)
     .map(rows=>scoreForPeriod(rows,period)).filter(Number.isFinite);
   return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
 }
 function v41YearAvg(region){
   const year=String(CURRENT_PERIOD).split("/")[1];
-  const ps=availablePeriods().filter(p=>String(p).split("/")[1]===year);
+  const upto=availablePeriods().indexOf(CURRENT_PERIOD);
+  const ps=availablePeriods().filter((p,i)=>String(p).split("/")[1]===year&&(upto<0||i<=upto));
   const v=ps.map(p=>v41ManagerScoreAt(region,p)).filter(Number.isFinite);
   return {avg:v.length?v.reduce((a,b)=>a+b,0)/v.length:null,n:v.length,year,first:ps[0],last:ps[ps.length-1]};
 }
@@ -4869,7 +4877,7 @@ function inicializarPainel(){
   if(regs.includes(prev))regionSelect.value=prev;
   populateTableExportRegions();
   if(regionSelect.options.length){
-    regionSelect.value=regionSelect.options[0].value;
+    if(!regs.includes(prev))regionSelect.value=regs[0];
     if(tableExportRegion && tableExportRegion.options.length) tableExportRegion.value=regionSelect.value;
     render(regionSelect.value);
     renderComparisonAll();
