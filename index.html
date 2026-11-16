@@ -2235,6 +2235,11 @@ body.auth-ok .su-toolbar{display:flex}
 #view-evolution .evolution-filter-grid{position:relative;z-index:22}
 #view-evolution .region-dropdown{position:relative;z-index:23}
 #view-evolution .region-menu{z-index:250!important;max-height:280px;overflow-y:auto;box-shadow:0 14px 30px rgba(0,0,0,.18)}
+
+.ssc-ind-mode{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 16px;padding:12px 15px;border:1px solid #d9e7e4;border-radius:12px;background:#fff}
+.ssc-ind-mode label{font-size:12px;font-weight:800;color:#005852}
+.ssc-ind-mode select{max-width:275px;min-height:38px;border:1px solid #c9ddd8;border-radius:8px;padding:5px 12px;background:#fff;color:#005852}
+.ssc-ind-mode span{font-size:11px;color:#607570}
 </style>
 </head>
 
@@ -2408,9 +2413,7 @@ body.auth-ok .su-toolbar{display:flex}
       <div class="filters">
         <div class="filter">
           <label>Período</label>
-          <select>
-            <option>Outubro/2026</option>
-          </select>
+          <select id="sscPeriodTables" aria-label="Mês dos indicadores"></select>
         </div>
       </div>
     </div>
@@ -2448,7 +2451,7 @@ body.auth-ok .su-toolbar{display:flex}
         <h1>Comparação entre Regiões</h1>
         <p>Desempenho dos principais indicadores por região em relação às suas metas individuais.</p>
       </div>
-      <div class="comparison-period-pill">Outubro/2026</div>
+      <div class="filters"><div class="filter"><label>Período</label><select id="sscPeriodComparison" aria-label="Mês da comparação"></select></div></div>
     </div>
 
     <div id="comparisonSummary" class="exec-summary"></div>
@@ -2477,7 +2480,7 @@ body.auth-ok .su-toolbar{display:flex}
         </div>
         <div class="filter">
           <label>Período</label>
-          <select><option>Outubro/2026</option></select>
+          <select id="sscPeriodMemory" aria-label="Mês da memória de cálculo"></select>
         </div>
       </div>
     </div>
@@ -2527,8 +2530,10 @@ body.auth-ok .su-toolbar{display:flex}
     <div class="v42-evo-nav">
       <button type="button" onclick="v41GoTo('v42SecManager')"><i style="background:#009B91"></i>Pontuação da Gerência</button>
       <button type="button" onclick="v41GoTo('v42SecCoord')"><i style="background:#009B91"></i>Pontuação das Coordenações</button>
-      <button type="button" onclick="v41GoTo('v42SecInd')"><i style="background:#F5AA41"></i>Avanço dos Indicadores</button>
+      <button type="button" onclick="v41GoTo('v42SecInd')"><i style="background:#F5AA41"></i>Indicadores</button>
     </div>
+
+    <div class="ssc-ind-mode"><label for="sscIndicatorMode">Visualizar indicadores por</label><select id="sscIndicatorMode"><option value="advance">Avanço (% da meta)</option><option value="real">Valor Real (Realizado e Planejado)</option></select><span>Em Valor Real, cada mês apresenta sua meta e o respectivo realizado.</span></div>
 
     <section id="v42SecManager" class="card chart-section v42-sec-score">
       <span class="v42-kind score"><i></i>Pontuação · nota de 0 a 10</span>
