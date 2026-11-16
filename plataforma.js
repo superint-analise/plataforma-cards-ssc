@@ -215,46 +215,55 @@ async function renderComparacaoHistorica(){
   const integral=acessoCompleto();
   if(!mes){
     if(visual)visual.hidden=true;
+    container.hidden=false;
     container.innerHTML='<p>Nenhuma competência liberada para comparação.</p>';
     return;
   }
   const atualIntegral=integral&&mes===competencia;
-  // A visualização gráfica atual utiliza apenas os dados já autorizados no mês em análise.
-  if(visual){
-    visual.hidden=!atualIntegral;
-    if(atualIntegral){
-      try{window.__SSC_RENDER_COMPARISON_VISUAL?.()}
-      catch(ex){console.error('Comparação executiva:',ex);visual.hidden=true}
-    }
-  }
   const pill=document.querySelector('.comparison-period-pill');
-  if(pill)pill.textContent=(atualIntegral?'Comparação do mês em análise: ':'Comparação oficial: ')+competenciaLabel(mes);
-  if(atualIntegral){
-    container.hidden=true;
-    container.innerHTML='';
-    return;
-  }
-  container.hidden=false;
-  container.innerHTML='<p>Carregando comparação oficial de '+escapeHTML(competenciaLabel(mes))+'…</p>';
+  if(pill)pill.textContent=(atualIntegral?'Comparação do mês em análise: ':'Comparação de indicadores: ')+competenciaLabel(mes);
   if(!integral && (!liberado||mes>liberado)){
+    if(visual)visual.hidden=true;
+    container.hidden=false;
     container.innerHTML='<p>Este período ainda não foi liberado para comparação entre Regionais.</p>';
     return;
   }
+  if(atualIntegral){
+    container.hidden=true;
+    container.innerHTML='';
+    if(visual)visual.hidden=false;
+    try{await window.__SSC_RENDER_COMPARISON_VISUAL?.()}
+    catch(e){
+      console.error('Comparação executiva:',e);
+      if(visual)visual.hidden=true;
+      container.hidden=false;
+      container.innerHTML='<p>Não foi possível apresentar os indicadores do período atual.</p>';
+    }
+    return;
+  }
+  container.hidden=false;
+  container.innerHTML='<p>Carregando indicadores de '+escapeHTML(competenciaLabel(mes))+'…</p>';
+  if(visual)visual.hidden=true;
   try{
     const data=await buscarHistoricoAutorizado(mes);
     if(seq!==comparisonRequest)return;
-    const lista=Array.isArray(data.resultados)?data.resultados:[];
-    const isCoord=perfil.perfil==='coordenador';
-    const titulo=isCoord?'Comparação da Coordenação '+String(perfil.coordenacao||''):'Comparação das Gerências';
-    const content=linhasRankingHistorico(lista,perfil.regiao);
-    const info=isCoord&&lista.length===1?
-      '<p>Existe apenas uma Regional autorizada nesta comparação de Coordenação.</p>':'';
-    container.innerHTML='<div class="ssc-comparison-past"><h2>'+escapeHTML(titulo)+' · '+escapeHTML(competenciaLabel(mes))+'</h2>'+
-      '<p class="ssc-rank-caption">Resultados históricos autorizados para o período selecionado.</p>'+
-      (content?content:'<p>Não existem resultados comparáveis neste período.</p>')+info+'</div>';
+    const indicators=Array.isArray(data.indicadores)?data.indicadores:[];
+    if(!indicators.length){
+      container.innerHTML='<p>Não existem valores Planejado/Realizado disponíveis para a comparação de '+escapeHTML(competenciaLabel(mes))+'.</p>';
+      return;
+    }
+    if(typeof window.__SSC_RENDER_COMPARISON_HISTORICAL!=='function')throw Error('Módulo de comparação gráfica não foi carregado.');
+    window.__SSC_RENDER_COMPARISON_HISTORICAL(indicators);
+    if(visual)visual.hidden=false;
+    container.hidden=true;
+    container.innerHTML='';
   }catch(e){
-    console.error('Comparação histórica:',e);
-    if(seq===comparisonRequest)container.innerHTML='<p>Não foi possível carregar a comparação autorizada: '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
+    console.error('Comparação histórica de indicadores:',e);
+    if(seq===comparisonRequest){
+      if(visual)visual.hidden=true;
+      container.hidden=false;
+      container.innerHTML='<p>Não foi possível carregar a comparação dos indicadores: '+escapeHTML(e?.message||'Tente novamente.')+'</p>';
+    }
   }
 }
 function montarSuperintendencia(comps){
