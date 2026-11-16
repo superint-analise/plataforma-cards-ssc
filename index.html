@@ -4700,6 +4700,8 @@ function confCoordCard(region,coord){
   const rows=rowsFor(region,coord);
   if(!rows.length)return "";
   let somaMax=0,somaScore=0,semPeso=0;
+  const detalhado=rows.every(row=>number(row["Peso"])!==null&&number(row["Pontos"])!==null&&number(row["Score"])!==null);
+  const notaOficial=SSC_HIST_NOTAS.get([CURRENT_PERIOD,"Coordenação",region,coord].join("¦"));
   const body=rows.map(row=>{
     const peso=number(row["Peso"]);
     const score=number(row["Score"]);
@@ -4719,20 +4721,21 @@ function confCoordCard(region,coord){
       <td class="num"><b>${formatScore(score)}</b></td>
     </tr>`;
   }).join("");
-  const nota=somaScore;
-  const maxOk=Math.abs(somaMax-10)<1e-6 && !semPeso;
+  const nota=detalhado?somaScore:Number.isFinite(notaOficial)?notaOficial:null;
+  const maxOk=detalhado&&Math.abs(somaMax-10)<1e-6&&!semPeso;
   const obs=[];
-  if(Math.abs(somaMax-10)>=1e-6)
-    obs.push(`a soma dos scores máximos é ${formatScore(somaMax)}, e não 10`);
-  if(semPeso)
-    obs.push(`${semPeso} indicador(es) sem peso definido`);
+  if(detalhado){
+    if(Math.abs(somaMax-10)>=1e-6)obs.push(`a soma dos scores máximos é ${formatScore(somaMax)}, e não 10`);
+    if(semPeso)obs.push(`${semPeso} indicador(es) sem peso definido`);
+  }
   const aviso=obs.length
     ?`<div class="conf-warn"><b>Ponto de observação:</b> ${obs.join("; ")}.</div>`:"";
   return `<div class="conf-card">
     <div class="conf-card-head">
       <h3>${confEsc(coord)}</h3>
-      <span class="conf-note-pill${nota<8.5?" low":""}">Nota ${formatScore(nota)} de ${formatScore(somaMax)}</span>
+      <span class="conf-note-pill${Number.isFinite(nota)&&nota<8.5?" low":""}">Nota ${formatScore(nota)}${detalhado?" de "+formatScore(somaMax):" · oficial"}</span>
     </div>
+    ${detalhado?"":'<div class="conf-warn"><b>Histórico oficial:</b> Pontos, Pesos e Scores por indicador não estão disponíveis integralmente neste mês. Exibimos Planejado, Realizado e Avanço sem inventar a memória detalhada de cálculo.</div>'}
     ${aviso}
     <div class="conf-table-wrap"><table class="conf-table">
       <thead><tr>
@@ -4742,8 +4745,8 @@ function confCoordCard(region,coord){
       <tbody>${body}</tbody>
       <tfoot><tr>
         <td>Total</td><td class="num">${confWeight(somaMax/10)}</td><td></td><td></td><td></td><td></td><td></td>
-        <td class="num ${maxOk?"":"conf-diff"}">${formatScore(somaMax)}</td>
-        <td class="num">${formatScore(somaScore)}</td>
+        <td class="num ${maxOk?"":"conf-diff"}">${detalhado?formatScore(somaMax):"—"}</td>
+        <td class="num">${formatScore(nota)}</td>
       </tr></tfoot>
     </table></div>
   </div>`;
@@ -4753,23 +4756,26 @@ function confRegionBlock(region){
   const coords=COORD_ORDER.filter(c=>c!=="Gerência");
   const cards=coords.map(c=>confCoordCard(region,c)).join("");
   if(!cards)return "";
-  const notas=coords.map(c=>rowsFor(region,c)).filter(r=>r.length)
-    .map(rows=>rows.reduce((a,r)=>a+(number(r["Score"])||0),0));
-  const media=notas.length?notas.reduce((a,b)=>a+b,0)/notas.length:null;
-  return `<div class="conf-region-title">${confEsc(region)} — Nota da Gerência (média das coordenações): ${formatScore(media)}</div>`+cards;
+  const media=SSC_HIST_NOTAS.get([CURRENT_PERIOD,"Gerência",region,"Gerência"].join("¦"));
+  return `<div class="conf-region-title">${confEsc(region)} — Nota oficial da Gerência: ${formatScore(Number.isFinite(media)?media:null)}</div>`+cards;
 }
 
 const confRegion=document.getElementById("confRegion");
+let SSC_CONF_EVENTS=false;
 function populateConfRegions(){
-  if(!confRegion||confRegion.options.length)return;
-  const todas=document.createElement("option");
-  todas.value="__ALL__";todas.textContent="Todas as regiões";
-  confRegion.appendChild(todas);
-  REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r)).forEach(r=>{
+  if(!confRegion)return;
+  const keep=confRegion.value;
+  const regionais=REGION_ORDER.filter(r=>DATA.some(x=>x["Região"]===r));
+  confRegion.innerHTML="";
+  if(regionais.length>1){
+    const o=document.createElement("option");
+    o.value="__ALL__";o.textContent="Todas as regiões";confRegion.appendChild(o);
+  }
+  for(const r of regionais){
     const o=document.createElement("option");o.value=r;o.textContent=r;confRegion.appendChild(o);
-  });
-  confRegion.value=regionSelect.value||"__ALL__";
-  confRegion.addEventListener("change",renderConference);
+  }
+  confRegion.value=regionais.includes(keep)||keep==="__ALL__"&&regionais.length>1?keep:(regionais[0]||"");
+  if(!SSC_CONF_EVENTS){confRegion.addEventListener("change",renderConference);SSC_CONF_EVENTS=true;}
 }
 
 function renderConference(){
@@ -4913,7 +4919,11 @@ window.__SSC_SET_CONTEXT = (comp, fotos) => {
   });
 };
 window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
-  DATA=Array.isArray(rows)?rows:[];
+  DATA=Array.isArray(rows)?rows.map(r=>{
+    const anterior=SSC_HIST_ROWS.get(sscRowKey(PREVIOUS_PERIOD,r));
+    const old=anterior?.["Indicador"]==="IRL"?anterior?.["Avanço"]:anterior?.["Avanço"];
+    return {...r,"Mês Anterior":old??null};
+  }):[];
   if(!DATA.length)throw new Error('Não existem indicadores autorizados para este perfil nesta competência.');
   const restrito=!['criador','superint'].includes(role);
   document.querySelectorAll('.ranking-section, #rankingOverview, #miniRankings, #allCoordinationRanking').forEach(el=>{
