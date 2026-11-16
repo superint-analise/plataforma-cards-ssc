@@ -158,7 +158,7 @@ function linhasRankingHistorico(lista,regiaoDestaque){
     .sort((a,b)=>Number(b.score)-Number(a.score)||String(a.regiao).localeCompare(String(b.regiao),'pt-BR'));
   return ordenadas.map((r,i)=>{
     const score=Number(r.score);
-    const marker=score>=8.5?'#009B91':'#F5AA41';
+    const marker=score>=10?'#009B91':'#F5AA41';
     const nome=escapeHTML(r.regiao);
     const cls=r.regiao===regiaoDestaque?' style="border-color:#009B91"':'';
     return '<div class="ssc-historical-item"'+cls+'>'+
