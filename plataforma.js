@@ -9,7 +9,7 @@ if (!conf.SUPABASE_URL || conf.SUPABASE_URL.includes('SEU-NOVO') || !conf.SUPABA
 }
 const db = createClient(conf.SUPABASE_URL,conf.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 window.__SSC_GET_ACCESS_TOKEN=async()=>{const {data,error}=await db.auth.getSession();if(error)throw error;return data?.session?.access_token||null;};
-let perfil=null, competencia=null, semanas=[], ranking=[], notasMensais=[], liberado='';
+let perfil=null, competencia=null, semanas=[], ranking=[], notasMensais=[], superIndicadores=[], liberado='';
 const nomes = {criador:'Criador',superint:'Superintendência',gerente:'Gerente',coordenador:'Coordenador'};
 const escapeHTML = s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fmt = v => v===null || v===undefined || v==='' ? '—' : typeof v==='number' ? v.toLocaleString('pt-BR',{maximumFractionDigits:3}) : String(v);
@@ -43,6 +43,11 @@ async function iniciar(){
     getAll('indicadores_semanais','competencia,inicio_semana,fim_semana,regiao,coordenacao,indicador,dados',q=>q.order('inicio_semana',{ascending:true}))
   ]);
   notasMensais=notas;
+  // A RLS impede usuários regionais e coordenadores de ler indicadores da Superintendência.
+  if(['criador','superint'].includes(perfil.perfil)){
+    superIndicadores=await getAll('indicadores_mensais','competencia,indicador,dados',
+      q=>q.eq('regiao','Superintendência').order('competencia',{ascending:true}));
+  }
   const comps=[...new Set(historico.map(x=>x.competencia))].sort().reverse();
   window.__SSC_SET_HISTORY?.(historico,notas);
   window.__SSC_SET_WEEKS?.(fotografias);
@@ -186,7 +191,12 @@ function renderSuperintendencia(){
   const currentScore=current?Number(current.score):null,prevScore=past?Number(past.score):null;
   const variation=Number.isFinite(currentScore)&&Number.isFinite(prevScore)?currentScore-prevScore:null;
   const chartRows=rows.map(r=>'<tr'+(r.competencia===comp?' class="self"':'')+'><td>'+escapeHTML(competenciaLabel(r.competencia))+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
-  box.innerHTML='<h2>Superintendência · '+escapeHTML(competenciaLabel(comp))+'</h2><div class="ssc-sup-grid"><div><small>Resultado oficial</small><div class="ssc-sup-score">'+(Number.isFinite(currentScore)?fmt(currentScore):'—')+'</div></div><div><small>Mês anterior com resultado</small><div class="ssc-sup-score">'+(Number.isFinite(prevScore)?fmt(prevScore):'—')+'</div></div><div><small>Variação</small><div class="ssc-sup-score">'+(variation===null?'—':(variation>0?'+':'')+fmt(variation))+'</div></div></div><h3>Histórico oficial</h3><table class="ssc-comp-table"><thead><tr><th>Competência</th><th>Resultado</th></tr></thead><tbody>'+chartRows+'</tbody></table><p class="ssc-comp-note">Valores oficiais da Superintendência, preservados como registrados. Não são recalculados a partir das notas das regionais.</p>';
+  const indicadores=superIndicadores.filter(x=>x.competencia===comp && x.indicador!=='SCORE DO CARD');
+  const indicadoresRows=indicadores.map(x=>{
+    const dados=x.dados||{};
+    return '<tr><td>'+escapeHTML(x.indicador)+'</td><td>'+escapeHTML(fmt(dados.Planejado))+'</td><td>'+escapeHTML(fmt(dados.Realizado))+'</td><td>'+escapeHTML(fmt(dados['Avanço']))+'</td></tr>';
+  }).join('');
+  box.innerHTML='<h2>Superintendência · '+escapeHTML(competenciaLabel(comp))+'</h2><div class="ssc-sup-grid"><div><small>Resultado oficial</small><div class="ssc-sup-score">'+(Number.isFinite(currentScore)?fmt(currentScore):'—')+'</div></div><div><small>Mês anterior com resultado</small><div class="ssc-sup-score">'+(Number.isFinite(prevScore)?fmt(prevScore):'—')+'</div></div><div><small>Variação</small><div class="ssc-sup-score">'+(variation===null?'—':(variation>0?'+':'')+fmt(variation))+'</div></div></div><h3>Indicadores da Superintendência</h3>'+(indicadoresRows?'<table class="ssc-comp-table"><thead><tr><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr></thead><tbody>'+indicadoresRows+'</tbody></table>':'<p>Não há indicadores importados para esta competência.</p>')+'<h3>Histórico oficial</h3><table class="ssc-comp-table"><thead><tr><th>Competência</th><th>Resultado</th></tr></thead><tbody>'+chartRows+'</tbody></table><p class="ssc-comp-note">Valores oficiais da Superintendência, preservados como registrados. Não são recalculados a partir das notas das regionais.</p>';
 }
 function montarSecoes(comps){
   montarSuperintendencia(comps);
