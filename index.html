@@ -2677,6 +2677,32 @@ body.v50-dark .rank-pos{color:#50EBE1}
 body.v50-dark .rank-score{color:#E8F6F4}
 body.v50-dark .ssc-comp-table tr.self{background:transparent!important}
 body.v50-dark .ssc-comp-table tr.self td{background:rgba(80,235,225,.16)!important;color:#fff!important;font-weight:800}
+
+/* V51 — correções específicas: login, comparativo e IRL. */
+#view-comparison [hidden],#view-tables [hidden]{display:none!important}
+#sscComparisonVisual{padding:0 0 22px}
+#sscComparisonVisual .exec-summary{max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));margin:12px 0 16px}
+#sscComparisonVisual .exec-legend{justify-content:flex-start;margin:8px 0 14px}
+#sscComparisonVisual .exec-block-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#sscComparisonVisual .exec-block{min-width:0}
+.mini-rankings{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mini-ranking thead{display:table-header-group}
+.mini-ranking thead th{font-size:9px;padding:8px 6px;white-space:nowrap}
+.mini-ranking tbody td{padding:7px 8px}
+.mini-ranking .rank-irl{font-weight:900;font-size:10px;color:#006f65;text-align:center}
+body.v50-dark .mini-ranking .rank-irl{color:#50ebe1!important}
+body:not(.auth-ok) .auth-screen>.auth-box{background:linear-gradient(150deg,rgba(5,43,46,.97),rgba(4,63,61,.96))!important;border:1px solid rgba(117,231,217,.5)!important}
+body:not(.auth-ok) .auth-screen .auth-box h2,body.v50-dark:not(.auth-ok) .auth-screen .auth-box h2{color:#fff!important}
+body:not(.auth-ok) .auth-screen .auth-box p,body:not(.auth-ok) .auth-screen .auth-box label,
+body:not(.auth-ok) .auth-screen .auth-box h3{color:#e0f5f1!important}
+body:not(.auth-ok) .auth-screen .auth-box input,body:not(.auth-ok) .auth-screen .auth-box select,
+body.v50-dark:not(.auth-ok) .auth-screen .auth-box input,body.v50-dark:not(.auth-ok) .auth-screen .auth-box select{background:#fff!important;color:#153b38!important;border:1px solid #a0ccc4!important}
+body:not(.auth-ok) .auth-screen .auth-box input::placeholder{color:#536764!important;opacity:1}
+body:not(.auth-ok) .auth-screen #su-cadastrar,body:not(.auth-ok) .auth-screen #su-voltar{background:#c7f0e9!important;color:#004c46!important}
+body:not(.auth-ok) .auth-screen #su-msg{color:#ffdc9d!important;font-weight:700}
+@media(max-width:900px){#sscComparisonVisual .exec-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#sscComparisonVisual .exec-block-grid,.mini-rankings{grid-template-columns:1fr}}
+@media(max-width:550px){#sscComparisonVisual .exec-summary{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -2869,33 +2895,29 @@ body.v50-dark .ssc-comp-table tr.self td{background:rgba(80,235,225,.16)!importa
       </div>
     </div>
 
-    <div class="table-export-toolbar">
-      <div class="filter">
-        <label>Regional para exportação</label>
-        <select id="tableExportRegion"></select>
-      </div>
-      <div class="filter">
-        <label>Conteúdo</label>
-        <select id="tableExportScope">
-          <option value="regional">Regional</option>
-          <option value="cards">Cards</option>
-        </select>
-      </div>
-      <div class="table-export-action">
-        <button id="tableExportButton" type="button">Exportar tabelas</button>
-      </div>
-    </div>
+
 
     <div id="allRegionTables"></div>
   </section>
 
-  <section id="view-comparison" class="view-section">
-  <div class="page-head"><div class="page-title">
-    <h1>Comparação entre Regiões</h1>
-    <p>Resultados consolidados do mês anterior ao período em análise, respeitando o perfil e a liberação oficial.</p>
-  </div></div>
+  <section id="view-comparison" class="view-section executive-comparison-view">
+  <div class="page-head executive-comparison-head">
+    <div class="page-title"><h1>Comparação entre Regiões</h1>
+      <p>Análise executiva por dimensão, meta e desempenho de cada regional.</p>
+    </div>
+    <div class="comparison-period-pill">Período em análise</div>
+  </div>
+  <div id="sscComparisonVisual" hidden>
+    <div id="comparisonSummary" class="exec-summary"></div>
+    <div class="exec-legend">
+      <span><i class="v41-sw mid"></i> Meta individual de cada regional</span>
+      <span><i class="v41-sw ok"></i> Meta atingida</span>
+      <span><i class="v41-sw bad"></i> Fora da meta</span>
+    </div>
+    <div id="comparisonSections"></div>
+  </div>
   <div id="sscComparisonOfficial" class="card" aria-live="polite">
-    <p>Selecione um período na Visão Geral para consultar o mês anterior.</p>
+    <p>Selecione um período na Visão Geral para consultar a comparação autorizada.</p>
   </div>
 </section>
 
@@ -3755,6 +3777,7 @@ function renderRankings(region){
         <td class="rank-pos rank-cell">${rankDisplay(item.position,"medal")}</td>
         <td><strong>${item.region}</strong></td>
         <td class="rank-score">${formatScore(item.score)}</td>
+        <td class="rank-irl">${item.irl===null?"—":item.irl.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:3})}</td>
       </tr>
     `).join("");
 
@@ -3767,6 +3790,7 @@ function renderRankings(region){
         </span>
       </h3>
       <table>
+        <thead><tr><th>Pos.</th><th>Regional</th><th>Nota</th><th>IRL</th></tr></thead>
         <tbody>${body}</tbody>
       </table>
     </div>`;
@@ -4106,7 +4130,7 @@ function v41LineSVG(series,formatter,W,opts){
     const pointColor=p=>pointGood(p)===null?"#64748b":pointGood(p)?V42_GOOD:V42_BAD;
     // cada trecho assume a cor do ponto de chegada: caiu para fora da meta = laranja; voltou para a meta = verde
     const M=pts.length>2?v42Tangents(pts):null;
-    if(on&&(hl||series.length===1)&&pts.length>1){const gid='v50a'+Math.random().toString(36).slice(2,8),gc=colOf(pts[pts.length-1].v);
+    if(on&&(hl||series.length===1)&&pts.length>1){const gid='v50a'+Math.random().toString(36).slice(2,8),gc=pointColor(pts[pts.length-1]);
       let ad='M'+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1);for(let i=1;i<pts.length;i++)ad+=pts.length>2?v42SegPath(pts,i,M).replace(/^M[^C]*/,' '):' L'+pts[i].x.toFixed(1)+' '+pts[i].y.toFixed(1);
       ad+=' L'+pts[pts.length-1].x.toFixed(1)+' '+bottom+' L'+pts[0].x.toFixed(1)+' '+bottom+' Z';
       s+=`<defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${gc}" stop-opacity=".28"/><stop offset="1" stop-color="${gc}" stop-opacity="0"/></linearGradient></defs><path class="v50-area" d="${ad}" fill="url(#${gid})"/>`;}
@@ -4116,16 +4140,17 @@ function v41LineSVG(series,formatter,W,opts){
     }
     pts.forEach(p=>{
       const tooltip=isReal?
-        se.name+"\n"+p.lab+"\nRealizado: "+fmt(p.v)+"\nMeta: "+(Number.isFinite(p.meta)?fmt(p.meta):"—"):
+        se.name+"\n"+p.lab+"\nRealizado: "+fmt(p.v)+"\nMeta: "+(Number.isFinite(p.meta)?fmt(p.meta):"—")+
+          "\nSituação: "+(pointGood(p)===null?"Sem meta":pointGood(p)?"Na meta":"Fora da meta"):
         se.name+"\n"+p.lab+": "+fmt(p.v)+"\n"+(good(p.v)?"Na meta":"Fora da meta");
       s+=`<g class="chart-mark" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()" data-tooltip="${attrEscape(tooltip)}"><circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" stroke="none" pointer-events="all"/><circle cx="${p.x}" cy="${p.y}" r="${on?5.5:4.5}" fill="${pointColor(p)}" stroke="#fff" stroke-width="2" opacity="${op}" pointer-events="all"/></g>`;
     });
   });
   const colLabels=(i,dx,anchor,withName,dy=4)=>{
-    const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,y:y(p.value)}:null}).filter(Boolean);
+    const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,meta:p.meta,y:y(p.value)}:null}).filter(Boolean);
     v41Spread(items,14,top+4,bottom-2).forEach(it=>{
       const on=!hl||it.name===hl;
-      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
+      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?(Number.isFinite(it.meta)?(opts.lowerBetter?it.v<=it.meta+1e-9:it.v>=it.meta-1e-9)?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
     });
   };
   // Valor em todos os meses, com separação vertical quando há mais de uma região.
@@ -5809,7 +5834,7 @@ function inicializarPainel(){
 // Atualizar a tela ativa após a troca de competência, sem recarregar a página.
 try{document.getElementById("v50ThemeLbl").textContent=document.body.classList.contains("v50-dark")?"Tema claro":"Tema escuro"}catch(e){}
 window.__SSC_RENDER_TABLES=()=>renderAllRegionTables();
-window.__SSC_RENDER_COMPARISON=()=>renderComparisonAll();
+window.__SSC_RENDER_COMPARISON_VISUAL=()=>renderComparisonAll();
 window.__SSC_RENDER_MEMORY=()=>renderConference();
 // Carregamento exclusivo pelo Supabase após autenticação e políticas RLS.
 // Nunca incluir dados privados em HTML publicado no GitHub.
