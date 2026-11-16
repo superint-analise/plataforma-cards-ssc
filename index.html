@@ -3472,6 +3472,7 @@ function v41RegionColor(name){const i=REGION_ORDER.indexOf(name);return V41_LINE
 const V41_CHARTS=[];
 function v41Domain(values,ref,kind){
   const v=values.filter(Number.isFinite);
+  if(!v.length)return {lo:0,hi:1,ticks:[0,.25,.5,.75,1],step:.25};
   let lo=Math.min(...v),hi=Math.max(...v);
   const minSpan=kind==="score"?.5:.02;
   if(hi-lo<minSpan){const c=(hi+lo)/2;lo=c-minSpan/2;hi=c+minSpan/2}
@@ -4922,6 +4923,10 @@ function inicializarPainel(){
   }
 }
 
+// Atualizar a tela ativa após a troca de competência, sem recarregar a página.
+window.__SSC_RENDER_TABLES=()=>renderAllRegionTables();
+window.__SSC_RENDER_COMPARISON=()=>renderComparisonAll();
+window.__SSC_RENDER_MEMORY=()=>renderConference();
 // Carregamento exclusivo pelo Supabase após autenticação e políticas RLS.
 // Nunca incluir dados privados em HTML publicado no GitHub.
 window.__SSC_SET_CONTEXT = (comp, fotos) => {
@@ -4987,6 +4992,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261115-v43-corrigido07"></script>
+<script type="module" src="./plataforma.js?v=20261115-ssc-v43-historico-09"></script>
 </body>
 </html>
