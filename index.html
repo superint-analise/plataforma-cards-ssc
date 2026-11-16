@@ -4722,8 +4722,12 @@ function populateEvolutionFilters(){
   const periods=availablePeriods();
   evolutionStartMonth.innerHTML="";
   evolutionEndMonth.innerHTML="";
+  // Com semanas ativas, mostrar por padrão os últimos três meses oficiais
+  // e as semanas publicadas. O filtro ainda permite consultar o ano inteiro.
+  const inicioPadrao=SSC_WEEK_META.size&&SSC_MONTH_PERIODOS.length
+    ?Math.max(0,periods.indexOf(SSC_MONTH_PERIODOS[Math.max(0,SSC_MONTH_PERIODOS.length-3)])):0;
   periods.forEach((p,i)=>{
-    const a=document.createElement("option");a.value=p;a.textContent=p;if(i===0)a.selected=true;evolutionStartMonth.appendChild(a);
+    const a=document.createElement("option");a.value=p;a.textContent=p;if(i===inicioPadrao)a.selected=true;evolutionStartMonth.appendChild(a);
     const b=document.createElement("option");b.value=p;b.textContent=p;if(i===periods.length-1)b.selected=true;evolutionEndMonth.appendChild(b);
   });
   updateEvolutionAll();
