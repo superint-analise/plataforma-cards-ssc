@@ -4112,7 +4112,12 @@ function previousAdvance(row){
 /* ================== V41 — utilitários ================== */
 const V41_META=10;
 function v41Weight(r){const w=number(r?.["Peso"]);return w===null?null:(Math.abs(w)<=1?w:w/100)}
-function v41Status(r){const p=number(r?.["Pontos"]);if(p===null)return "na";return p>=.999?"ok":(p>0?"part":"bad")}
+function v41Status(r){
+  const ind=execNorm(r?.["Indicador"]),planned=number(r?.["Planejado"]),real=number(r?.["Realizado"]);
+  if((ind.includes("CAPEX")||ind.includes("OPEX"))&&planned!==null&&planned>0&&real!==null)
+    return execGeneralAttainment(planned,real,ind)?"ok":"bad";
+  const p=number(r?.["Pontos"]);if(p===null)return "na";return p>=.999?"ok":(p>0?"part":"bad");
+}
 function v41Counts(rows){const c={ok:0,part:0,bad:0};rows.forEach(r=>{const s=v41Status(r);if(s in c)c[s]++});return c}
 function v41Lost(r){const p=number(r?.["Pontos"]),w=v41Weight(r);return p===null||w===null?0:(1-p)*w*10}
 function v41RegionPrev(region){
@@ -4932,12 +4937,13 @@ function execRowsForIndicator(block,ind){
     const points=pts.length?pts.reduce((a,b)=>a+b,0)/pts.length:null;
     const source=all.find(r=>!execEfficiencyOK(r["Eficiência"]))||all[0];
     const historical=EXEC_COMPARISON_DATA!==null;
+    const budgetRule=execNorm(ind).includes("CAPEX")||execNorm(ind).includes("OPEX");
     const historicGood=execIsIRL(ind)?real<=.25+1e-9:execGeneralAttainment(p,real,ind);
     return {
       region,planned:p,real,
       // Histórico autorizado fornece realizado/planejado, mas não a pontuação oficial.
-      ok:historical?historicGood:all.every(r=>execEfficiencyOK(r["Eficiência"])),
-      status:historical?(historicGood?"ok":"bad"):(points===null?"na":points>=.999?"ok":points>0?"part":"bad"),
+      ok:(historical||budgetRule)?historicGood:all.every(r=>execEfficiencyOK(r["Eficiência"])),
+      status:(historical||budgetRule)?(historicGood?"ok":"bad"):(points===null?"na":points>=.999?"ok":points>0?"part":"bad"),
       points,fromMgr:mgr.length>0,
       source,
       sources:all
