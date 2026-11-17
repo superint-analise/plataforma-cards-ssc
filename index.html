@@ -2907,6 +2907,36 @@ body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
   .v41-dev-row,.v41-dev-axis,.v41-irl-row,.v41-irl-head{grid-template-columns:55px minmax(0,1fr) 79px!important}
 }
 
+
+/* SSC menu compacto: exclusivo do desktop, sem alterar menu mobile */
+@media screen and (min-width:901px){
+  .app{transition:grid-template-columns .2s ease}
+  .sidebar{overflow:visible}
+  .ssc-sidebar-collapse{position:absolute;right:-13px;top:117px;z-index:75;width:28px;height:28px;border-radius:9px;border:1px solid rgba(80,235,225,.45);background:#08766c;color:#fff;display:grid;place-items:center;box-shadow:0 4px 13px #0002;cursor:pointer}
+  .ssc-sidebar-collapse svg{width:16px;height:16px;transition:transform .2s}
+  .ssc-sidebar-collapse:hover{background:#009b91}
+  .app.ssc-sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
+  .app.ssc-sidebar-collapsed .sidebar .side-brand,.app.ssc-sidebar-collapsed .sidebar .side-message,.app.ssc-sidebar-collapsed .sidebar .v50-theme{display:none!important}
+  .app.ssc-sidebar-collapsed .sidebar .side-nav{margin-top:58px;padding:0 8px}
+  .app.ssc-sidebar-collapsed .sidebar .nav-item{min-height:44px;height:44px;width:100%;display:flex;align-items:center;justify-content:center;gap:0!important;font-size:0!important;padding:0!important;white-space:nowrap;overflow:hidden;border-left:0!important;border-radius:10px;margin:4px 0}
+  .app.ssc-sidebar-collapsed .sidebar .nav-icon{flex:0 0 auto}
+  .app.ssc-sidebar-collapsed .sidebar .nav-icon svg{width:21px;height:21px}
+  .app.ssc-sidebar-collapsed .sidebar .ssc-nav-label{display:none}
+  .app.ssc-sidebar-collapsed .ssc-sidebar-collapse svg{transform:rotate(180deg)}
+  .sidebar .nav-item.ssc-nav-special{position:relative;border-radius:10px;margin:5px 9px;padding:0 12px;min-height:43px;height:43px;gap:11px;font-size:11px;font-weight:850;border:1px solid rgba(255,255,255,.20)!important}
+  .sidebar .nav-item.ssc-nav-superintendencia{background:linear-gradient(90deg,rgba(80,235,225,.21),rgba(80,235,225,.07));color:#d5fff7!important}
+  .sidebar .nav-item.ssc-nav-administracao{background:linear-gradient(90deg,rgba(245,170,65,.20),rgba(245,170,65,.05));color:#ffe1a8!important;border-color:rgba(245,170,65,.38)!important}
+  .sidebar .nav-item.ssc-nav-special.active{box-shadow:inset 3px 0 0 currentColor!important;filter:brightness(1.12)}
+  .app.ssc-sidebar-collapsed .sidebar .nav-item.ssc-nav-special{width:calc(100% - 14px);margin:5px 7px;padding:0!important}
+}
+@media screen and (max-width:900px){
+  .ssc-sidebar-collapse{display:none!important}
+  .sidebar .nav-item.ssc-nav-special{min-width:85px;color:#f3eddb!important;border:1px solid rgba(245,170,65,.35)!important}
+  .sidebar .nav-item.ssc-nav-superintendencia{background:rgba(80,235,225,.17)!important}
+  .sidebar .nav-item.ssc-nav-administracao{background:rgba(245,170,65,.17)!important}
+  .sidebar .nav-item.ssc-nav-special .ssc-nav-label{font-size:9px}
+}
+
 </style>
 </head>
 
@@ -2914,6 +2944,7 @@ body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
 <div class="app">
 
 <aside class="sidebar">
+  <button type="button" id="sscSidebarCollapse" class="ssc-sidebar-collapse" aria-label="Recolher menu lateral" aria-expanded="true" title="Recolher ou expandir menu" onclick="sscToggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 5-7 7 7 7"/></svg></button>
   <div class="side-brand">
     <div class="brand-copy">
       <strong>Painel de Desempenho<br>Superintendência de Serviços Comerciais</strong>
@@ -3244,6 +3275,17 @@ body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
 <script src="./config.js"></script>
 <script>
 let DATA = [];
+window.sscToggleSidebar=function(force){
+  const el=document.querySelector('.app');
+  if(!el)return;
+  const next=typeof force==='boolean'?force:!el.classList.contains('ssc-sidebar-collapsed');
+  el.classList.toggle('ssc-sidebar-collapsed',next);
+  const button=document.getElementById('sscSidebarCollapse');
+  if(button){button.setAttribute('aria-expanded',String(!next));button.setAttribute('aria-label',next?'Expandir menu lateral':'Recolher menu lateral');button.title=next?'Expandir menu lateral':'Recolher menu lateral';}
+  try{localStorage.setItem('ssc-sidebar-compact',next?'1':'0')}catch(e){}
+};
+try{if(localStorage.getItem('ssc-sidebar-compact')==='1')window.sscToggleSidebar(true)}catch(e){}
+
 const REGION_ORDER = ["Baixada", "Centro Sul", "Leste", "Oeste", "Vale"];
 const COORD_ORDER = ["Gerência", "Varejo", "Projetos Especiais e Grandes Clientes", "Leitura", "Construção"];
 const CONF_FAIXAS = {"IRL": [["0 a 0,25", 1], ["> 0,25 a 0,45", 0.9], ["> 0,45 a 0,65", 0.8], ["> 0,65", 0]], "IEN": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "RECLAMACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ATENDIMENTO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ARRECADACAO": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_PERDAS": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "PF_CORE": [["< 98,6%", 0], ["98,6% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "IQG": [["< meta (< 100%)", 0], ["≥ meta (≥ 100%)", 1]], "AIS": [["< 99%", 0], ["99% a < 100%", 0.5], ["≥ 100%", 1]], "CAPEX": [["< 90%", 0], ["≥ 90%", 1]], "OPEX": [["≤ meta (≤ 100%)", 1], ["> meta (> 100%)", 0]], "CORTE_DISJUNTOR": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "NAO_LIDOS": [["< 98,9%", 0], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ERRO_LEITURA": [["< 96,9%", 0], ["96,9% a < 98,9%", 0.2], ["98,9% a < 99,6%", 0.5], ["≥ 99,6%", 1]], "ADERENCIA_FATURA": [["< 98,6%", 0], ["98,6% a < 99,9%", 0.5], ["≥ 99,9%", 1]]};
@@ -4296,8 +4338,8 @@ function v42IndOpts(ind,coord){
     refLbl:"meta "+(ref*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"+(upperRef!==null?" a < "+(upperRef*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%":""),
     lowerBetter:false});
   if(t==="IRL")return {ref:.25,refLbl:"IRL ≤ 0,25",lowerBetter:true,irl:true};
-  if(t.includes("CAPEX"))return cfg(.9,1.1);
-  if(t.includes("OPEX"))return cfg(.85,1.15);
+  if(t.includes("CAPEX"))return cfg(.9);
+  if(t.includes("OPEX"))return {ref:1,upperRef:null,refLbl:"meta ≤ 100%",lowerBetter:true};
   if(t.includes("ADERENCIA DE ENTREGA DE FATURA"))return cfg(.999);
   if(t.includes("ERRO DE LEITURA")||t.includes("CLIENTES NAO LIDOS")||t.includes("CORTE NO DISJUNTOR"))return cfg(.996);
   if(t.includes("CUMPRIMENTO DO PLANO FISICO CORE")){
@@ -4441,7 +4483,7 @@ function v41LineSVG(series,formatter,W,opts){
     const items=series.map(se=>{const p=se.points.find(q=>q.label===labels[i]);return p&&Number.isFinite(p.value)?{name:se.name,v:p.value,meta:p.meta,y:y(p.value)}:null}).filter(Boolean);
     v41Spread(items,14,top+4,bottom-2).forEach(it=>{
       const on=!hl||it.name===hl;
-      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?((v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl || (Number.isFinite(it.meta)&&Math.abs(it.meta)>1e-12))?(v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl?it.v<=.25+1e-9:((it.v/it.meta)>=v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref-1e-9 && (v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef==null || it.v/it.meta<v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef-1e-9)))?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
+      s+=`<text x="${x(i)+dx}" y="${it.y+dy}" font-size="11.5" font-weight="${on?700:600}" fill="${isReal?((v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl || (Number.isFinite(it.meta)&&Math.abs(it.meta)>1e-12))?(v42IndOpts(opts.indicator||"",opts.coordenacao||"").irl?it.v<=.25+1e-9:(v42IndOpts(opts.indicator||"",opts.coordenacao||"").lowerBetter ? it.v/it.meta <= v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref+1e-9 : ((it.v/it.meta)>=v42IndOpts(opts.indicator||"",opts.coordenacao||"").ref-1e-9 && (v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef==null || it.v/it.meta<v42IndOpts(opts.indicator||"",opts.coordenacao||"").upperRef-1e-9))))?V42_GOOD_TXT:V42_BAD_TXT:"#64748b"):txtOf(it.v)}" opacity="${on?1:.6}" text-anchor="${anchor}" paint-order="stroke" stroke="#fff" stroke-width="3">${fmt(it.v)}${withName&&series.length>1?" "+svgTextEscape(it.name):""}</text>`;
     });
   };
   // Valor em todos os meses, com separação vertical quando há mais de uma região.
@@ -4604,8 +4646,8 @@ function previousPointsForRow(row){
     if(ind.startsWith("IEN")){
       return a<.90?0:(Math.min(a,1)-.90)/.10;
     }
-    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
-    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="CAPEX R$ MM")return a>=.90?1:0;
+    if(ind==="OPEX R$ MM")return a<=1?1:0;
     if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
     if(ind.includes("ATENDIMENTO NO PRAZO")&&ind.includes("SERVIÇOS REGULADOS"))return a>=1?1:0;
     if(ind==="ARRECADAÇÃO TOTAL EM 12 MESES")return a>=1?1:0;
@@ -4621,8 +4663,8 @@ function previousPointsForRow(row){
     if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
     if(ind.includes("CUMPRIMENTO DO PLANO FÍSICO CORE"))return a<.99?0:(a<.996?.5:1);
     if(ind==="AIS% REALIZADO R$")return a<.99?0:(a<1?.5:1);
-    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
-    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="CAPEX R$ MM")return a>=.90?1:0;
+    if(ind==="OPEX R$ MM")return a<=1?1:0;
   }
 
   if(coord==="PROJETOS ESPECIAIS E GRANDES CLIENTES"){
@@ -4633,8 +4675,8 @@ function previousPointsForRow(row){
     if(ind.includes("ATENDIMENTO NO PRAZO")&&ind.includes("SERVIÇOS REGULADOS"))return a<.90?0:(Math.min(a,1)-.90)/.10;
     if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
     if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
-    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
-    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="CAPEX R$ MM")return a>=.90?1:0;
+    if(ind==="OPEX R$ MM")return a<=1?1:0;
   }
 
   if(coord==="LEITURA"){
@@ -4651,8 +4693,8 @@ function previousPointsForRow(row){
 
   if(coord==="CONSTRUÇÃO"){
     if(ind.startsWith("IEN"))return a<.90?0:(Math.min(a,1)-.90)/.10;
-    if(ind==="CAPEX R$ MM")return a>=.90&&a<1.10?1:0;
-    if(ind==="OPEX R$ MM")return a>=.85&&a<1.15?1:0;
+    if(ind==="CAPEX R$ MM")return a>=.90?1:0;
+    if(ind==="OPEX R$ MM")return a<=1?1:0;
     if(ind==="AIS% REALIZADO R$")return a>=.996?1:(a>=.989?.5:0);
     if(ind.startsWith("IQG - ÍNDICE DE QUALIDADE GERAL"))return a>=1?1:0;
     if(ind.includes("CUMPRIMENTO DO PLANO FÍSICO PERDAS"))return a>=1?1:0;
@@ -6238,6 +6280,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261116-mobile-meta10-v55"></script>
+<script type="module" src="./plataforma.js?v=20261117-orcamento-sidebar-v56"></script>
 </body>
 </html>
