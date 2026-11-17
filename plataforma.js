@@ -111,7 +111,19 @@ function navegar(view){
 }
 function addSection(view,title,inner){
   const nav=document.querySelector('.side-nav');
-  const a=document.createElement('div');a.className='nav-item';a.dataset.view=view;a.textContent=title;
+  const a=document.createElement('div');
+  a.className='nav-item'+(['superintendencia','administracao'].includes(view)?' ssc-nav-special ssc-nav-'+view:'');
+  a.dataset.view=view;
+  if(view==='superintendencia'||view==='administracao'){
+    const icon=view==='superintendencia'
+      ?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 20V9l6-5 6 5v11M9 12h6M9 16h6"/><path d="M12 4v-2"/></svg>'
+      :'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.8 6v5.7c0 4.4 3 7.5 7.2 9.3 4.2-1.8 7.2-4.9 7.2-9.3V6L12 3Z"/><path d="M9 12l2 2 4-4"/></svg>';
+    a.innerHTML='<span class="nav-icon">'+icon+'</span><span class="ssc-nav-label">'+title+'</span>';
+    a.setAttribute('title',title);
+    a.setAttribute('aria-label',title);
+  }else{
+    a.textContent=title;
+  }
   a.addEventListener('click',()=>{navegar(view);if(view==='ranking-oficial')renderRanking();if(view==='semanal')renderSemanas()});nav.appendChild(a);
   const main=document.querySelector('.main');
   const section=document.createElement('section');section.id='view-'+view;section.className='view-section su-screen';section.innerHTML=inner;
