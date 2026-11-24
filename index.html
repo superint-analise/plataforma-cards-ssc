@@ -5158,9 +5158,15 @@ function execVerticalChartCentered(rows,ind,compact){
   const step=v41NiceStep(maxAbs,2),lim=Math.ceil(maxAbs*1.1/step)*step;
   const pp=v=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:lim<.1?1:0})+" p.p.";
   const lower=v41LowerBetter(ind);
+  const ordenadas=[...valid].sort((x,y)=>{
+    const a=execGeneralAttainment(x.planned,x.real,ind),b=execGeneralAttainment(y.planned,y.real,ind);
+    if(a!==b)return Number(b)-Number(a);
+    return (lower?x.real/x.planned-y.real/y.planned:y.real/y.planned-x.real/x.planned)
+      ||REGION_ORDER.indexOf(x.region)-REGION_ORDER.indexOf(y.region);
+  });
   return `<div class="v41-dev">
     <div class="v41-dev-axis"><span></span><div class="v41-dev-scale"><span>−${pp(lim)}</span><span>meta</span><span>+${pp(lim)}</span></div><span></span></div>
-    ${rows.map(x=>{
+    ${ordenadas.map(x=>{
       const ok=Number.isFinite(x.planned)&&Math.abs(x.planned)>1e-12&&Number.isFinite(x.real);
       const d=ok?dev(x):0,w=Math.min(50,Math.abs(d)/lim*50),side=d>=0?"right":"left";
       const tip=`${x.region}: realizado ${execFmt(x.real,ind)} · meta ${execFmt(x.planned,ind)}${ok?` · ${v41Pct(1+d)} da meta`:""}${x.fromMgr?"":" · agregado das coordenações"}`;
@@ -5275,6 +5281,7 @@ function execIRLClass(v){
   return "Intolerável";
 }
 function execIRLIndicator(block,ind,rows){
+  rows=[...rows].sort((a,b)=>a.real-b.real||REGION_ORDER.indexOf(a.region)-REGION_ORDER.indexOf(b.region));
   const vals=rows.map(x=>x.real).filter(Number.isFinite);
   const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
   const max=Math.max(1,...vals.map(v=>v+.05));
@@ -6438,6 +6445,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261117-orcamento-sidebar-v56"></script>
+<script type="module" src="./plataforma.js?v=20261124-comparacao-evolucao-v57"></script>
 </body>
 </html>
