@@ -2973,6 +2973,12 @@ body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
 .ssc-multi-note{font-size:10px;color:var(--v-muted,#647d78);margin:7px 0 0}
 @media(max-width:700px){.ssc-multi-chart{overflow-x:auto}.ssc-multi-bars{min-width:480px}.ssc-multi-legend{min-width:0}}
 
+
+/* Eixo do comparativo alinhado exatamente ao tracejado de meta */
+.ssc-comp-zero-axis{grid-template-columns:76px minmax(0,1fr) 110px;gap:8px;margin:0 0 6px;font-size:10px}
+.ssc-comp-zero-ruler{position:relative;display:flex;justify-content:space-between;min-width:0}
+.ssc-comp-zero-meta-text{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;color:var(--v-ink,#005852);font-weight:900}
+@media(max-width:520px){.ssc-comp-zero-axis{grid-template-columns:54px minmax(0,1fr) 75px;gap:4px;margin-left:0}}
 </style>
 </head>
 
@@ -5205,7 +5211,7 @@ function execVerticalChart(rows,ind,compact){
   const max=Math.max(1.18,threshold*1.1,...sorted.map(x=>Math.max(0,ratio(x))*1.04));
   const pct=x=>(x*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
   return '<div class="ssc-comp-zero" role="img" aria-label="Gráfico horizontal de zero até o realizado, com linha vertical de meta">'+
-    '<div class="ssc-comp-zero-axis"><span>0%</span><span>Meta '+pct(threshold)+'</span><span>'+pct(max)+'</span></div>'+
+    '<div class="ssc-comp-zero-axis"><span></span><div class="ssc-comp-zero-ruler"><span>0%</span><span class="ssc-comp-zero-meta-text" style="left:'+(threshold/max*100).toFixed(2)+'%">Meta '+pct(threshold)+'</span><span>'+pct(max)+'</span></div><span></span></div>'+
     sorted.map(x=>{
       const v=ratio(x),hit=execGeneralAttainment(x.planned,x.real,ind);
       const tip=x.region+': realizado '+execFmt(x.real,ind)+' · meta '+execFmt(x.planned,ind)+' · avanço '+pct(v);
