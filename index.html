@@ -2937,6 +2937,32 @@ body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
   .sidebar .nav-item.ssc-nav-special .ssc-nav-label{font-size:9px}
 }
 
+
+/* Comparação: formato desde zero sem perder o modelo original */
+.ssc-comp-view-modes{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 13px;color:var(--v-ink);font-size:11px;font-weight:750}
+.ssc-comp-view-modes button{border:1px solid #b5d4cb;border-radius:9px;padding:7px 10px;background:var(--v-card,#fff);color:var(--v-ink,#17433a);font-size:11px;cursor:pointer}
+.ssc-comp-view-modes button.selected{background:#005852;color:#fff;border-color:#005852}
+.ssc-comp-zero{display:grid;gap:5px;min-width:0}
+.ssc-comp-zero-axis{display:grid;grid-template-columns:repeat(3,1fr);font-size:10px;font-weight:800;color:var(--v-muted);margin:0 5px 6px 82px}
+.ssc-comp-zero-axis span:nth-child(2){text-align:center}
+.ssc-comp-zero-axis span:last-child{text-align:right}
+.ssc-comp-zero-row{display:grid;grid-template-columns:76px minmax(0,1fr) 110px;gap:8px;align-items:center;min-height:39px}
+.ssc-comp-zero-reg{font-size:11px;font-weight:750;color:var(--v-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ssc-comp-zero-track{height:19px;position:relative;background:rgba(127,127,127,.12);border-radius:5px}
+.ssc-comp-zero-bar{display:block;height:100%;min-width:2px;border-radius:5px;background:#009B91}
+.ssc-comp-zero-row.bad .ssc-comp-zero-bar{background:#F5AA41}
+.ssc-comp-zero-target{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed #385b53;z-index:2;pointer-events:none}
+.ssc-comp-zero-label{text-align:right;display:flex;flex-direction:column;min-width:0}
+.ssc-comp-zero-label b{font-size:11px;color:var(--v-ink)}
+.ssc-comp-zero-label small{font-size:9px;color:var(--v-muted);overflow-wrap:anywhere}
+body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
+@media(max-width:520px){.ssc-comp-zero-row{grid-template-columns:54px minmax(0,1fr) 75px;gap:4px}.ssc-comp-zero-axis{margin-left:58px}.ssc-comp-zero-label small{font-size:8px}.ssc-comp-zero-reg{font-size:9px}}
+/* Menus de região no fluxo — nenhuma opção fica sob filtros adjacentes */
+#view-evolution .evolution-filter-grid>.region-dropdown{position:relative;z-index:90!important;isolation:isolate}
+#view-evolution #evolutionRegionMenu.open{position:relative!important;top:auto!important;left:auto;right:auto;z-index:999!important;display:grid!important;gap:2px;max-height:320px;overflow:auto;box-shadow:0 8px 24px #0002}
+#view-evolution #evolutionRegionMenu .region-option{position:relative!important;z-index:1!important;display:flex!important;align-items:center;min-height:38px;pointer-events:auto!important}
+#view-evolution #evolutionRegionMenu .region-option input{width:18px;height:18px;flex:0 0 18px;pointer-events:auto!important}
+
 </style>
 </head>
 
@@ -3150,6 +3176,7 @@ body.v50-dark .v50-vale-meta{border-left-color:#50EBE1}
     </div>
     <div class="ssc-comp-period-filter"><label for="sscCompMonthSelect">Mês da comparação</label><select id="sscCompMonthSelect" aria-label="Mês da comparação"></select><small class="comparison-period-pill">Período em análise</small></div>
   </div>
+  <div class="ssc-comp-view-modes" aria-label="Formato dos gráficos da comparação"><span>Gráficos:</span><button type="button" class="selected" data-ssc-chart-mode="zero" aria-pressed="true" onclick="sscSetComparisonChartMode('zero')">Desde 0%</button><button type="button" data-ssc-chart-mode="center" aria-pressed="false" onclick="sscSetComparisonChartMode('center')">Centralizado na meta</button></div>
   <div id="sscComparisonVisual" hidden>
     <div id="comparisonSummary" class="exec-summary"></div>
     <div class="exec-legend">
@@ -4880,6 +4907,8 @@ function execEfficiencyOK(v){
 }
 function execUnit(ind){
   const t=execNorm(ind);
+  if(t.includes("FISICO")&&t.includes("ARRECAD"))return "number";
+  if(t.includes("ERRO DE LEITURA"))return "number";
   if(t.includes("CAPEX")||t.includes("OPEX")||t.includes("ARRECAD"))return "money";
   if(isPercentIndicator(ind))return "percent";
   return "number";
@@ -4895,6 +4924,7 @@ function execFmt(v,ind){
   if(u==="money"){
     return "R$ "+n.toLocaleString("pt-BR",{maximumFractionDigits:2});
   }
+  if((execNorm(ind).includes("FISICO")&&execNorm(ind).includes("ARRECAD"))||execNorm(ind).includes("CORTE NO DISJUNTOR"))return n.toLocaleString("pt-BR",{maximumFractionDigits:0});
   return n.toLocaleString("pt-BR",{maximumFractionDigits:2});
 }
 function execAggType(ind){
@@ -5035,7 +5065,7 @@ function execSummary(){
   el.innerHTML=kpi(EXEC_COMPARISON_DATA?"Meta atingida":"Pontuação Máxima",c.ok,"#009B91")+kpi(EXEC_COMPARISON_DATA?"Sem avaliação":"Pontuação Parcial",c.part,"#E9A33A")+kpi(EXEC_COMPARISON_DATA?"Meta não atingida":"Sem Pontuação",c.bad,"#F5AA41")+
     `<div class="v41-kpi">${v41Ring(1,"#005852")}<div><small>Avaliações</small><b>${nInd}<i> indicadores × regiões</i></b></div></div>`;
 }
-function execVerticalChart(rows,ind,compact){
+function execVerticalChartCentered(rows,ind,compact){
   // Desvio do realizado em relação à meta de cada região (centro = meta).
   const valid=rows.filter(x=>Number.isFinite(x.planned)&&Number.isFinite(x.real)&&Math.abs(x.planned)>1e-12);
   if(!valid.length)return `<div class="exec-empty">Sem dados para o período</div>`;
@@ -5060,6 +5090,43 @@ function execVerticalChart(rows,ind,compact){
   </div>`;
 }
 
+
+let SSC_COMPARISON_ZERO_BASED=true;
+function sscSetComparisonChartMode(mode){
+  SSC_COMPARISON_ZERO_BASED=(mode!=="center");
+  document.querySelectorAll('[data-ssc-chart-mode]').forEach(b=>{
+    b.classList.toggle('selected',b.dataset.sscChartMode===(SSC_COMPARISON_ZERO_BASED?'zero':'center'));
+    b.setAttribute('aria-pressed',String(b.dataset.sscChartMode===(SSC_COMPARISON_ZERO_BASED?'zero':'center')));
+  });
+  if(document.getElementById('comparisonSections'))execPaintComparison();
+}
+function execVerticalChart(rows,ind,compact){
+  if(!SSC_COMPARISON_ZERO_BASED)return execVerticalChartCentered(rows,ind,compact);
+  const valid=rows.filter(x=>Number.isFinite(x.planned)&&x.planned!==0&&Number.isFinite(x.real));
+  if(!valid.length)return '<div class="exec-empty">Sem dados para o período</div>';
+  const t=execNorm(ind),lower=v41LowerBetter(ind),threshold=t.includes('CAPEX')?.9:1;
+  const ratio=x=>x.real/x.planned;
+  const sorted=[...valid].sort((a,b)=>{
+    const goodA=execGeneralAttainment(a.planned,a.real,ind),goodB=execGeneralAttainment(b.planned,b.real,ind);
+    if(goodA!==goodB)return Number(goodB)-Number(goodA);
+    const delta=lower?ratio(a)-ratio(b):ratio(b)-ratio(a);
+    return delta||REGION_ORDER.indexOf(a.region)-REGION_ORDER.indexOf(b.region);
+  });
+  const max=Math.max(1.18,threshold*1.1,...sorted.map(x=>Math.max(0,ratio(x))*1.04));
+  const pct=x=>(x*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+  return '<div class="ssc-comp-zero" role="img" aria-label="Gráfico horizontal de zero até o realizado, com linha vertical de meta">'+
+    '<div class="ssc-comp-zero-axis"><span>0%</span><span>Meta '+pct(threshold)+'</span><span>'+pct(max)+'</span></div>'+
+    sorted.map(x=>{
+      const v=ratio(x),hit=execGeneralAttainment(x.planned,x.real,ind);
+      const tip=x.region+': realizado '+execFmt(x.real,ind)+' · meta '+execFmt(x.planned,ind)+' · avanço '+pct(v);
+      return '<div class="ssc-comp-zero-row '+(hit?'ok':'bad')+'" title="'+attrEscape(tip)+'">'+
+        '<span class="ssc-comp-zero-reg">'+svgTextEscape(x.region)+'</span>'+
+        '<span class="ssc-comp-zero-track"><i class="ssc-comp-zero-bar" style="width:'+Math.max(0,Math.min(100,v/max*100)).toFixed(2)+'%"></i>'+
+        '<i class="ssc-comp-zero-target" style="left:'+(threshold/max*100).toFixed(2)+'%"></i></span>'+
+        '<span class="ssc-comp-zero-label"><b>'+pct(v)+'</b><small>'+svgTextEscape(v41FmtCompact(x.real,ind))+' / '+svgTextEscape(v41FmtCompact(x.planned,ind))+'</small></span></div>';
+    }).join('')+
+    '<div class="v41-dev-foot">Do melhor para o pior · barras desde 0% · linha vertical tracejada = meta. '+(lower?'Quanto menor, melhor.':t.includes('CAPEX')?'CAPEX: ≥ 90% dentro da meta.':'')+'</div></div>';
+}
 function execMetaGaugeSVG(planned,real,ok){
   const p=number(planned),r=number(real),valid=p!==null&&r!==null&&Math.abs(p)>1e-12;
   const ratio=valid?Math.max(0,Math.min(1.5,Math.abs(r/p))):0;
@@ -5979,15 +6046,16 @@ function v50ValeBars(coords,region){
 }
 function v50Radar(region){
   const coords=COORD_ORDER.filter(c=>c!=="Gerência"&&rowsFor(region,c).length);
-  if(region==="Vale"&&coords.length===2)return v50ValeBars(coords,region);
+  const valeTriangulo=region==="Vale"&&coords.length===2;
+  if(valeTriangulo)coords.push(""); // vértice visual sem coordenação, sempre zero
   if(coords.length<3)return `<div class="v50-empty">Radar disponível a partir de 3 coordenações.</div>`;
-  const now=coords.map(c=>totalScore(rowsFor(region,c))),prev=coords.map(c=>v50CoordPrev(rowsFor(region,c)));
+  const now=coords.map(c=>c?totalScore(rowsFor(region,c)):0),prev=coords.map(c=>c?v50CoordPrev(rowsFor(region,c)):0);
   const all=now.concat(prev.filter(Number.isFinite)).concat([V41_META]);
-  const lo=Math.max(0,Math.floor(Math.min(...all)-.5)),hi=10;
+  const lo=valeTriangulo?0:Math.max(0,Math.floor(Math.min(...all)-.5)),hi=10;
   const cx=200,cy=132,R=86,n=coords.length;
   const pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n,k=(v-lo)/(hi-lo);return [cx+R*k*Math.cos(a),cy+R*k*Math.sin(a)]};
   const poly=vals=>vals.map((v,i)=>pt(i,Number.isFinite(v)?v:lo).map(z=>z.toFixed(1)).join(",")).join(" ");
-  const short=x=>x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
+  const short=x=>!x?"—":x==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":x;
   let s=`<svg class="v50-radar" viewBox="0 0 400 268">`;
   const rings=[];for(let t=Math.ceil(lo);t<=hi;t+=hi-lo>4?2:1)rings.push(t);
   rings.forEach(t=>{s+=`<polygon points="${poly(coords.map(()=>t))}" class="v50-rad-grid"/>`});
