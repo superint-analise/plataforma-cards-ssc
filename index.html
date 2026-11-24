@@ -2963,6 +2963,16 @@ body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
 #view-evolution #evolutionRegionMenu .region-option{position:relative!important;z-index:1!important;display:flex!important;align-items:center;min-height:38px;pointer-events:auto!important}
 #view-evolution #evolutionRegionMenu .region-option input{width:18px;height:18px;flex:0 0 18px;pointer-events:auto!important}
 
+
+/* Evolução temporal multirregional — barras e variações da paleta oficial */
+.ssc-multi-chart{min-width:0;width:100%}
+.ssc-multi-bars{display:block;width:100%;height:auto;min-height:230px;overflow:visible}
+.ssc-multi-legend{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:8px}
+.ssc-multi-legend-item{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:750;color:var(--v-ink,#173d39)}
+.ssc-multi-legend-item i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.ssc-multi-note{font-size:10px;color:var(--v-muted,#647d78);margin:7px 0 0}
+@media(max-width:700px){.ssc-multi-chart{overflow-x:auto}.ssc-multi-bars{min-width:480px}.ssc-multi-legend{min-width:0}}
+
 </style>
 </head>
 
@@ -4528,11 +4538,85 @@ function v41LineSVG(series,formatter,W,opts){
 }
 function v41SetOpt(k,on){V41_OPTS[k]=!!on;v41MountCharts()}
 function v41GoTo(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"})}
+
+/* Evolução temporal: múltiplas Regionais = colunas agrupadas por período.
+   Uma única Regional mantém exatamente o gráfico de linhas original. */
+function v41MultiRegionBars(series,formatter,W,opts){
+  opts=opts||{};
+  const isScore=formatter==='score',isReal=formatter==='real';
+  const periods=[...new Set(series.flatMap(se=>se.points.map(p=>p.label)))];
+  if(!periods.length)return '<div class="empty-state">Sem dados disponíveis.</div>';
+  const count=series.length;
+  const H=290,top=35,bottom=H-50,L=60,R=W-14,innerW=R-L;
+  const format=v=>isScore?v41Num(v):isReal?execFmt(v,opts.indicator||''):(v*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+  const rule=isScore?{ref:V41_META,lowerBetter:false}:v42IndOpts(opts.indicator||'',opts.coordenacao||'');
+  const meta=opts.ref??(isScore?V41_META:rule.ref??1);
+  const all=series.flatMap(se=>se.points.flatMap(p=>isReal?[p.value,p.meta]:[p.value])).filter(Number.isFinite);
+  if(!all.length)return '<div class="empty-state">Sem dados disponíveis.</div>';
+  const minData=Math.min(...all),maxData=Math.max(...all);
+  const lo=Math.min(0,minData<0?minData*1.05:0);
+  const hi=Math.max(meta*1.12,maxData*1.11,1e-9);
+  const y=v=>bottom-(v-lo)/(hi-lo)*(bottom-top);
+  const yZero=y(0);
+  const group=innerW/periods.length;
+  const gap=Math.max(2,Math.min(6,group*.025));
+  const barW=Math.max(3,Math.min(38,(group-12-count*gap)/count));
+  const paletteGood=['#009B91','#007F77','#16B8AA','#006A64','#45CFC2'];
+  const paletteBad=['#F5AA41','#EB8C0A','#D97B13','#FFBC66','#C96912'];
+  const good=(v,planned)=>{
+    if(!Number.isFinite(v))return null;
+    if(isReal){
+      if(!Number.isFinite(planned)||Math.abs(planned)<1e-12)return null;
+      const ratio=v/planned;
+      return rule.lowerBetter?ratio<=rule.ref+1e-9:
+        ratio>=rule.ref-1e-9 && (rule.upperRef===undefined||rule.upperRef===null||ratio<rule.upperRef-1e-9);
+    }
+    return rule.lowerBetter?v<=meta+1e-9:
+      (v>=meta-1e-9 && (rule.upperRef===undefined||rule.upperRef===null||v<rule.upperRef-1e-9));
+  };
+  let svg='<svg class="ssc-multi-bars" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Barras temporais agrupadas por Região, com cores segundo atingimento da meta">';
+  for(let i=0;i<=4;i++){
+    const tick=lo+(hi-lo)*i/4,yy=y(tick);
+    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="var(--v-line,#dfe9e6)" stroke-width="1"/>'+
+      '<text x="'+(L-7)+'" y="'+(yy+3).toFixed(2)+'" text-anchor="end" font-size="10" fill="var(--v-muted,#698780)">'+svgTextEscape(format(tick))+'</text>';
+  }
+  if(!isReal){
+    const yy=y(meta);
+    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="#617d76" stroke-width="1.6" stroke-dasharray="5 4"/>'+
+      '<text x="'+(R-3)+'" y="'+Math.max(12,yy-6).toFixed(2)+'" font-size="10" text-anchor="end" font-weight="800" fill="#617d76">Meta '+svgTextEscape(format(meta))+'</text>';
+  }
+  periods.forEach((period,pi)=>{
+    const center=L+group*(pi+.5);
+    svg+='<text x="'+center.toFixed(2)+'" y="'+(H-24)+'" text-anchor="middle" font-size="11" font-weight="750" fill="var(--v-ink,#173d39)">'+svgTextEscape(v41ShortMonth(period))+'</text>';
+    series.forEach((se,ri)=>{
+      const p=se.points.find(q=>q.label===period);
+      if(!p||!Number.isFinite(p.value))return;
+      const v=p.value,target=Number.isFinite(p.meta)?p.meta:null;
+      const pass=good(v,target);
+      const color=pass===null?'#94A3A8':pass?paletteGood[ri%paletteGood.length]:paletteBad[ri%paletteBad.length];
+      const px=center-((barW+gap)*count-gap)/2+ri*(barW+gap),yy=y(v),by=Math.min(yy,yZero),height=Math.max(1,Math.abs(yZero-yy));
+      const tip=se.name+' · '+v41ShortMonth(period)+'\nRealizado: '+format(v)+(isReal?'\nMeta: '+(target===null?'—':format(target)):'')+'\n'+(pass===null?'Sem referência':pass?'Dentro da meta':'Fora da meta');
+      svg+='<g class="chart-mark" data-tooltip="'+attrEscape(tip)+'" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()">'+
+        '<rect x="'+px.toFixed(2)+'" y="'+by.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+height.toFixed(2)+'" rx="3" fill="'+color+'"/>'+
+        '<rect x="'+(px-3).toFixed(2)+'" y="'+Math.max(top,by-6).toFixed(2)+'" width="'+(barW+6).toFixed(2)+'" height="'+(height+9).toFixed(2)+'" fill="transparent"/>'+
+        '</g>';
+      if(barW>=16 && count<=4){
+        svg+='<text x="'+(px+barW/2).toFixed(2)+'" y="'+Math.max(20,by-6).toFixed(2)+'" font-size="9" text-anchor="middle" font-weight="750" fill="'+color+'">'+svgTextEscape(format(v))+'</text>';
+      }
+    });
+    if(pi<periods.length-1)svg+='<line x1="'+(L+group*(pi+1)).toFixed(2)+'" x2="'+(L+group*(pi+1)).toFixed(2)+'" y1="'+top+'" y2="'+bottom+'" stroke="var(--v-line,#e4ece9)" stroke-dasharray="2 5"/>';
+  });
+  svg+='</svg>';
+  const leg=series.map((se,i)=>'<span class="ssc-multi-legend-item"><i style="background:'+paletteGood[i%paletteGood.length]+'"></i><i style="background:'+paletteBad[i%paletteBad.length]+'"></i>'+svgTextEscape(se.name)+'</span>').join('');
+  return '<div class="ssc-multi-chart">'+svg+'<div class="ssc-multi-legend">'+leg+'</div><p class="ssc-multi-note">Verde: dentro da meta · Laranja: fora da meta · Passe o cursor ou toque para identificar Região, mês e valor.</p></div>';
+}
 function v41MountCharts(){
   document.querySelectorAll(".v41-lc").forEach(el=>{
     const w=el.clientWidth,spec=V41_CHARTS[+el.dataset.lc];
     if(!w||!spec)return;
-    el.innerHTML=v41LineSVG(spec.series,spec.formatter,Math.max(300,w),spec.opts);
+    el.innerHTML=spec.series.length>1
+      ?v41MultiRegionBars(spec.series,spec.formatter,Math.max(340,w),spec.opts)
+      :v41LineSVG(spec.series,spec.formatter,Math.max(300,w),spec.opts);
   });
 }
 let v41ResizeT;window.addEventListener("resize",()=>{clearTimeout(v41ResizeT);v41ResizeT=setTimeout(v41MountCharts,150)});
