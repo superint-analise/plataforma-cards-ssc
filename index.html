@@ -4570,7 +4570,7 @@ function v41MultiRegionBars(series,formatter,W,opts){
   const barW=Math.max(3,Math.min(38,(group-12-regions*gap)/regions));
   const goodColors=['#009B91','#007F77','#16B8AA','#006A64','#45CFC2'];
   const badColors=['#F5AA41','#EB8C0A','#D97B13','#FFBC66','#C96912'];
-  const distinct=['#008F84','#376FB5','#7859A8','#4B8293','#4D6388'];
+  const distinct=['#477F7A','#66849B','#829689','#6C9299','#586F84'];
   const colorOf=name=>distinct[Math.max(0,REGION_ORDER.indexOf(name))%distinct.length];
   const good=(value,planned)=>{
     if(!Number.isFinite(value))return null;
