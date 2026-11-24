@@ -2979,6 +2979,17 @@ body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
 .ssc-comp-zero-ruler{position:relative;display:flex;justify-content:space-between;min-width:0}
 .ssc-comp-zero-meta-text{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;color:var(--v-ink,#005852);font-weight:900}
 @media(max-width:520px){.ssc-comp-zero-axis{grid-template-columns:54px minmax(0,1fr) 75px;gap:4px;margin-left:0}}
+
+/* Ícones vetoriais de eficiência nas tabelas — legíveis em desktop e mobile */
+.eff.ssc-eff-icon{display:inline-grid;place-items:center;width:25px;height:25px;vertical-align:middle;border-radius:8px;box-sizing:border-box;border:1px solid;box-shadow:inset 0 1px 0 rgba(255,255,255,.55);background:transparent}
+.eff.ssc-eff-icon svg{width:17px;height:17px;display:block}
+.eff.ssc-eff-icon.ok{color:#087F66;background:#E0F5ED;border-color:#92DCC5}
+.eff.ssc-eff-icon.warn{color:#A66B0A;background:#FFF1CE;border-color:#E7CD88}
+.eff.ssc-eff-icon.bad{color:#BC3945;background:#FBE6E8;border-color:#EAB1B7}
+body.v50-dark .eff.ssc-eff-icon.ok{background:#123D35;border-color:#26775F;color:#55E0B5}
+body.v50-dark .eff.ssc-eff-icon.warn{background:#47320D;border-color:#90641E;color:#FFD173}
+body.v50-dark .eff.ssc-eff-icon.bad{background:#462025;border-color:#8D414A;color:#FF9FA6}
+
 </style>
 </head>
 
@@ -3567,23 +3578,16 @@ function isRowOnTarget(row){
 }
 
 function renderEfficiency(row){
-  const valor = String(
-    row?.["Eficiência"] ?? ""
-  ).trim();
-
-  if(valor === "✅"){
-    return `<span class="eff ok">✓</span>`;
-  }
-
-  if(valor === "⚠️"){
-    return `<span class="eff warn">!</span>`;
-  }
-
-  if(valor === "❌"){
-    return `<span class="eff bad">×</span>`;
-  }
-
-  return "";
+  const valor=String(row?.["Eficiência"]??"").trim();
+  const map={
+    "✅":{state:"ok",label:"Meta atingida",path:'<path d="M5 12.3 10 17l9-10"/>'},
+    "⚠️":{state:"warn",label:"Atenção: desempenho parcial",path:'<path d="M12 6.5v7.5"/><circle cx="12" cy="17.7" r="1" fill="currentColor" stroke="none"/>'},
+    "❌":{state:"bad",label:"Meta não atingida",path:'<path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/>'}
+  };
+  const item=map[valor];
+  if(!item)return "";
+  return '<span class="eff ssc-eff-icon '+item.state+'" role="img" aria-label="'+item.label+'" title="'+item.label+'">'+
+    '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">'+item.path+'</svg></span>';
 }
 
 function rowsFor(region,coord){
@@ -4550,71 +4554,94 @@ function v41GoTo(id){const el=document.getElementById(id);if(el)el.scrollIntoVie
 function v41MultiRegionBars(series,formatter,W,opts){
   opts=opts||{};
   const isScore=formatter==='score',isReal=formatter==='real';
+  const regions=series.length,byRegion=regions>=3;
   const periods=[...new Set(series.flatMap(se=>se.points.map(p=>p.label)))];
   if(!periods.length)return '<div class="empty-state">Sem dados disponíveis.</div>';
-  const count=series.length;
-  const H=290,top=35,bottom=H-50,L=60,R=W-14,innerW=R-L;
   const format=v=>isScore?v41Num(v):isReal?execFmt(v,opts.indicator||''):(v*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
   const rule=isScore?{ref:V41_META,lowerBetter:false}:v42IndOpts(opts.indicator||'',opts.coordenacao||'');
-  const meta=opts.ref??(isScore?V41_META:rule.ref??1);
+  const ref=opts.ref??(isScore?V41_META:rule.ref??1);
   const all=series.flatMap(se=>se.points.flatMap(p=>isReal?[p.value,p.meta]:[p.value])).filter(Number.isFinite);
   if(!all.length)return '<div class="empty-state">Sem dados disponíveis.</div>';
-  const minData=Math.min(...all),maxData=Math.max(...all);
-  const lo=Math.min(0,minData<0?minData*1.05:0);
-  const hi=Math.max(meta*1.12,maxData*1.11,1e-9);
-  const y=v=>bottom-(v-lo)/(hi-lo)*(bottom-top);
-  const yZero=y(0);
-  const group=innerW/periods.length;
-  const gap=Math.max(2,Math.min(6,group*.025));
-  const barW=Math.max(3,Math.min(38,(group-12-count*gap)/count));
-  const paletteGood=['#009B91','#007F77','#16B8AA','#006A64','#45CFC2'];
-  const paletteBad=['#F5AA41','#EB8C0A','#D97B13','#FFBC66','#C96912'];
-  const good=(v,planned)=>{
-    if(!Number.isFinite(v))return null;
+  const H=310,top=54,bottom=H-44,L=byRegion?15:60,R=byRegion?W-112:W-14;
+  const lo=Math.min(0,Math.min(...all)<0?Math.min(...all)*1.05:0);
+  const hi=Math.max(ref*1.14,Math.max(...all)*1.16,1e-9);
+  const y=v=>bottom-(v-lo)/(hi-lo)*(bottom-top),yZero=y(0);
+  const group=(R-L)/periods.length,gap=Math.max(2,Math.min(6,group*.026));
+  const barW=Math.max(3,Math.min(38,(group-12-regions*gap)/regions));
+  const goodColors=['#009B91','#007F77','#16B8AA','#006A64','#45CFC2'];
+  const badColors=['#F5AA41','#EB8C0A','#D97B13','#FFBC66','#C96912'];
+  const distinct=['#009B91','#DE8C24','#3977B6','#8257B6','#B85478'];
+  const colorOf=name=>distinct[Math.max(0,REGION_ORDER.indexOf(name))%distinct.length];
+  const good=(value,planned)=>{
+    if(!Number.isFinite(value))return null;
     if(isReal){
       if(!Number.isFinite(planned)||Math.abs(planned)<1e-12)return null;
-      const ratio=v/planned;
+      const ratio=value/planned;
       return rule.lowerBetter?ratio<=rule.ref+1e-9:
-        ratio>=rule.ref-1e-9 && (rule.upperRef===undefined||rule.upperRef===null||ratio<rule.upperRef-1e-9);
+        ratio>=rule.ref-1e-9&&(rule.upperRef==null||ratio<rule.upperRef-1e-9);
     }
-    return rule.lowerBetter?v<=meta+1e-9:
-      (v>=meta-1e-9 && (rule.upperRef===undefined||rule.upperRef===null||v<rule.upperRef-1e-9));
+    return rule.lowerBetter?value<=ref+1e-9:
+      value>=ref-1e-9&&(rule.upperRef==null||value<rule.upperRef-1e-9);
   };
-  let svg='<svg class="ssc-multi-bars" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Barras temporais agrupadas por Região, com cores segundo atingimento da meta">';
-  for(let i=0;i<=4;i++){
-    const tick=lo+(hi-lo)*i/4,yy=y(tick);
-    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="var(--v-line,#dfe9e6)" stroke-width="1"/>'+
-      '<text x="'+(L-7)+'" y="'+(yy+3).toFixed(2)+'" text-anchor="end" font-size="10" fill="var(--v-muted,#698780)">'+svgTextEscape(format(tick))+'</text>';
+  let svg='<svg class="ssc-multi-bars" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Comparação temporal das Regionais por barras">';
+  if(!byRegion){
+    for(let i=0;i<=4;i++){
+      const tick=lo+(hi-lo)*i/4,yy=y(tick);
+      svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="var(--v-line,#dfe9e6)" stroke-width="1"/>'+
+        '<text x="'+(L-7)+'" y="'+(yy+3).toFixed(2)+'" text-anchor="end" font-size="10" fill="var(--v-muted,#698780)">'+svgTextEscape(format(tick))+'</text>';
+    }
+  }else{
+    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yZero.toFixed(2)+'" y2="'+yZero.toFixed(2)+'" stroke="var(--v-line,#dfe9e6)" stroke-width="1.2"/>';
   }
   if(!isReal){
-    const yy=y(meta);
-    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="#617d76" stroke-width="1.6" stroke-dasharray="5 4"/>'+
-      '<text x="'+(R-3)+'" y="'+Math.max(12,yy-6).toFixed(2)+'" font-size="10" text-anchor="end" font-weight="800" fill="#617d76">Meta '+svgTextEscape(format(meta))+'</text>';
+    const yy=y(ref);
+    svg+='<line x1="'+L+'" x2="'+R+'" y1="'+yy.toFixed(2)+'" y2="'+yy.toFixed(2)+'" stroke="#657A75" stroke-width="1.6" stroke-dasharray="5 4"/>'+
+      '<text x="'+(byRegion?R+9:R-3)+'" y="'+(byRegion?Math.max(12,yy+3):Math.max(12,yy-6)).toFixed(2)+'" font-size="10" text-anchor="'+(byRegion?'start':'end')+'" font-weight="800" fill="var(--v-ink,#36554d)">Meta '+svgTextEscape(format(ref))+'</text>';
   }
   periods.forEach((period,pi)=>{
     const center=L+group*(pi+.5);
-    svg+='<text x="'+center.toFixed(2)+'" y="'+(H-24)+'" text-anchor="middle" font-size="11" font-weight="750" fill="var(--v-ink,#173d39)">'+svgTextEscape(v41ShortMonth(period))+'</text>';
+    svg+='<text x="'+center.toFixed(2)+'" y="'+(H-17)+'" text-anchor="middle" font-size="11" font-weight="750" fill="var(--v-ink,#173d39)">'+svgTextEscape(v41ShortMonth(period))+'</text>';
     series.forEach((se,ri)=>{
       const p=se.points.find(q=>q.label===period);
       if(!p||!Number.isFinite(p.value))return;
       const v=p.value,target=Number.isFinite(p.meta)?p.meta:null;
       const pass=good(v,target);
-      const color=pass===null?'#94A3A8':pass?paletteGood[ri%paletteGood.length]:paletteBad[ri%paletteBad.length];
-      const px=center-((barW+gap)*count-gap)/2+ri*(barW+gap),yy=y(v),by=Math.min(yy,yZero),height=Math.max(1,Math.abs(yZero-yy));
+      const color=byRegion?colorOf(se.name):pass===null?'#94A3A8':pass?goodColors[ri%goodColors.length]:badColors[ri%badColors.length];
+      const px=center-((barW+gap)*regions-gap)/2+ri*(barW+gap),cx=px+barW/2,yy=y(v),by=Math.min(yy,yZero),height=Math.max(1,Math.abs(yZero-yy));
       const tip=se.name+' · '+v41ShortMonth(period)+'\nRealizado: '+format(v)+(isReal?'\nMeta: '+(target===null?'—':format(target)):'')+'\n'+(pass===null?'Sem referência':pass?'Dentro da meta':'Fora da meta');
       svg+='<g class="chart-mark" data-tooltip="'+attrEscape(tip)+'" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()">'+
         '<rect x="'+px.toFixed(2)+'" y="'+by.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+height.toFixed(2)+'" rx="3" fill="'+color+'"/>'+
-        '<rect x="'+(px-3).toFixed(2)+'" y="'+Math.max(top,by-6).toFixed(2)+'" width="'+(barW+6).toFixed(2)+'" height="'+(height+9).toFixed(2)+'" fill="transparent"/>'+
+        '<rect x="'+(px-3).toFixed(2)+'" y="'+Math.max(top,by-7).toFixed(2)+'" width="'+(barW+6).toFixed(2)+'" height="'+(height+14).toFixed(2)+'" fill="transparent"/>'+
         '</g>';
-      if(barW>=16 && count<=4){
-        svg+='<text x="'+(px+barW/2).toFixed(2)+'" y="'+Math.max(20,by-6).toFixed(2)+'" font-size="9" text-anchor="middle" font-weight="750" fill="'+color+'">'+svgTextEscape(format(v))+'</text>';
+      // Rótulos verticais em TODAS as barras multirregionais; dentro quando cabe, fora quando curtas.
+      const inside=height>=Math.max(52,format(v).length*5.2+12);
+      const ly=inside?by+height/2:Math.max(19,by-16);
+      svg+='<text transform="rotate(-90 '+cx.toFixed(2)+' '+ly.toFixed(2)+')" x="'+cx.toFixed(2)+'" y="'+ly.toFixed(2)+'" font-size="9.3" text-anchor="middle" font-weight="850" fill="'+(inside?'#FFFFFF':color)+'" paint-order="stroke" stroke="'+(inside?'none':'#FFFFFF')+'" stroke-width="2.5">'+svgTextEscape(format(v))+'</text>';
+      if(byRegion&&pass===true){
+        const cy=Math.max(11,by-9);
+        svg+='<g transform="translate('+cx.toFixed(2)+' '+cy.toFixed(2)+')" aria-label="Meta atingida">'+
+          '<circle r="7.5" fill="#008B65" stroke="#fff" stroke-width="1.3"/>'+
+          '<path d="M-3 0 L-0.7 2.4 L3.7 -2.5" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></g>';
+      }
+      if(byRegion&&isReal&&target!==null){
+        // Em valor real cada regional tem sua própria meta. Marcá-la na barra, sem meta comum fictícia.
+        const my=y(target);
+        svg+='<line x1="'+(px-2).toFixed(2)+'" x2="'+(px+barW+2).toFixed(2)+'" y1="'+my.toFixed(2)+'" y2="'+my.toFixed(2)+'" stroke="#314E47" stroke-width="1.5" stroke-dasharray="3 2"/>';
       }
     });
     if(pi<periods.length-1)svg+='<line x1="'+(L+group*(pi+1)).toFixed(2)+'" x2="'+(L+group*(pi+1)).toFixed(2)+'" y1="'+top+'" y2="'+bottom+'" stroke="var(--v-line,#e4ece9)" stroke-dasharray="2 5"/>';
   });
+  if(byRegion&&isReal){
+    svg+='<text x="'+(R+7)+'" y="'+(top+12)+'" font-size="9.6" font-weight="800" fill="var(--v-ink,#36554d)">Meta por</text>'+
+      '<text x="'+(R+7)+'" y="'+(top+24)+'" font-size="9.6" font-weight="800" fill="var(--v-ink,#36554d)">Regional</text>';
+  }
   svg+='</svg>';
-  const leg=series.map((se,i)=>'<span class="ssc-multi-legend-item"><i style="background:'+paletteGood[i%paletteGood.length]+'"></i><i style="background:'+paletteBad[i%paletteBad.length]+'"></i>'+svgTextEscape(se.name)+'</span>').join('');
-  return '<div class="ssc-multi-chart">'+svg+'<div class="ssc-multi-legend">'+leg+'</div><p class="ssc-multi-note">Verde: dentro da meta · Laranja: fora da meta · Passe o cursor ou toque para identificar Região, mês e valor.</p></div>';
+  const legend=series.map((se,i)=>byRegion
+    ?'<span class="ssc-multi-legend-item"><i style="background:'+colorOf(se.name)+'"></i>'+svgTextEscape(se.name)+'</span>'
+    :'<span class="ssc-multi-legend-item"><i style="background:'+goodColors[i%goodColors.length]+'"></i><i style="background:'+badColors[i%badColors.length]+'"></i>'+svgTextEscape(se.name)+'</span>').join('');
+  const note=byRegion?'Cor exclusiva por Regional · ✓ verde indica meta atingida · Rótulos verticais.':
+    'Verde: dentro da meta · Laranja: fora da meta · Rótulos verticais.';
+  return '<div class="ssc-multi-chart">'+svg+'<div class="ssc-multi-legend">'+legend+'</div><p class="ssc-multi-note">'+note+'</p></div>';
 }
 function v41MountCharts(){
   document.querySelectorAll(".v41-lc").forEach(el=>{
