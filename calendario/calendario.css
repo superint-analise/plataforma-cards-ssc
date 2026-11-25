@@ -88,3 +88,45 @@
 @media(max-width:1080px){#view-calendario .cal-month-layout{grid-template-columns:1fr}#view-calendario .cal-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#view-calendario .cal-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){#view-calendario .cal-headline{padding:16px}#view-calendario .cal-headline h1{font-size:19px}#view-calendario .cal-metrics{gap:7px}#view-calendario .cal-metric{padding:10px}#view-calendario .cal-day{min-height:70px;padding:4px 2px}#view-calendario .cal-day-num{width:20px;height:20px;font-size:10px}#view-calendario .cal-event{font-size:0;height:7px;padding:0;border-radius:5px}#view-calendario .cal-fields{grid-template-columns:1fr}#view-calendario .cal-catalog{grid-template-columns:1fr}}
 @media print{body.cal-print .sidebar,body.cal-print .su-toolbar,body.cal-print .ssc-mobile-header,body.cal-print .cal-actions,body.cal-print .cal-tabs,body.cal-print .cal-month,body.cal-print #view-calendario .cal-headline{display:none!important}body.cal-print .main{padding:0!important}body.cal-print .view-section:not(#view-calendario){display:none!important}body.cal-print #view-calendario{display:block!important}body.cal-print #view-calendario .cal-metrics{display:none}body.cal-print #view-calendario .cal-panel{box-shadow:none}body.cal-print #view-calendario .cal-week-scroll,body.cal-print #view-calendario .cal-one-scroll{overflow:visible}body.cal-print #view-calendario .cal-week{min-width:0}body.cal-print #view-calendario .cal-week-day{padding:5px}body.cal-print #view-calendario .cal-onepage{min-width:0;print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+
+
+/* Calendário: grupo expansível na navegação principal — cinco páginas independentes */
+.sidebar .side-nav{overflow-y:auto;scrollbar-width:thin;overscroll-behavior-y:contain;max-height:calc(100vh - 182px)}
+.sidebar .cal-sidebar-group{display:block;width:100%;min-width:0}
+.sidebar .cal-sidebar-parent{width:100%;border:0;background:rgba(255,255,255,.07);color:#d9f5ed;cursor:pointer;position:relative;font:inherit;text-align:left;border-left:5px solid rgba(80,235,225,.26)}
+.sidebar .cal-sidebar-group.cal-current>.cal-sidebar-parent,.sidebar .cal-sidebar-group.expanded>.cal-sidebar-parent{background:rgba(80,235,225,.15);color:#fff;border-left-color:#50ebe1}
+.sidebar .cal-sidebar-chevron{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .18s;margin-left:auto;flex:0 0 auto}
+.sidebar .cal-sidebar-group.expanded .cal-sidebar-chevron{transform:rotate(180deg)}
+.sidebar .cal-sidebar-children{display:grid;gap:3px;padding:5px 6px 8px 21px;background:rgba(0,35,31,.16)}
+.sidebar .cal-sidebar-children[hidden]{display:none!important}
+.sidebar .cal-sidebar-child{display:flex;align-items:center;gap:9px;width:100%;height:auto;min-height:37px;padding:9px 10px 9px 13px;border:0;border-left:2px solid rgba(255,255,255,.20);background:transparent;text-align:left;font:inherit;font-size:11px;color:#d5eae3;cursor:pointer;border-radius:0 8px 8px 0}
+.sidebar .cal-sidebar-child:hover{background:rgba(255,255,255,.08)}
+.sidebar .cal-sidebar-child.active{border-left:3px solid #50ebe1;background:rgba(80,235,225,.17);color:#fff;font-weight:850}
+.sidebar .cal-child-dot{display:inline-block;width:6px;height:6px;background:rgba(191,230,219,.65);border-radius:50%;flex:0 0 6px}
+.sidebar .cal-sidebar-child.active .cal-child-dot{background:#50ebe1}
+#view-calendario .cal-tabs{display:none!important}
+@media screen and (min-width:901px){
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-group{position:relative}
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-parent{font-size:0!important;padding:0!important;height:44px!important;min-height:44px!important;display:flex;justify-content:center;border-radius:10px;margin:4px 0}
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-chevron{display:none}
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-children{position:fixed;left:77px;top:170px;z-index:1000;width:238px;border:1px solid rgba(80,235,225,.26);border-radius:12px;padding:9px;background:#064c44;box-shadow:0 10px 34px rgba(0,0,0,.25)}
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-child{font-size:11px!important;justify-content:flex-start!important;height:auto!important;min-height:37px!important;padding:9px 10px!important;overflow:visible;white-space:normal}
+  .app.ssc-sidebar-collapsed .sidebar .cal-sidebar-child .ssc-nav-label{display:inline!important}
+}
+@media screen and (max-width:900px){
+  .sidebar .side-nav{max-height:none;overflow-x:auto!important;overflow-y:hidden!important}
+  .sidebar .cal-sidebar-group{flex:1 0 84px;min-width:84px;max-width:112px;position:static}
+  .sidebar .cal-sidebar-parent{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;width:100%!important;height:62px!important;min-height:62px!important;padding:5px!important;border:0!important;border-radius:11px!important;text-align:center;font-size:10px!important}
+  .sidebar .cal-sidebar-chevron{display:none}
+  .sidebar .cal-sidebar-children{position:fixed;left:10px;right:10px;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:710;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px;background:#06483f;border:1px solid rgba(80,235,225,.36);border-radius:14px;box-shadow:0 9px 30px rgba(0,0,0,.35);max-height:70dvh;overflow-y:auto}
+  .sidebar .cal-sidebar-child,.sidebar .cal-sidebar-child.active{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;min-width:0!important;max-width:none!important;width:100%!important;height:auto!important;min-height:45px!important;padding:9px!important;border-radius:9px!important;text-align:left;font-size:11px!important}
+  .sidebar .cal-sidebar-child .ssc-nav-label{display:inline!important;white-space:normal!important;font-size:11px!important}
+}
+@media screen and (max-width:390px){
+  .sidebar .cal-sidebar-children{grid-template-columns:1fr}
+}
+@media print{
+  body.cal-print .view-section:not(.cal-page){display:none!important}
+  body.cal-print .cal-page{display:none!important}
+  body.cal-print .cal-page.active{display:block!important}
+}
