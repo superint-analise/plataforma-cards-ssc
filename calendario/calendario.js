@@ -84,7 +84,7 @@ export async function mountCalendar({db,perfil,navegar}){
   return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Cronograma detalhado</h3><p>Dados de reporte, responsáveis, status e observações.</p></div><div class="cal-bar">'+(admin?'<button class="cal-btn" data-ca="copy">Copiar para próximo mês</button><button class="cal-btn primary" data-ca="new">+ Report</button>':'')+'</div></div><div class="cal-table-scroll"><table><thead><tr><th>REPORT / MATERIAL</th><th>TIPO / PERÍODO</th><th>DATA DO REPORT</th><th>RESPONSÁVEL</th><th>CONCLUÍDO</th><th>OBSERVAÇÕES / ORIENTAÇÕES</th>'+(admin?'<th>AÇÕES</th>':'')+'</tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td><strong>'+esc(r.name)+'</strong><small>'+esc(r.category)+' · '+esc(r.frequency)+'</small></td><td>'+esc(r.info_type)+'<small>'+esc(r.period_start?fmt(r.period_start):'')+(r.period_end?' até '+fmt(r.period_end):'')+'</small></td><td>'+fmt(r.publish_due)+'</td><td>'+esc(r.info_owner||'A definir')+'</td><td>'+badge(r)+(admin?'<div><label style="font-size:10px"><input type="checkbox" data-cal-done="'+r.id+'" '+(r.done?'checked':'')+'> Feito</label></div>':'')+'</td><td style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:260px">'+esc(r.notes||'—')+'</td>'+(admin?'<td>'+edit(r)+'</td>':'')+'</tr>').join(''):'<tr><td colspan="7" style="text-align:center;padding:30px">Nenhum report encontrado.</td></tr>')+'</tbody></table></div></div>';
  }
  function onepage(){const rs=filtered();return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>One Page da Agenda</h3><p>Visão executiva para impressão / PDF.</p></div><button class="cal-btn primary" data-ca="print">Gerar PDF</button></div><div class="cal-one-scroll"><div class="cal-onepage"><small>SSC · AGENDA EXECUTIVA</small><h2>'+esc(monthText(state.month))+'</h2><p>'+rs.length+' entregas · '+rs.filter(r=>r.done).length+' concluídas</p><table><thead><tr><th>DATA</th><th>REPORT</th><th>RESPONSÁVEL</th><th>OBSERVAÇÕES</th><th>STATUS</th></tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td>'+fmt(r.publish_due)+'</td><td><strong>'+esc(r.name)+'</strong><small>'+esc(r.category)+'</small></td><td>'+esc(r.info_owner||'A definir')+'</td><td style="white-space:pre-wrap">'+esc(r.notes||'—')+'</td><td>'+esc(status(r)[1])+'</td></tr>').join(''):'<tr><td colspan="5">Sem entregas no período.</td></tr>')+'</tbody></table></div></div></div>'}
- function catalog(){return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Catálogo de Reports</h3><p>Modelos de entregas recorrentes.</p></div></div><div class="cal-catalog">'+models.map((m,i)=>'<div class="cal-catalog-card"><strong>'+esc(m[0])+'</strong><p>'+esc(m[4])+'</p><small>'+esc(m[1])+' · '+esc(m[2])+'</small>'+(admin?'<button class="cal-btn" data-ca="template" data-index="'+i+'">+ Adicionar</button>':'')+'</div>').join('')+'</div></div>'}
+ function catalog(){return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Catálogo de Reports</h3><p>Modelos de entregas recorrentes.</p></div>'+(admin?'<button class="cal-btn primary" data-ca="loadmodels">Carregar modelos no mês</button>':'')+'</div><div class="cal-catalog">'+models.map((m,i)=>'<div class="cal-catalog-card"><strong>'+esc(m[0])+'</strong><p>'+esc(m[4])+'</p><small>'+esc(m[1])+' · '+esc(m[2])+'</small>'+(admin?'<button class="cal-btn" data-ca="template" data-index="'+i+'">+ Adicionar</button>':'')+'</div>').join('')+'</div></div>'}
  function render(){
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
@@ -168,6 +168,17 @@ export async function mountCalendar({db,perfil,navegar}){
  async function del(){if(!admin||!state.edit)return;const r=state.data.find(x=>x.id===state.edit);if(!r||!confirm('Excluir o report "'+r.name+'"?'))return;
    const {error}=await db.from('ssc_agenda_reports').delete().eq('id',r.id);if(error)return note('Erro ao excluir: '+error.message,true);close();await load();}
  async function done(id,checked){if(!admin)return;const {error}=await db.from('ssc_agenda_reports').update({done:checked,updated_at:new Date().toISOString()}).eq('id',id);if(error)return note('Erro ao atualizar: '+error.message,true);await load();}
+ async function loadModels(){
+   if(!admin)return;
+   const registered=new Set(rows().map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
+   const pending=models.filter(m=>!registered.has(m[0].toLocaleLowerCase('pt-BR').trim()));
+   if(!pending.length)return note('Todos os modelos do catálogo já estão cadastrados neste mês.');
+   if(!confirm('Adicionar '+pending.length+' modelos a '+monthText(state.month)+'? Os prazos ficarão em branco.'))return;
+   const data=pending.map(m=>({report_month:state.month,name:m[0],category:m[1],frequency:m[2],info_type:m[3],info_owner:'',period_start:null,period_end:null,publish_due:null,recurring:false,done:false,notes:''}));
+   const {error}=await db.from('ssc_agenda_reports').insert(data);
+   if(error)return note('Falha ao carregar modelos: '+error.message,true);
+   await load();note(data.length+' modelos adicionados sem duplicação.');
+ }
  async function copyNext(){if(!admin||state.month!==current)return;const arr=rows();if(!arr.length)return note('Nenhum report para copiar.');
    if(!confirm('Copiar '+arr.length+' reports para '+monthText(next)+'? Datas e checks serão limpos.'))return;
    const existing=new Set(state.data.filter(r=>r.report_month===next).map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
@@ -193,6 +204,7 @@ export async function mountCalendar({db,perfil,navegar}){
   if(act==='close')close();
   if(act==='delete')del();
   if(act==='copy')copyNext();
+  if(act==='loadmodels')loadModels();
  });
  panel.addEventListener('change',e=>{
   if(e.target.id==='calMonthPicker'){state.month=e.target.value;state.day=state.month+'-01';state.week=iso(monday(state.day));render()}
