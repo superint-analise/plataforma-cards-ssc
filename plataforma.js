@@ -78,6 +78,11 @@ async function iniciar(){
   document.body.classList.add('auth-ok');auth.style.display='none';
   await trocarCompetencia(competencia);
   montarSecoes(comps);
+  // Calendário SSC: código e tabela próprios, sem interferir na lógica dos Cards.
+  try{
+    const {mountCalendar}=await import('./calendario/calendario.js?v=20261125-v1');
+    await mountCalendar({db,perfil,navegar});
+  }catch(calendarError){console.error('Falha isolada ao iniciar Calendário SSC:',calendarError)}
 }
 async function trocarCompetencia(comp){
   competencia=comp;
