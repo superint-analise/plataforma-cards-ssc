@@ -109,9 +109,22 @@ export async function mountCalendar({db,perfil,navegar}){
    field('period_start','Referência início','date',r.period_start)+field('period_end','Referência fim','date',r.period_end)+
    field('publish_due','Data do report','date',r.publish_due)+field('info_owner','Responsável','text',r.info_owner,'maxlength="100"')+
    check('recurring','Recorrente',r.recurring)+check('done','Concluído',r.done)+
+   (!record?'<div class="cal-field wide" id="calDailyExtra" hidden><label>Datas sem expediente (opcional, DD/MM/AAAA separadas por vírgula)</label><input name="excluded_days" type="text" placeholder="Ex.: 02/11/2026, 25/12/2026"><small>Diário: gera uma ocorrência por dia útil entre as datas de referência.</small></div>':'')+
    '<div class="cal-field wide"><label>Observações e orientações</label><textarea name="notes" rows="4" maxlength="1800">'+esc(r.notes)+'</textarea></div></div>'+
    '<footer>'+(record?'<button type="button" class="cal-btn danger" data-ca="delete">Excluir report</button>':'<span></span>')+'<div class="cal-bar"><button type="button" class="cal-btn" data-ca="close">Cancelar</button><button type="submit" class="cal-btn primary">Salvar</button></div></footer></form></div>';
   document.body.style.overflow='hidden';$('calForm').addEventListener('submit',saveForm);
+  if(!record){
+    const form=$('calForm'),syncDaily=()=>{
+      const daily=form.elements.namedItem('frequency').value==='Diário';
+      $('calDailyExtra').hidden=!daily;
+      form.elements.namedItem('publish_due').disabled=daily;
+      form.elements.namedItem('period_start').required=daily;
+      form.elements.namedItem('period_end').required=daily;
+      if(daily)form.elements.namedItem('recurring').checked=true;
+    };
+    form.elements.namedItem('frequency').addEventListener('change',syncDaily);
+    syncDaily();
+  }
  }
  async function saveForm(event){
   event.preventDefault();if(!admin)return;
@@ -122,11 +135,33 @@ export async function mountCalendar({db,perfil,navegar}){
     period_start:v.period_start||null,period_end:v.period_end||null,publish_due:v.publish_due||null,info_owner:(v.info_owner||'').trim(),
     recurring:f.has('recurring'),done:f.has('done'),notes:(v.notes||'').trim(),updated_at:new Date().toISOString()};
   if(!data.name)return note('Informe o nome do report.',true);
+  if(!state.edit && data.frequency!=='Diário' && data.publish_due && data.publish_due.slice(0,7)!==data.report_month){
+    return note('A data do report deve pertencer ao mês selecionado.',true);
+  }
+  let batch=null;
+  if(!state.edit&&data.frequency==='Diário'){
+    if(!data.period_start||!data.period_end)return note('Informe o início e o fim do período diário.',true);
+    const excluded=new Set();
+    for(const text of (v.excluded_days||'').split(/[;,\s]+/).filter(Boolean)){
+      const match=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+      const day=match?match[3]+'-'+match[2]+'-'+match[1]:text;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||iso(date(day))!==day)return note('Data sem expediente inválida: '+text,true);
+      excluded.add(day);
+    }
+    const dates=[];
+    for(let d=date(data.period_start);iso(d)<=data.period_end;d=offset(d,1)){
+      const day=iso(d);
+      if(allowed(day.slice(0,7))&&d.getDay()>=1&&d.getDay()<=5&&!excluded.has(day))dates.push(day);
+      if(dates.length>65)return note('Período diário excede a janela operacional permitida.',true);
+    }
+    if(!dates.length)return note('Nenhum dia útil disponível no período.',true);
+    batch=dates.map(day=>({...data,report_month:day.slice(0,7),publish_due:day,done:false,recurring:true}));
+  }
   btn.disabled=true;
   try{
-    const req=state.edit?db.from('ssc_agenda_reports').update(data).eq('id',state.edit):db.from('ssc_agenda_reports').insert(data);
+    const req=state.edit?db.from('ssc_agenda_reports').update(data).eq('id',state.edit):db.from('ssc_agenda_reports').insert(batch||data);
     const {error}=await req;if(error)throw error;
-    state.month=data.report_month;close();await load();note('Report salvo no Supabase.');
+    state.month=batch?batch[0].report_month:data.report_month;close();await load();note(batch?batch.length+' entregas diárias salvas no Supabase.':'Report salvo no Supabase.');
   }catch(e){note('Erro ao salvar report: '+(e.message||e),true)}
   finally{btn.disabled=false}
  }
@@ -135,7 +170,9 @@ export async function mountCalendar({db,perfil,navegar}){
  async function done(id,checked){if(!admin)return;const {error}=await db.from('ssc_agenda_reports').update({done:checked,updated_at:new Date().toISOString()}).eq('id',id);if(error)return note('Erro ao atualizar: '+error.message,true);await load();}
  async function copyNext(){if(!admin||state.month!==current)return;const arr=rows();if(!arr.length)return note('Nenhum report para copiar.');
    if(!confirm('Copiar '+arr.length+' reports para '+monthText(next)+'? Datas e checks serão limpos.'))return;
-   const data=arr.map(r=>({report_month:next,name:r.name,category:r.category,frequency:r.frequency,info_type:r.info_type,info_owner:r.info_owner,period_start:null,period_end:null,publish_due:null,recurring:r.recurring,done:false,notes:''}));
+   const existing=new Set(state.data.filter(r=>r.report_month===next).map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
+   const data=arr.filter(r=>!existing.has(r.name.toLocaleLowerCase('pt-BR').trim())).map(r=>({report_month:next,name:r.name,category:r.category,frequency:r.frequency,info_type:r.info_type,info_owner:r.info_owner,period_start:null,period_end:null,publish_due:null,recurring:r.recurring,done:false,notes:''}));
+   if(!data.length)return note('Todos os modelos já existem no próximo mês; nenhuma duplicação realizada.');
    const {error}=await db.from('ssc_agenda_reports').insert(data);if(error)return note('Falha na cópia: '+error.message,true);state.month=next;await load();}
  function print(){document.body.classList.add('cal-print');const end=()=>document.body.classList.remove('cal-print');window.addEventListener('afterprint',end,{once:true});window.print();setTimeout(end,1800)}
  panel.addEventListener('click',e=>{
