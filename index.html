@@ -6196,6 +6196,8 @@ function v50Radar(region){
   if(prev.some(Number.isFinite))s+=`<polygon points="${poly(prev)}" class="v50-rad-prev"/>`;
   s+=`<polygon points="${poly(now)}" class="v50-rad-now"/>`;
   coords.forEach((c,i)=>{
+    // O terceiro vértice do Vale é apenas estrutural: não exibir ponto nem rótulo "0".
+    if(valeTriangulo && !c)return;
     const [x,y]=pt(i,now[i]),[lx,ly]=pt(i,hi+(hi-lo)*.2),anchor=Math.abs(lx-cx)<8?"middle":lx>cx?"start":"end";
     s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="${now[i]>=V41_META?"v50-rad-dot ok":"v50-rad-dot bad"}"/>`;
     s+=`<text x="${lx.toFixed(1)}" y="${(ly-4).toFixed(1)}" text-anchor="${anchor}" class="v50-rad-lbl">${short(c)}</text><text x="${lx.toFixed(1)}" y="${(ly+12).toFixed(1)}" text-anchor="${anchor}" class="v50-rad-val ${now[i]>=V41_META?"ok":"bad"}">${formatScore(now[i])}</text>`;
