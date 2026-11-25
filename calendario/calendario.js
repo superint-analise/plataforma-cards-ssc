@@ -37,17 +37,72 @@ export async function mountCalendar({db,perfil,navegar}){
  const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false};
  const nav=document.querySelector('.side-nav'),main=document.querySelector('.main');
  if(!nav||!main)throw Error('A estrutura principal da plataforma não foi encontrada.');
- const navButton=document.createElement('div');
- navButton.className='nav-item';navButton.dataset.view='calendario';navButton.title='Calendário';
- navButton.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M14 14h3M8 18h3"/></svg></span><span class="ssc-nav-label">Calendário</span>';
- nav.appendChild(navButton);
- const panel=document.createElement('section');panel.id='view-calendario';panel.className='view-section';
+ // O Calendário é um grupo de navegação com CINCO páginas reais (view-section).
+ // Apenas o conteúdo compartilhado é movimentado para a página selecionada.
+ const group=document.createElement('div');
+ group.className='cal-sidebar-group';
+ const navButton=document.createElement('button');
+ navButton.type='button';
+ navButton.className='nav-item cal-sidebar-parent';
+ navButton.title='Expandir ou recolher páginas do Calendário';
+ navButton.setAttribute('aria-expanded','false');
+ navButton.setAttribute('aria-controls','calSidebarChildren');
+ navButton.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M14 14h3M8 18h3"/></svg></span><span class="ssc-nav-label">Calendário</span><svg class="cal-sidebar-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+ const submenu=document.createElement('div');
+ submenu.id='calSidebarChildren';
+ submenu.className='cal-sidebar-children';
+ submenu.hidden=true;
+ const pages=new Map();
+ for(const [tab,label] of tabs){
+   const key='calendario-'+tab;
+   const item=document.createElement('button');
+   item.type='button';item.className='nav-item cal-sidebar-child';
+   item.dataset.view=key;
+   item.setAttribute('aria-label',label+' — Calendário');
+   item.title=label;
+   item.innerHTML='<span class="cal-child-dot" aria-hidden="true"></span><span class="ssc-nav-label">'+label+'</span>';
+   submenu.appendChild(item);
+   const page=document.createElement('section');
+   page.id='view-'+key;
+   page.className='view-section cal-page';
+   page.dataset.calendarPage=tab;
+   page.setAttribute('aria-label','Calendário — '+label);
+   main.appendChild(page);
+   pages.set(tab,page);
+ }
+ group.append(navButton,submenu);
+ nav.appendChild(group);
+ const panel=document.createElement('div');panel.id='view-calendario';panel.className='cal-module';
  panel.innerHTML='<div class="cal-headline"><div><div class="cal-kicker">SSC · GESTÃO DA INFORMAÇÃO</div><h1>Agenda de Reports</h1><p>Planejamento, responsabilidades e acompanhamento de entregas da Superintendência.</p></div><div class="cal-bar cal-actions"><small>'+(admin?'Administrador · edição habilitada':'Consulta · somente leitura')+'</small><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
  '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small style="color:#638079">Mês atual e próximo</small></div>'+
- '<div class="cal-tabs" role="tablist">'+tabs.map((t,i)=>'<button class="cal-tab'+(!i?' active':'')+'" role="tab" aria-selected="'+(!i)+'" data-cal-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div>'+
+
  '<div class="cal-bar" style="margin-bottom:12px"><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar" style="flex:1;min-width:180px;padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><select id="calCategory" aria-label="Frente de atuação" style="padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação" style="padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
  '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
- main.appendChild(panel);
+ pages.get(state.tab).appendChild(panel);
+ function expandGroup(yes){
+   const open=Boolean(yes);
+   group.classList.toggle('expanded',open);
+   navButton.setAttribute('aria-expanded',String(open));
+   submenu.hidden=!open;
+ }
+ function goToPage(tab){
+   if(!pages.has(tab))return;
+   state.tab=tab;
+   pages.get(tab).appendChild(panel);
+   navegar('calendario-'+tab);
+   group.classList.add('cal-current');
+   expandGroup(true);
+   render();
+   load();
+ }
+ navButton.addEventListener('click',()=>expandGroup(!group.classList.contains('expanded')));
+ submenu.querySelectorAll('.cal-sidebar-child').forEach((item,i)=>{
+   item.addEventListener('click',()=>goToPage(tabs[i][0]));
+ });
+ // Ao abrir outro módulo, só o submenu deixa de ter destaque, mas seu estado pode ser reaberto.
+ document.querySelectorAll('.side-nav > .nav-item').forEach(item=>{
+   item.addEventListener('click',()=>group.classList.remove('cal-current'));
+ });
  const rows=()=>state.data.filter(r=>r.report_month===state.month);
  const status=r=>r.done?['done','Concluído']:r.publish_due&&r.publish_due<today?['late','Com atraso']:r.recurring?['ongoing','Em andamento']:r.publish_due?['scheduled','Programado']:['unscheduled','A programar'];
  const filtered=()=>rows().filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes,r.category].join(' ').toLowerCase().includes(state.search.toLowerCase()))).sort((a,b)=>(a.publish_due||'9999').localeCompare(b.publish_due||'9999')||a.name.localeCompare(b.name,'pt-BR'));
@@ -88,7 +143,8 @@ export async function mountCalendar({db,perfil,navegar}){
  function render(){
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
-  panel.querySelectorAll('[data-cal-tab]').forEach(b=>{const active=b.dataset.calTab===state.tab;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
+  submenu.querySelectorAll('.cal-sidebar-child').forEach(item=>item.classList.toggle('active',item.dataset.view==='calendario-'+state.tab));
+  group.classList.toggle('cal-current',pages.get(state.tab)?.classList.contains('active')||false);
   metrics();$('calOutput').innerHTML=state.tab==='monthly'?monthly():state.tab==='weekly'?weekly():state.tab==='schedule'?schedule():state.tab==='onepage'?onepage():catalog();
  }
  const field=(name,title,type='text',value='',more='')=>'<div class="cal-field"><label for="calF_'+name+'">'+esc(title)+'</label><input id="calF_'+name+'" name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+more+'></div>';
@@ -187,7 +243,6 @@ export async function mountCalendar({db,perfil,navegar}){
    const {error}=await db.from('ssc_agenda_reports').insert(data);if(error)return note('Falha na cópia: '+error.message,true);state.month=next;await load();}
  function print(){document.body.classList.add('cal-print');const end=()=>document.body.classList.remove('cal-print');window.addEventListener('afterprint',end,{once:true});window.print();setTimeout(end,1800)}
  panel.addEventListener('click',e=>{
-  const tab=e.target.closest('[data-cal-tab]');if(tab){state.tab=tab.dataset.calTab;render();return}
   const day=e.target.closest('[data-cal-day]');if(day){state.day=day.dataset.calDay;render();return}
   const btn=e.target.closest('[data-ca]');if(!btn)return;const act=btn.dataset.ca;
   if(act==='prev'||act==='next'){state.month=advance(state.month,act==='prev'?-1:1);state.day=state.month+'-01';state.week=iso(monday(state.day));render();return}
@@ -213,6 +268,6 @@ export async function mountCalendar({db,perfil,navegar}){
   if(e.target.matches('[data-cal-done]')&&admin)done(e.target.dataset.calDone,e.target.checked);
  });
  panel.addEventListener('input',e=>{if(e.target.id==='calSearch'){state.search=e.target.value;render()}});
- navButton.addEventListener('click',async()=>{navegar('calendario');await load()});
+ // A primeira página será aberta a partir do menu lateral, após a autenticação.
  render();
 }
