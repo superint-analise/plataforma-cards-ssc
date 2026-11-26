@@ -80,7 +80,7 @@ async function iniciar(){
   montarSecoes(comps);
   // Calendário SSC: código e tabela próprios, sem interferir na lógica dos Cards.
   try{
-    const {mountCalendar}=await import('./calendario/calendario.js?v=20261126-calendar-persistence-v9');
+    const {mountCalendar}=await import('./calendario/calendario.js?v=20261126-calendar-view-v10');
     await mountCalendar({db,perfil,navegar});
   }catch(calendarError){console.error('Falha isolada ao iniciar Calendário SSC:',calendarError)}
 }
