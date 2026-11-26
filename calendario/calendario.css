@@ -516,3 +516,29 @@ body.v50-dark.ssc-calendar-active #view-calendario .cal-audience-superint{
 body.v50-dark.ssc-calendar-active #view-calendario .cal-audience-general{
   background:#E4F5F0!important;color:#006F62!important;border-color:#A9D6C9!important;
 }
+
+/* Ajustes finos do formulário e seletor de visibilidade — 26/11 */
+#view-calendario .cal-month{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap}
+#view-calendario .cal-month-visibility{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-left:auto;flex-wrap:wrap;min-width:0}
+#view-calendario .cal-segments{display:inline-flex;align-items:center;gap:3px;background:#EDF3F1;border:1px solid #BDD6CD;border-radius:10px;padding:4px;white-space:nowrap}
+#view-calendario .cal-segments button{background:transparent;border:1px solid transparent;color:#2C5C50;border-radius:7px;padding:7px 10px;font:700 11px "Segoe UI",Arial,sans-serif;cursor:pointer}
+#view-calendario .cal-segments button:hover{background:#E0F2EC}
+#view-calendario .cal-segments button.active{background:#0B3B37;color:#fff;box-shadow:0 2px 8px #06372f2b}
+#view-calendario .cal-month-visibility .cal-mode-label{font-weight:800;background:#E5F5EF;border-color:#A5D4C5;color:#095F51}
+#view-calendario .cal-general-only{font-size:11px;font-weight:700;color:#145F50}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-segments{background:#EDF3F1!important;color:#2C5C50!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-segments button{background:transparent!important;color:#2C5C50!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-segments button.active{background:#0B3B37!important;color:#fff!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-check strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-check span strong{color:#603D12!important;-webkit-text-fill-color:#603D12!important;opacity:1!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-check small{color:#74562D!important;-webkit-text-fill-color:#74562D!important}
+#view-calendario .cal-check-field{display:flex;align-items:stretch;justify-content:stretch;min-height:49px}
+#view-calendario .cal-check-row{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important;background:#F2F8F5;border:1px solid #C6DCD2;border-radius:11px;padding:12px 13px;width:100%;min-height:49px;cursor:pointer;line-height:1.25}
+#view-calendario .cal-check-row input[type="checkbox"],
+#view-calendario .cal-superint-check input[type="checkbox"]{flex:0 0 20px!important;width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;margin:0!important;padding:0!important;accent-color:#009B91!important;appearance:auto!important;-webkit-appearance:checkbox!important;position:static!important;opacity:1!important}
+#view-calendario .cal-check-row span{font-size:12px;font-weight:750;color:#204E42}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-check-row span{color:#204E42!important;-webkit-text-fill-color:#204E42!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-check-row{background:#F2F8F5!important;border-color:#C6DCD2!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-check{display:flex!important;flex-direction:row!important;align-items:center!important;gap:11px!important}
+@media(max-width:940px){#view-calendario .cal-month-visibility{margin-left:0;width:100%;justify-content:flex-end}}
+@media(max-width:580px){#view-calendario .cal-segments{overflow-x:auto;max-width:100%}#view-calendario .cal-segments button{font-size:10px;padding:6px}#view-calendario .cal-month-visibility{justify-content:flex-start}}
