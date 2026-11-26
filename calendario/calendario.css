@@ -130,3 +130,148 @@
   body.cal-print .cal-page{display:none!important}
   body.cal-print .cal-page.active{display:block!important}
 }
+
+
+/* ===== Calendário SSC 2026 · identidade visual aprimorada (escopo isolado) ===== */
+#view-calendario{
+ --cal-green:#009B91;--cal-dark:#0B3B37;--cal-orange:#F5AA41;
+ --cal-ink:#142C29;--cal-muted:#5E7A75;--cal-line:#DBE8E4;
+ --cal-surface:#fff;--cal-soft:#F3F8F6;
+ font-family:"Segoe UI",Inter,system-ui,-apple-system,Arial,sans-serif;
+ color:var(--cal-ink);
+}
+#view-calendario button,#view-calendario input,#view-calendario select,#view-calendario textarea{font-family:inherit}
+#view-calendario .cal-headline{
+ position:relative;isolation:isolate;overflow:hidden;min-height:194px;
+ display:flex;align-items:center;justify-content:space-between;gap:22px;
+ padding:23px 26px;background:linear-gradient(118deg,#041A17 0%,#0B3B37 39%,#006B63 77%,#009B91 100%);
+ border:1px solid rgba(100,226,211,.24);border-radius:18px;
+ box-shadow:0 18px 45px rgba(3,60,54,.17),inset 0 1px 0 #ffffff20;
+}
+#view-calendario .cal-headline::before{content:"";pointer-events:none;position:absolute;inset:0;background:radial-gradient(420px 250px at 72% -20%,#ffffff22,transparent 70%),radial-gradient(390px 250px at 100% 115%,#f5aa4140,transparent 73%);z-index:-1}
+#view-calendario .cal-headline::after{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,#009B91,#92EEE1,#F5AA41,transparent)}
+#view-calendario .cal-headline-art{position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.75}
+#view-calendario .cal-headline-art svg{width:100%;height:100%}
+#view-calendario .cal-headline-main{max-width:490px;min-width:200px}
+#view-calendario .cal-kicker{font-size:10px;font-weight:850;letter-spacing:.16em;color:#A6EFE2}
+#view-calendario .cal-headline h1{font-size:clamp(21px,2vw,28px);line-height:1.14;letter-spacing:-.04em;margin:10px 0 10px;color:white}
+#view-calendario .cal-headline h1 em{font-style:normal;color:#F5AA41}
+#view-calendario .cal-headline p{font-size:12px;line-height:1.7;color:#D4EDE7}
+#view-calendario .cal-hero-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+#view-calendario .cal-hero-tags span{padding:4px 9px;border-radius:99px;border:1px solid #ffffff3d;background:#ffffff12;color:#E1F7F1;font-size:10px;font-weight:650}
+#view-calendario .cal-headline-stats{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex:1 0 auto}
+#view-calendario .cal-progress-ring{position:relative;width:122px;height:122px;flex:0 0 122px}
+#view-calendario .cal-progress-ring svg{height:100%;width:100%;filter:drop-shadow(0 0 10px #1ddbc155)}
+#view-calendario .cal-ring-track,#view-calendario .cal-ring-value{fill:none;stroke-width:9}
+#view-calendario .cal-ring-track{stroke:#ffffff30}
+#view-calendario .cal-ring-value{stroke:#84EBDD;stroke-linecap:round}
+#view-calendario .cal-ring-center{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;color:#fff}
+#view-calendario .cal-ring-center b{font-family:Bahnschrift,"Segoe UI",sans-serif;font-size:29px;line-height:1}
+#view-calendario .cal-ring-center small{font-size:8.5px;letter-spacing:.12em;margin-top:5px;color:#C8EEE5}
+#view-calendario .cal-upcoming{width:268px;max-width:34vw;background:#041b18a1;border:1px solid #a1f2e233;border-radius:14px;padding:12px;backdrop-filter:blur(8px)}
+#view-calendario .cal-upcoming>header{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;letter-spacing:.09em;font-weight:850;color:#9CEBD9;padding:1px 2px 7px}
+#view-calendario .cal-upcoming>header small{font-size:9px;letter-spacing:0;color:#C9F4E8;font-weight:500}
+#view-calendario .cal-upcoming-row{display:flex;gap:9px;align-items:center;padding:5px 1px}
+#view-calendario .cal-next-date{flex:0 0 37px;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;background:#009B9140;border:1px solid #92f5e658;border-radius:9px;color:#fff}
+#view-calendario .cal-next-date b{font:850 15px Bahnschrift,"Segoe UI",sans-serif}
+#view-calendario .cal-next-date small{font-size:9px;color:#C5EEE4}
+#view-calendario .cal-next-description{min-width:0;display:block;flex:1}
+#view-calendario .cal-next-description strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:#fff}
+#view-calendario .cal-next-description small{display:block;color:#C4DCD5;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#view-calendario .cal-no-upcoming{font-size:11px;margin:8px 0 11px;color:#C7DFD8}
+#view-calendario .cal-upcoming>footer{display:flex;gap:7px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #ffffff29;margin-top:5px;font-size:9px;color:#CFEEE5}
+#view-calendario .cal-upcoming>footer span{background:#ffffff13;padding:3px 7px;border-radius:99px}
+#view-calendario .cal-upcoming>footer .has-late{background:#F5AA4130;color:#FFD19D}
+#view-calendario .cal-page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 1px}
+#view-calendario .cal-light-kicker{color:#00857C}
+#view-calendario .cal-page-heading h2{margin:3px 0;font-size:22px;font-weight:850;letter-spacing:-.035em;color:#173b35}
+#view-calendario .cal-page-heading p{font-size:11px;color:#69867c;margin:0}
+#view-calendario .cal-role{font-size:10px;color:#69867c}
+#view-calendario .cal-month{background:rgba(255,255,255,.94);border-radius:12px;box-shadow:0 7px 22px #063f3b09;padding:9px 13px}
+#view-calendario .cal-month-hint{color:#718b83;font-size:10px}
+#view-calendario .cal-btn{border-radius:9px;transition:background .15s,border-color .15s,box-shadow .15s}
+#view-calendario .cal-btn.primary{background:linear-gradient(135deg,#00877E,#009B91);color:white;border-color:#00877E;box-shadow:0 7px 19px #009B912b}
+#view-calendario .cal-btn.primary:hover{box-shadow:0 0 0 2px #009B913b,0 8px 20px #009B9137}
+#view-calendario .cal-filters{padding:0;gap:8px}
+#view-calendario .cal-filters select,#view-calendario .cal-search-wrap{height:39px;border:1px solid #CDDFD9;border-radius:9px;background:#fff;color:#284D46;box-shadow:0 5px 17px #073c3308}
+#view-calendario .cal-filters select{padding:0 10px;font-size:11px}
+#view-calendario .cal-search-wrap{display:flex;align-items:center;gap:7px;flex:1 1 230px;max-width:420px;padding:0 10px;color:#77978E}
+#view-calendario .cal-search-wrap input{width:100%;height:100%;min-width:0;border:0;outline:0;background:transparent;color:#234b40;font-size:11px}
+#view-calendario .cal-search-wrap:focus-within{border-color:#009B91;box-shadow:0 0 0 3px #009B9120}
+#view-calendario .cal-metrics{gap:12px;margin:0 0 14px}
+#view-calendario .cal-metric{display:flex;align-items:flex-start;gap:12px;min-height:118px;padding:17px 15px;border:1px solid #D7E6E0;border-radius:15px;border-bottom:3px solid var(--tone);background:linear-gradient(180deg,#fff,#F8FBFA);box-shadow:0 9px 25px #06483f0c;overflow:hidden}
+#view-calendario .cal-metric-icon{display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;border-radius:11px;background:var(--tone-soft);color:var(--tone);border:1px solid var(--tone-soft);font-weight:900;font-size:20px}
+#view-calendario .cal-metric-info{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+#view-calendario .cal-metric-info .cal-num{font:850 30px/1 Bahnschrift,"Segoe UI",sans-serif;letter-spacing:-.03em;color:#183b35}
+#view-calendario .cal-metric-info strong{font-size:11px;color:#2A5047}
+#view-calendario .cal-metric-info span{font-size:10px;color:#728B82;line-height:1.35}
+#view-calendario .cal-metric-meter{margin-top:7px;background:#E3EEEA;border-radius:99px;height:4px;overflow:hidden}
+#view-calendario .cal-metric-meter i{display:block;height:100%;border-radius:99px;background:var(--tone);transition:width .35s ease}
+#view-calendario .cal-panel{background:#fff;border-color:#D5E4DF;border-radius:15px;box-shadow:0 9px 28px #06463b0a}
+#view-calendario .cal-panel-title{padding:17px 18px 13px}
+#view-calendario .cal-panel-title h3{font-size:15px;color:#1c4039}
+#view-calendario .cal-panel-title p{font-size:11px;color:#72877F}
+#view-calendario .cal-day-head{background:#0B3B37}
+#view-calendario .cal-day-head span{color:#E8F7F2;font-size:10px;letter-spacing:.10em}
+#view-calendario .cal-grid{background:#CADAD4}
+#view-calendario .cal-day{min-height:119px;background:#FBFDFC;color:#143A32}
+#view-calendario .cal-day.dim{opacity:1;background:#EDF3F0;color:#8CA69B}
+#view-calendario .cal-day:hover{background:#F0F9F5}
+#view-calendario .cal-day.chosen{outline:2px solid #0B3B37;outline-offset:-2px}
+#view-calendario .cal-day.today{background:#E6F5F1;box-shadow:inset 0 0 0 1px #009B91}
+#view-calendario .cal-day.today .cal-day-num{background:#009B91;color:white;box-shadow:0 0 10px #009B9133}
+#view-calendario .cal-event{white-space:normal;overflow-wrap:anywhere;text-overflow:clip;display:block;max-height:50px;font-size:10px;line-height:1.3;font-weight:750;border:1px solid #AFC9BE;border-left:4px solid #799990;background:#fff;color:#21463D}
+#view-calendario .cal-event.done{background:#009B91;border-color:#007E76;border-left-color:#00645C;color:#fff}
+#view-calendario .cal-event.late{background:#FFF0D7;border-color:#EEC27F;border-left-color:#E49A2E;color:#734B1A}
+#view-calendario .cal-event.ongoing{background:#DFEFF5;border-color:#A9D7E7;border-left-color:#4686A0;color:#255A70}
+#view-calendario .cal-state{border-radius:99px;border:1px solid #CEDDD7;background:#EDF3F0}
+#view-calendario .cal-state.done{background:#DFF5ED;border-color:#9DD8C4;color:#087C62}
+#view-calendario .cal-state.late{background:#FFF0D7;border-color:#EDC58A;color:#9E6720}
+#view-calendario .cal-state.scheduled{background:white;border-color:#98B3AA;color:#4E6F65}
+#view-calendario .cal-week-day{min-height:300px;padding:13px;background:#FAFDFC}
+#view-calendario .cal-week-day:nth-child(6),#view-calendario .cal-week-day:nth-child(7){background:#EFF4F2}
+#view-calendario .cal-week-day h4{padding-bottom:11px;border-bottom:1px solid #DAE8E2;color:#406B60;font-size:11px}
+#view-calendario .cal-week-entry{background:#fff;border:1px solid #D8E6DF;border-left:4px solid #849F96;border-radius:9px;padding:10px 9px;box-shadow:0 3px 10px #073f3408}
+#view-calendario .cal-week-entry.done{background:#E7F6F0;border-left-color:#009B91}
+#view-calendario .cal-week-entry.late{background:#FFF2E0;border-left-color:#F5AA41}
+#view-calendario .cal-week-entry.ongoing{background:#E8F4F8;border-left-color:#59AFC4}
+#view-calendario .cal-onepage{background:linear-gradient(135deg,#031A17,#0B3B37 45%,#00685E);border-top:5px solid #009B91;box-shadow:0 15px 30px #063d361d}
+#view-calendario .cal-onepage h2{font-size:28px;letter-spacing:-.035em}
+#view-calendario .cal-onepage td{font-size:11px}
+#view-calendario .cal-catalog-card{border-radius:13px;background:linear-gradient(180deg,#fff,#F8FBFA);border-color:#D8E6E0;box-shadow:0 6px 17px #06483f07}
+#view-calendario .cal-catalog-card:hover{border-color:#95C9B9;box-shadow:0 9px 21px #009B9117}
+#view-calendario .cal-dialog{border-radius:17px}
+#view-calendario .cal-dialog header{border-top:3px solid #009B91}
+@media(max-width:1400px){
+ #view-calendario .cal-headline-stats{gap:9px}
+ #view-calendario .cal-upcoming{width:226px}
+ #view-calendario .cal-progress-ring{width:106px;height:106px;flex-basis:106px}
+}
+@media(max-width:1160px){
+ #view-calendario .cal-headline{align-items:flex-start;flex-wrap:wrap}
+ #view-calendario .cal-headline-stats{width:100%;flex:0 1 100%;justify-content:flex-start}
+ #view-calendario .cal-upcoming{width:min(440px,100%);max-width:100%}
+}
+@media(max-width:600px){
+ #view-calendario .cal-headline{padding:18px 16px}
+ #view-calendario .cal-headline h1{font-size:21px}
+ #view-calendario .cal-headline-main{min-width:0}
+ #view-calendario .cal-upcoming{flex:1;min-width:0}
+ #view-calendario .cal-hero-tags span{font-size:9px}
+ #view-calendario .cal-progress-ring{width:89px;height:89px;flex-basis:89px}
+ #view-calendario .cal-ring-center b{font-size:23px}
+ #view-calendario .cal-metric{min-height:107px;padding:11px 10px;gap:8px}
+ #view-calendario .cal-metric-icon{width:30px;height:30px;flex-basis:30px;font-size:15px}
+ #view-calendario .cal-metric-info .cal-num{font-size:25px}
+ #view-calendario .cal-metric-info strong{font-size:10px}
+ #view-calendario .cal-page-heading h2{font-size:19px}
+ #view-calendario .cal-month strong{min-width:120px;font-size:13px}
+}
+@media print{
+ body.cal-print #view-calendario .cal-headline,
+ body.cal-print #view-calendario .cal-page-heading,
+ body.cal-print #view-calendario .cal-filters,
+ body.cal-print #view-calendario .cal-month,
+ body.cal-print #view-calendario #calMessage,
+ body.cal-print #view-calendario .cal-metrics{display:none!important}
+}
