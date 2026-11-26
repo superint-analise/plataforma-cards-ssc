@@ -80,7 +80,7 @@ async function iniciar(){
   montarSecoes(comps);
   // Calendário SSC: código e tabela próprios, sem interferir na lógica dos Cards.
   try{
-    const {mountCalendar}=await import('./calendario/calendario.js?v=20261126-layout-v5');
+    const {mountCalendar}=await import('./calendario/calendario.js?v=20261126-ui-v6');
     await mountCalendar({db,perfil,navegar});
   }catch(calendarError){console.error('Falha isolada ao iniciar Calendário SSC:',calendarError)}
 }
@@ -107,6 +107,7 @@ async function trocarCompetencia(comp){
   if(active==='view-conference')window.__SSC_RENDER_MEMORY?.();
 }
 function navegar(view){
+  document.body.classList.toggle('ssc-calendar-active',String(view).startsWith('calendario-'));
   document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const sec=$('view-'+view);if(sec)sec.classList.add('active');
