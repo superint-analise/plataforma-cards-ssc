@@ -124,13 +124,17 @@ export async function mountCalendar({db,perfil,navegar}){
  const filtered=()=>rows().filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes,r.category].join(' ').toLowerCase().includes(state.search.toLowerCase()))).sort((a,b)=>(a.publish_due||'9999').localeCompare(b.publish_due||'9999')||a.name.localeCompare(b.name,'pt-BR'));
  const badge=r=>'<span class="cal-state '+status(r)[0]+'">'+status(r)[1]+'</span>'+audienceBadge(r);
  const edit=r=>admin?'<button class="cal-btn" data-ca="edit" data-id="'+esc(r.id)+'">Editar</button>':'';
- const note=(msg,error=false)=>{const el=$('calMessage');el.textContent=msg;el.style.color=error?'#a94242':'#496f65'};
+ const note=(msg,error=false)=>{
+   const el=$('calMessage');if(el){el.textContent=msg;el.style.color=error?'#a94242':'#496f65'}
+   const modal=$('calFormMessage');
+   if(modal){modal.textContent=error?msg:'';modal.hidden=!error}
+ };
  async function load(){
-   if(state.busy)return;state.busy=true;note('Carregando dados compartilhados do Supabase…');
+   if(state.busy)return false;state.busy=true;note('Carregando dados compartilhados do Supabase…');
    try{
      const {data,error}=await db.from('ssc_agenda_reports').select('id,report_month,name,category,frequency,info_type,period_start,period_end,info_owner,publish_due,recurring,done,notes,atividade_superint,updated_at').in('report_month',[current,next]).order('publish_due',{ascending:true,nullsFirst:false}).limit(3000);
-     if(error)throw error;state.data=data||[];render();note(state.data.length?'Dados sincronizados com o Supabase.':'Nenhum report cadastrado na janela atual.');
-   }catch(e){note('Erro ao consultar Agenda: '+(e.message||e),true)}
+     if(error)throw error;state.data=data||[];render();note(state.data.length?'Dados sincronizados com o Supabase.':'Nenhum report cadastrado na janela atual.');return true;
+   }catch(e){note('Erro ao consultar Agenda: '+(e.message||e),true);return false}
    finally{state.busy=false}
  }
 
@@ -215,6 +219,7 @@ export async function mountCalendar({db,perfil,navegar}){
    check('recurring','Recorrente',r.recurring)+check('done','Concluído',r.done)+
    (!record?'<div class="cal-field wide" id="calDailyExtra" hidden><label>Datas sem expediente (opcional, DD/MM/AAAA separadas por vírgula)</label><input name="excluded_days" type="text" placeholder="Ex.: 02/11/2026, 25/12/2026"><small>Diário: gera uma ocorrência por dia útil entre as datas de referência.</small></div>':'')+
    '<div class="cal-field wide"><label>Observações e orientações</label><textarea name="notes" rows="4" maxlength="1800">'+esc(r.notes)+'</textarea></div></div>'+
+   '<div id="calFormMessage" role="alert" hidden style="padding:10px 14px;color:#B83C38;font-weight:700"></div>'+
    '<footer>'+(record?'<button type="button" class="cal-btn danger" data-ca="delete">Excluir report</button>':'<span></span>')+'<div class="cal-bar"><button type="button" class="cal-btn" data-ca="close">Cancelar</button><button type="submit" class="cal-btn primary">Salvar</button></div></footer></form></div>';
   document.body.style.overflow='hidden';$('calForm').addEventListener('submit',saveForm);
   if(!record){
@@ -261,12 +266,23 @@ export async function mountCalendar({db,perfil,navegar}){
     if(!dates.length)return note('Nenhum dia útil disponível no período.',true);
     batch=dates.map(day=>({...data,report_month:day.slice(0,7),publish_due:day,done:false,recurring:true}));
   }
-  btn.disabled=true;
+  btn.disabled=true;note('');
   try{
     const req=state.edit?db.from('ssc_agenda_reports').update(data).eq('id',state.edit):db.from('ssc_agenda_reports').insert(batch||data);
-    const {error}=await req;if(error)throw error;
-    state.month=batch?batch[0].report_month:data.report_month;close();await load();note(batch?batch.length+' entregas diárias salvas no Supabase.':'Report salvo no Supabase.');
-  }catch(e){note('Erro ao salvar report: '+(e.message||e),true)}
+    // Confirmar a gravação com IDs retornados pelo Supabase, inclusive nas edições.
+    const {data:saved,error}=await req.select('id,report_month,name,atividade_superint,done');
+    if(error)throw error;
+    if(!saved||saved.length!==(batch?batch.length:1))throw Error('O banco não confirmou todos os registros. Verifique as permissões.');
+    state.month=batch?batch[0].report_month:data.report_month;
+    state.visibility=canSeeSuperint?(data.atividade_superint?'superint':'geral'):'geral';
+    state.category='';state.status='';state.search='';
+    const refreshed=await load();
+    if(!refreshed)throw Error('O report foi gravado no Supabase, mas a atualização da lista falhou. Atualize a página para consultar.');
+    const ids=new Set(saved.map(r=>r.id));
+    if(!state.data.some(r=>ids.has(r.id)))throw Error('Report gravado, mas não retornou na consulta. Confira a visibilidade e recarregue.');
+    close();
+    note(batch?batch.length+' entregas diárias confirmadas no Supabase.':'Report gravado e confirmado no Supabase.');
+  }catch(e){note('Erro na confirmação do report: '+(e.message||e),true)}
   finally{btn.disabled=false}
  }
  async function del(){if(!admin||!state.edit)return;const r=state.data.find(x=>x.id===state.edit);if(!r||!confirm('Excluir o report "'+r.name+'"?'))return;
