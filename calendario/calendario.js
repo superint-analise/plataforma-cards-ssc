@@ -73,11 +73,15 @@ export async function mountCalendar({db,perfil,navegar}){
  group.append(navButton,submenu);
  nav.appendChild(group);
  const panel=document.createElement('div');panel.id='view-calendario';panel.className='cal-module';
- panel.innerHTML='<div class="cal-headline"><div><div class="cal-kicker">SSC · GESTÃO DA INFORMAÇÃO</div><h1>Agenda de Reports</h1><p>Planejamento, responsabilidades e acompanhamento de entregas da Superintendência.</p></div><div class="cal-bar cal-actions"><small>'+(admin?'Administrador · edição habilitada':'Consulta · somente leitura')+'</small><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
- '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small style="color:#638079">Mês atual e próximo</small></div>'+
-
- '<div class="cal-bar" style="margin-bottom:12px"><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar" style="flex:1;min-width:180px;padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><select id="calCategory" aria-label="Frente de atuação" style="padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação" style="padding:10px;border:1px solid #d5e6dc;border-radius:8px;background:white"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
- '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
+ panel.innerHTML='<div class="cal-headline">'+
+  '<div class="cal-headline-art" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="#9FF2E4" stroke-width="1.4" opacity=".21"><path d="M0 160 Q180 126 360 146 T720 125 T1100 145"/><path d="M0 180 Q180 145 360 165 T720 145 T1100 162"/><path d="M520 250 548 38h35l28 212M541 75h47M532 126h65M527 184h77M548 38l63 212M583 38l-63 212"/></g><circle cx="720" cy="125" r="5" fill="#F5AA41"/></svg></div>'+
+  '<div class="cal-headline-main"><div class="cal-kicker">SSC · GOVERNANÇA DOS REPORTS</div><h1>Uma agenda. <em>Todas as entregas.</em></h1><p>Acompanhe quando a informação deve chegar, qual período ela representa e quando o material precisa estar disponível para a gestão.</p><div class="cal-hero-tags"><span>Operação</span><span>Indicadores</span><span>Qualidade</span><span>Orçamento</span></div></div>'+
+  '<div class="cal-headline-stats" id="calHeroStats"></div></div>'+
+  '<div class="cal-page-heading"><div><div class="cal-kicker cal-light-kicker">SUPERINTENDÊNCIA DE SERVIÇOS COMERCIAIS</div><h2 id="calPageHeading">Visão mensal</h2><p id="calPageSubtitle">Calendário de entregas, responsáveis e orientações</p></div>'+
+  '<div class="cal-bar cal-actions"><span class="cal-role">'+(admin?'Administração · edição habilitada':'Consulta · somente leitura')+'</span><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
+  '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small class="cal-month-hint">Dados compartilhados no Supabase · mês atual e próximo</small></div>'+
+  '<div class="cal-bar cal-filters"><label class="cal-search-wrap"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar"></label><select id="calCategory" aria-label="Frente de atuação"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
+  '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
  pages.get(state.tab).appendChild(panel);
  function expandGroup(yes){
    const open=Boolean(yes);
@@ -117,7 +121,29 @@ export async function mountCalendar({db,perfil,navegar}){
    }catch(e){note('Erro ao consultar Agenda: '+(e.message||e),true)}
    finally{state.busy=false}
  }
- function metrics(){const rs=filtered();const values=[[rs.length,'Reports no mês','#008272'],[rs.filter(r=>r.publish_due).length,'Programados','#397b9d'],[rs.filter(r=>r.done).length,'Concluídos','#48a57d'],[rs.filter(r=>!r.done&&(!r.publish_due||r.publish_due<today)).length,'Pontos de atenção','#f0a53a']];$('calMetrics').innerHTML=values.map(v=>'<div class="cal-metric" style="--tone:'+v[2]+'"><b>'+v[0]+'</b><span>'+v[1]+'</span></div>').join('')}
+
+ function hero(){
+  const rs=rows(),completed=rs.filter(r=>r.done).length,pct=rs.length?Math.round(completed/rs.length*100):0;
+  const late=rs.filter(r=>status(r)[0]==='late').length;
+  const nextUp=rs.filter(r=>!r.done&&r.publish_due&&r.publish_due>=today).sort((a,b)=>a.publish_due.localeCompare(b.publish_due)).slice(0,3);
+  const radius=47,circ=2*Math.PI*radius;
+  $('calHeroStats').innerHTML='<div class="cal-progress-ring" role="img" aria-label="'+pct+'% concluído">'+
+    '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="cal-ring-track" cx="60" cy="60" r="'+radius+'"/><circle class="cal-ring-value" cx="60" cy="60" r="'+radius+'" stroke-dasharray="'+(circ*pct/100).toFixed(2)+' '+circ.toFixed(2)+'" transform="rotate(-90 60 60)"/></svg>'+
+    '<span class="cal-ring-center"><b>'+pct+'%</b><small>CONCLUÍDO</small></span></div>'+
+    '<div class="cal-upcoming"><header>PRÓXIMAS ENTREGAS <small>'+esc(monthText(state.month))+'</small></header>'+
+    (nextUp.length?nextUp.map(r=>'<div class="cal-upcoming-row"><span class="cal-next-date"><b>'+r.publish_due.slice(8)+'</b><small>'+esc(date(r.publish_due).toLocaleDateString('pt-BR',{month:'short'}).replace('.',''))+'</small></span><span class="cal-next-description"><strong>'+esc(r.name)+'</strong><small>'+esc(r.info_owner||'Responsável a definir')+'</small></span></div>').join(''):'<p class="cal-no-upcoming">Nenhuma entrega pendente a partir de hoje neste mês.</p>')+
+    '<footer><span>'+completed+' de '+rs.length+' concluídos</span><span class="'+(late?'has-late':'')+'">'+(late?late+' com atraso':'Sem atrasos')+'</span></footer></div>';
+ }
+ function metrics(){
+   const rs=filtered(),count=rs.length||1;
+   const values=[
+    {value:rs.length,label:'Reports no mês',sub:'Registros no filtro atual',tone:'#009B91',icon:'▤'},
+    {value:rs.filter(r=>r.publish_due).length,label:'Reports programados',sub:'Data de entrega definida',tone:'#59AFC4',icon:'▦'},
+    {value:rs.filter(r=>r.done).length,label:'Reports concluídos',sub:'Entregas marcadas com check',tone:'#007C73',icon:'✓'},
+    {value:rs.filter(r=>!r.done&&(!r.publish_due||r.publish_due<today)).length,label:'Pontos de atenção',sub:'Sem data ou com atraso',tone:'#F5AA41',icon:'!'}
+   ];
+   $('calMetrics').innerHTML=values.map((x,i)=>'<div class="cal-metric" style="--tone:'+x.tone+';--tone-soft:'+x.tone+'19"><div class="cal-metric-icon" aria-hidden="true">'+x.icon+'</div><div class="cal-metric-info"><b class="cal-num">'+x.value+'</b><strong>'+x.label+'</strong><span>'+x.sub+'</span><div class="cal-metric-meter"><i style="width:'+(i===0?100:Math.round(x.value/count*100))+'%"></i></div></div></div>').join('');
+ }
  function monthly(){
   const d=date(state.month+'-01'),off=(d.getDay()+6)%7,n=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),cells=Math.ceil((off+n)/7)*7;
   const head='<div class="cal-day-head">'+['SEG','TER','QUA','QUI','SEX','SÁB','DOM'].map(t=>'<span>'+t+'</span>').join('')+'</div>';
@@ -145,7 +171,9 @@ export async function mountCalendar({db,perfil,navegar}){
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
   submenu.querySelectorAll('.cal-sidebar-child').forEach(item=>item.classList.toggle('active',item.dataset.view==='calendario-'+state.tab));
   group.classList.toggle('cal-current',pages.get(state.tab)?.classList.contains('active')||false);
-  metrics();$('calOutput').innerHTML=state.tab==='monthly'?monthly():state.tab==='weekly'?weekly():state.tab==='schedule'?schedule():state.tab==='onepage'?onepage():catalog();
+  $('calPageHeading').textContent=tabs.find(x=>x[0]===state.tab)?.[1]||'Agenda de Reports';
+  $('calPageSubtitle').textContent=state.tab==='monthly'?'Calendário de entregas, responsáveis e orientações':state.tab==='weekly'?'Acompanhamento das entregas por semana':state.tab==='schedule'?'Prazos, responsáveis, conclusão e observações':state.tab==='onepage'?'Síntese executiva das entregas do mês':'Modelos e referências dos reports recorrentes';
+  hero();metrics();$('calOutput').innerHTML=state.tab==='monthly'?monthly():state.tab==='weekly'?weekly():state.tab==='schedule'?schedule():state.tab==='onepage'?onepage():catalog();
  }
  const field=(name,title,type='text',value='',more='')=>'<div class="cal-field"><label for="calF_'+name+'">'+esc(title)+'</label><input id="calF_'+name+'" name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+more+'></div>';
  const select=(name,title,items,value)=>'<div class="cal-field"><label>'+title+'</label><select name="'+name+'">'+items.map(x=>'<option value="'+esc(x)+'" '+(value===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></div>';
