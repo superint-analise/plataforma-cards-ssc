@@ -2990,6 +2990,53 @@ body.v50-dark .eff.ssc-eff-icon.ok{background:#123D35;border-color:#26775F;color
 body.v50-dark .eff.ssc-eff-icon.warn{background:#47320D;border-color:#90641E;color:#FFD173}
 body.v50-dark .eff.ssc-eff-icon.bad{background:#462025;border-color:#8D414A;color:#FF9FA6}
 
+
+
+/* Tema permanente dos Cards. Somente o conteúdo do Calendário fica claro. */
+body.v50-dark.ssc-calendar-active{background:#EEF3F2!important;color:#142C29}
+body.v50-dark.ssc-calendar-active .content,
+body.v50-dark.ssc-calendar-active .main{background:#EEF3F2!important}
+body.v50-dark.ssc-calendar-active .cal-page{color:#142C29}
+body.v50-dark.ssc-calendar-active .sidebar{background:linear-gradient(180deg,#06302C,#041F1C)!important}
+body.v50-dark.ssc-calendar-active .cal-page .cal-panel,
+body.v50-dark.ssc-calendar-active .cal-page .cal-metric{background:#fff!important;color:#142C29!important}
+body.v50-dark.ssc-calendar-active .cal-page .cal-panel h3,
+body.v50-dark.ssc-calendar-active .cal-page .cal-panel strong{color:#173B35}
+body.v50-dark.ssc-calendar-active .cal-page .cal-week-day,
+body.v50-dark.ssc-calendar-active .cal-page .cal-day{color:#142C29}
+body.v50-dark.ssc-calendar-active .cal-page .cal-dialog{background:white!important;color:#142C29!important}
+body.v50-dark.ssc-calendar-active .cal-page input,
+body.v50-dark.ssc-calendar-active .cal-page select,
+body.v50-dark.ssc-calendar-active .cal-page textarea{color:#142C29;background:#fff}
+.v50-theme,.ssc-mobile-theme{display:none!important}
+/* Maximização individual em ambas as páginas */
+#view-evolution .chart-box,
+#view-comparison .exec-indicator.v41-ind{position:relative}
+.ssc-chart-fullscreen{position:absolute;right:8px;top:8px;z-index:15;width:31px;height:31px;display:grid;place-items:center;padding:6px;background:#073C36;border:1px solid #59C4B4;border-radius:8px;color:#D5FFF6;cursor:pointer;box-shadow:0 4px 13px #0002}
+.ssc-chart-fullscreen:hover,.ssc-chart-fullscreen:focus-visible{background:#009B91;color:white;outline:2px solid #F5AA41;outline-offset:1px}
+.ssc-chart-fullscreen svg{width:17px;height:17px;pointer-events:none}
+#view-evolution .chart-box:fullscreen,
+#view-comparison .exec-indicator.v41-ind:fullscreen,
+.ssc-chart-fullscreen-fallback{background:#081F1D!important;color:#E8F6F4!important;overflow:auto!important;padding:64px 26px 26px!important;box-sizing:border-box;width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important;justify-content:flex-start;align-items:stretch}
+.ssc-chart-fullscreen-fallback{position:fixed!important;inset:0!important;z-index:2000!important}
+body.ssc-chart-modal-open{overflow:hidden}
+#view-evolution .chart-box:fullscreen .ssc-chart-fullscreen,
+#view-comparison .exec-indicator.v41-ind:fullscreen .ssc-chart-fullscreen,
+.ssc-chart-fullscreen-fallback .ssc-chart-fullscreen{top:16px;right:20px}
+#view-evolution .chart-box:fullscreen .v41-lc,
+#view-evolution .chart-box:fullscreen #managerEvolutionChart,
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev,
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-irl,
+.ssc-chart-fullscreen-fallback .v41-lc{width:100%!important;min-height:0;flex:1}
+#view-evolution .chart-box:fullscreen svg:not(.ssc-chart-fullscreen svg),
+#view-evolution .ssc-chart-fullscreen-fallback svg:not(.ssc-chart-fullscreen svg){max-width:100%!important;width:100%!important;height:auto!important}
+#view-evolution .chart-box:fullscreen .chart-title,
+#view-evolution .chart-box:fullscreen .chart-legend,
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-ind-title{color:#E8F6F4!important}
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-gen{background:#123C35!important;color:#E8F6F4!important}
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev-row,
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-irl-row{min-height:52px}
+
 </style>
 <link rel="stylesheet" href="./calendario/calendario.css?v=20261126-layout-v5">
 </head>
@@ -4663,6 +4710,65 @@ function v41MountCharts(){
 }
 let v41ResizeT;window.addEventListener("resize",()=>{clearTimeout(v41ResizeT);v41ResizeT=setTimeout(v41MountCharts,150)});
 
+/* Maximizar individualmente os gráficos: Evolução Temporal e Comparação.
+   Utiliza Fullscreen API nativa; não altera os dados nem as funções de cálculo. */
+(function sscInstallChartFullscreen(){
+  const roots=['view-evolution','view-comparison'];
+  function enhance(){
+    roots.forEach(id=>{
+      const root=document.getElementById(id);
+      if(!root)return;
+      const cards=id==='view-evolution'
+        ?root.querySelectorAll('.chart-box')
+        :root.querySelectorAll('.exec-indicator.v41-ind');
+      cards.forEach(card=>{
+        if(card.querySelector(':scope > .ssc-chart-fullscreen'))return;
+        const btn=document.createElement('button');
+        btn.type='button';btn.className='ssc-chart-fullscreen';
+        btn.title='Maximizar este gráfico na tela inteira';
+        btn.setAttribute('aria-label','Maximizar gráfico');
+        btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>';
+        btn.addEventListener('click',async event=>{
+          event.stopPropagation();
+          try{
+            if(document.fullscreenElement===card){await document.exitFullscreen();}
+            else{
+              if(document.fullscreenElement)await document.exitFullscreen();
+              if(card.requestFullscreen)await card.requestFullscreen();
+              else{card.classList.add('ssc-chart-fullscreen-fallback');document.body.classList.add('ssc-chart-modal-open');}
+            }
+            requestAnimationFrame(()=>{v41MountCharts();});
+          }catch(error){console.error('Não foi possível maximizar o gráfico:',error);}
+        });
+        card.appendChild(btn);
+      });
+    });
+  }
+  let scheduled=false;
+  const schedule=()=>{
+    if(scheduled)return;scheduled=true;
+    requestAnimationFrame(()=>{scheduled=false;enhance();});
+  };
+  roots.forEach(id=>{
+    const root=document.getElementById(id);
+    if(root)new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+  });
+  document.addEventListener('fullscreenchange',()=>{
+    document.querySelectorAll('.ssc-chart-fullscreen').forEach(btn=>{
+      btn.title=document.fullscreenElement===btn.parentElement?'Sair da tela inteira':'Maximizar este gráfico na tela inteira';
+    });
+    requestAnimationFrame(()=>v41MountCharts());
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){
+      document.querySelectorAll('.ssc-chart-fullscreen-fallback').forEach(el=>el.classList.remove('ssc-chart-fullscreen-fallback'));
+      document.body.classList.remove('ssc-chart-modal-open');
+    }
+  });
+  schedule();
+})();
+
+
 function chartBounds(values,kind="percent"){
   const finite=values.filter(v=>Number.isFinite(v));
 
@@ -6069,6 +6175,7 @@ function renderConference(){
 }
 
 function switchView(view){
+  document.body.classList.remove('ssc-calendar-active');
   // O HTML gerado nesta versão não incorpora o gerenciador de perfis.
   // Não referenciar CURRENT_ACCESS_PROFILE sem ele estar definido.
   if(typeof CURRENT_ACCESS_PROFILE!=="undefined" && CURRENT_ACCESS_PROFILE && String(CURRENT_ACCESS_PROFILE.perfil||"").toUpperCase()==="OPERACIONAL" && view!=="tables") view="tables";
