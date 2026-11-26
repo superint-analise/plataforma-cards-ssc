@@ -275,3 +275,14 @@
  body.cal-print #view-calendario #calMessage,
  body.cal-print #view-calendario .cal-metrics{display:none!important}
 }
+
+
+#view-calendario .cal-week-today{background:#E5F5F0;box-shadow:inset 0 3px #009B91}
+#view-calendario .cal-week-count{font:700 10px "Segoe UI",sans-serif;border-radius:99px;padding:3px 7px;background:#0B3B37;color:#fff;float:right}
+#view-calendario .cal-recurring-tag{display:inline-block;color:#2A7891;border:1px solid #ADDAE5;border-radius:99px;background:#E9F5F8;padding:2px 6px;font-size:9px;font-weight:800;margin:4px 0}
+#view-calendario .cal-catalog-icon{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;background:#E0F5EF;color:#00857C;border:1px solid #B7DFD2;font-size:19px;font-weight:850;box-shadow:0 0 13px #009B9115}
+#view-calendario .cal-catalog-card>strong{font-size:12.5px;color:#1D453C}
+#view-calendario .cal-catalog-card>small{display:inline-flex;color:#517D70;padding:4px 0;font-size:10px}
+#view-calendario .cal-onepage th{background:#ffffff17;color:#A7ECDD;border-bottom:1px solid #ffffff46}
+#view-calendario .cal-onepage td{border-color:#ffffff27;vertical-align:top}
+#view-calendario .cal-onepage tbody tr:hover td{background:#ffffff0d}
