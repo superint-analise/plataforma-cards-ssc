@@ -2966,6 +2966,7 @@ body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
 
 /* Evolução temporal multirregional — barras e variações da paleta oficial */
 .ssc-multi-chart{min-width:0;width:100%}
+.ssc-multi-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden}
 .ssc-multi-bars{display:block;width:100%;height:auto;min-height:230px;overflow:visible}
 .ssc-multi-legend{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:8px}
 .ssc-multi-legend-item{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:750;color:var(--v-ink,#173d39)}
@@ -4611,16 +4612,17 @@ function v41MultiRegionBars(series,formatter,W,opts){
   const ref=opts.ref??(isScore?V41_META:rule.ref??1);
   const all=series.flatMap(se=>se.points.flatMap(p=>isReal?[p.value,p.meta]:[p.value])).filter(Number.isFinite);
   if(!all.length)return '<div class="empty-state">Sem dados disponíveis.</div>';
-  const H=byRegion?376:310,top=byRegion?118:54,bottom=H-44,L=byRegion?15:60,R=byRegion?W-112:W-14;
+  // Espaço real por barra: o eixo inferior identifica cada Regional, e o mês identifica o grupo.
+  // Em períodos numerosos o SVG se expande e o contêiner permite rolagem horizontal.
+  if(byRegion)W=Math.max(W,periods.length*regions*78+88);
+  const H=byRegion?414:310,top=byRegion?118:54,bottom=H-(byRegion?90:44),L=byRegion?24:60,R=byRegion?W-76:W-14;
   const lo=Math.min(0,Math.min(...all)<0?Math.min(...all)*1.05:0);
   const hi=Math.max(ref*1.14,Math.max(...all)*1.16,1e-9);
   const y=v=>bottom-(v-lo)/(hi-lo)*(bottom-top),yZero=y(0);
   const group=(R-L)/periods.length,gap=Math.max(2,Math.min(6,group*.026));
   const barW=Math.max(3,Math.min(38,(group-12-regions*gap)/regions));
-  const goodColors=['#009B91','#007F77','#16B8AA','#006A64','#45CFC2'];
-  const badColors=['#F5AA41','#EB8C0A','#D97B13','#FFBC66','#C96912'];
-  const distinct=['#2563EB','#60A5FA','#A78BFA','#F47186','#FB7185'];
-  const colorOf=name=>distinct[Math.max(0,REGION_ORDER.indexOf(name))%distinct.length];
+  const goodColor='#009B91',badColor='#F5AA41';
+  const goodColors=[goodColor],badColors=[badColor];
   const good=(value,planned)=>{
     if(!Number.isFinite(value))return null;
     if(isReal){
@@ -4632,7 +4634,7 @@ function v41MultiRegionBars(series,formatter,W,opts){
     return rule.lowerBetter?value<=ref+1e-9:
       value>=ref-1e-9&&(rule.upperRef==null||value<rule.upperRef-1e-9);
   };
-  let svg='<svg class="ssc-multi-bars" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Comparação temporal das Regionais por barras">';
+  let svg='<svg class="ssc-multi-bars" style="width:'+W+'px;max-width:none" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Comparação temporal das Regionais por barras">';
   if(!byRegion){
     for(let i=0;i<=4;i++){
       const tick=lo+(hi-lo)*i/4,yy=y(tick);
@@ -4649,14 +4651,21 @@ function v41MultiRegionBars(series,formatter,W,opts){
   }
   periods.forEach((period,pi)=>{
     const center=L+group*(pi+.5);
-    svg+='<text x="'+center.toFixed(2)+'" y="'+(H-17)+'" text-anchor="middle" font-size="11" font-weight="750" fill="var(--v-ink,#173d39)">'+svgTextEscape(v41ShortMonth(period))+'</text>';
+    // O mês aparece uma única vez sob o conjunto completo de Regionais.
+    svg+='<text x="'+center.toFixed(2)+'" y="'+(H-19)+'" text-anchor="middle" font-size="12" font-weight="850" fill="var(--v-ink,#173d39)">'+svgTextEscape(v41ShortMonth(period))+'</text>';
     series.forEach((se,ri)=>{
       const p=se.points.find(q=>q.label===period);
+      // Todos os nomes aparecem no eixo, mesmo quando o mês não possui dado para a Regional.
+      const px=center-((barW+gap)*regions-gap)/2+ri*(barW+gap),cx=px+barW/2;
+      if(byRegion){
+        const axisLabel=se.name==='Projetos Especiais e Grandes Clientes'?'Grandes Clientes':se.name;
+        svg+='<text x="'+cx.toFixed(2)+'" y="'+(H-59)+'" text-anchor="middle" font-size="10.5" font-weight="750" fill="var(--v-ink,#173d39)">'+svgTextEscape(axisLabel)+'</text>';
+      }
       if(!p||!Number.isFinite(p.value))return;
       const v=p.value,target=Number.isFinite(p.meta)?p.meta:null;
       const pass=good(v,target);
-      const color=byRegion?colorOf(se.name):pass===null?'#94A3A8':pass?goodColors[ri%goodColors.length]:badColors[ri%badColors.length];
-      const px=center-((barW+gap)*regions-gap)/2+ri*(barW+gap),cx=px+barW/2,yy=y(v),by=Math.min(yy,yZero),height=Math.max(1,Math.abs(yZero-yy));
+      const color=pass===null?'#94A3A8':pass?goodColor:badColor;
+      const yy=y(v),by=Math.min(yy,yZero),height=Math.max(1,Math.abs(yZero-yy));
       const tip=se.name+' · '+v41ShortMonth(period)+'\nRealizado: '+format(v)+(isReal?'\nMeta: '+(target===null?'—':format(target)):'')+'\n'+(pass===null?'Sem referência':pass?'Dentro da meta':'Fora da meta');
       svg+='<g class="chart-mark" data-tooltip="'+attrEscape(tip)+'" onpointerenter="sscTipMove(event,this)" onpointermove="sscTipMove(event,this)" onpointerleave="sscTipHide()">'+
         '<rect x="'+px.toFixed(2)+'" y="'+by.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+height.toFixed(2)+'" rx="3" fill="'+color+'"/>'+
@@ -4693,12 +4702,12 @@ function v41MultiRegionBars(series,formatter,W,opts){
       '<text x="'+(R+7)+'" y="'+(top+24)+'" font-size="9.6" font-weight="800" fill="var(--v-ink,#36554d)">Regional</text>';
   }
   svg+='</svg>';
-  const legend=series.map((se,i)=>byRegion
-    ?'<span class="ssc-multi-legend-item"><i style="background:'+colorOf(se.name)+'"></i>'+svgTextEscape(se.name)+'</span>'
-    :'<span class="ssc-multi-legend-item"><i style="background:'+goodColors[i%goodColors.length]+'"></i><i style="background:'+badColors[i%badColors.length]+'"></i>'+svgTextEscape(se.name)+'</span>').join('');
-  const note=byRegion?'Cores exclusivas por Regional, sem relação com o desempenho · ✓ verde indica meta atingida · Valores acima das barras.':
+  const legend='<span class="ssc-multi-legend-item"><i style="background:'+goodColor+'"></i>Dentro da meta</span>'+
+    '<span class="ssc-multi-legend-item"><i style="background:'+badColor+'"></i>Fora da meta</span>'+
+    '<span class="ssc-multi-legend-item"><i style="background:#94A3A8"></i>Sem referência</span>';
+  const note=byRegion?'Regional abaixo de cada barra · Mês abaixo de cada conjunto de Regionais · ✓ meta atingida.':
     'Verde: dentro da meta · Laranja: fora da meta · Rótulos verticais.';
-  return '<div class="ssc-multi-chart">'+svg+'<div class="ssc-multi-legend">'+legend+'</div><p class="ssc-multi-note">'+note+'</p></div>';
+  return '<div class="ssc-multi-chart"><div class="ssc-multi-scroll">'+svg+'</div><div class="ssc-multi-legend">'+legend+'</div><p class="ssc-multi-note">'+note+'</p></div>';
 }
 function v41MountCharts(){
   document.querySelectorAll(".v41-lc").forEach(el=>{
