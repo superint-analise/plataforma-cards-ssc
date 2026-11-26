@@ -35,7 +35,7 @@ export async function mountCalendar({db,perfil,navegar}){
  ['Anexo VI','Qualidade','Semanal','Parcial','Entrega de controle periódico.'],
  ['Plano de Horas Extras','Gestão','Semanal','Parcial','Acompanhamento semanal de horas extras.'],
  ['Gestão Financeira | OPEX / CAPEX','Orçamento','Mensal','Parcial','Aderência financeira, realizado e projeções.']];
- const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false,superintView:false};
+ const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false,visibility:'geral'};
  const nav=document.querySelector('.side-nav'),main=document.querySelector('.main');
  if(!nav||!main)throw Error('A estrutura principal da plataforma não foi encontrada.');
  // O Calendário é um grupo de navegação com CINCO páginas reais (view-section).
@@ -82,9 +82,8 @@ export async function mountCalendar({db,perfil,navegar}){
   '<div class="cal-headline-stats" id="calHeroStats"></div></div>'+
   '<div class="cal-page-heading"><div><div class="cal-kicker cal-light-kicker">SUPERINTENDÊNCIA DE SERVIÇOS COMERCIAIS</div><h2 id="calPageHeading">Visão mensal</h2><p id="calPageSubtitle">Calendário de entregas, responsáveis e orientações</p></div>'+
   '<div class="cal-bar cal-actions"><span class="cal-role">'+(admin?'Administração · edição habilitada':'Consulta · somente leitura')+'</span><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
-  '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small class="cal-month-hint">Dados compartilhados no Supabase · mês atual e próximo</small></div>'+
-  '<div class="cal-visibility-bar"><span class="cal-visibility-explain"><span class="cal-general-symbol" aria-hidden="true">●</span> Gerais: disponíveis para todos os perfis aprovados</span>'+
-  (canSeeSuperint?'<button type="button" class="cal-btn cal-superint-toggle" id="calSuperintToggle" data-ca="superint-view" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3Z"/><path d="m8.5 11 2.5 2.5 4.5-5"/></svg><span id="calSuperintToggleText">Visão Superint</span></button><span id="calSuperintModeLabel" class="cal-mode-label" aria-live="polite">Somente Gerais</span>':'')+'</div>'+
+  '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select>'+
+  (canSeeSuperint?'<div class="cal-month-visibility"><div class="cal-segments" role="group" aria-label="Visibilidade dos reports"><button type="button" data-cal-visibility="geral" aria-pressed="true">Geral</button><button type="button" data-cal-visibility="todos" aria-pressed="false">Geral + Superint</button><button type="button" data-cal-visibility="superint" aria-pressed="false">Superint</button></div><span id="calSuperintModeLabel" class="cal-mode-label">Geral</span></div>':'<span class="cal-month-visibility cal-general-only">Visão: Geral</span>')+'</div>'+
   '<div class="cal-bar cal-filters"><label class="cal-search-wrap"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar"></label><select id="calCategory" aria-label="Frente de atuação"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
   '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
  pages.get(state.tab).appendChild(panel);
@@ -113,7 +112,10 @@ export async function mountCalendar({db,perfil,navegar}){
  document.querySelectorAll('.side-nav > .nav-item').forEach(item=>{
    item.addEventListener('click',()=>group.classList.remove('cal-current'));
  });
- const visibleRows=()=>state.data.filter(r=>canSeeSuperint&&state.superintView || !r.atividade_superint);
+ const visibleRows=()=>state.data.filter(r=>{
+   if(!canSeeSuperint)return !r.atividade_superint;
+   return state.visibility==='todos'||(state.visibility==='superint'?Boolean(r.atividade_superint):!r.atividade_superint);
+ });
  const rows=()=>visibleRows().filter(r=>r.report_month===state.month);
  const audienceBadge=r=>r.atividade_superint
   ?'<span class="cal-audience cal-audience-superint" title="Atividade restrita à Superintendência"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-8-11V5l8-3Z"/></svg> Superint</span>'
@@ -177,13 +179,13 @@ export async function mountCalendar({db,perfil,navegar}){
  function onepage(){const rs=filtered();return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>One Page da Agenda</h3><p>Visão executiva para impressão / PDF.</p></div><button class="cal-btn primary" data-ca="print">Gerar PDF</button></div><div class="cal-one-scroll"><div class="cal-onepage"><small>SSC · AGENDA EXECUTIVA</small><h2>'+esc(monthText(state.month))+'</h2><p>'+rs.length+' entregas · '+rs.filter(r=>r.done).length+' concluídas</p><table><thead><tr><th>DATA</th><th>REPORT</th><th>RESPONSÁVEL</th><th>OBSERVAÇÕES</th><th>STATUS</th></tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td>'+fmt(r.publish_due)+'</td><td><strong>'+esc(r.name)+'</strong>'+audienceBadge(r)+'<small>'+esc(r.category)+'</small></td><td>'+esc(r.info_owner||'A definir')+'</td><td style="white-space:pre-wrap">'+esc(r.notes||'—')+'</td><td>'+esc(status(r)[1])+'</td></tr>').join(''):'<tr><td colspan="5">Sem entregas no período.</td></tr>')+'</tbody></table></div></div></div>'}
  function catalog(){return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Catálogo de Reports</h3><p>Modelos de entregas recorrentes.</p></div>'+(admin?'<button class="cal-btn primary" data-ca="loadmodels">Carregar modelos no mês</button>':'')+'</div><div class="cal-catalog">'+models.map((m,i)=>'<div class="cal-catalog-card"><div class="cal-catalog-icon" aria-hidden="true">'+(m[1]==='Indicadores'?'▥':m[1]==='Operação'?'⚡':m[1]==='Orçamento'?'▤':m[1]==='Qualidade'?'✓':'▣')+'</div><strong>'+esc(m[0])+'</strong><p>'+esc(m[4])+'</p><small>'+esc(m[1])+' · '+esc(m[2])+'</small>'+(admin?'<button class="cal-btn" data-ca="template" data-index="'+i+'">+ Adicionar</button>':'')+'</div>').join('')+'</div></div>'}
  function render(){
-  const switcher=$('calSuperintToggle');
-  if(switcher){
-    switcher.setAttribute('aria-pressed',String(state.superintView));
-    switcher.classList.toggle('active',state.superintView);
-    $('calSuperintToggleText').textContent='Visão Superint';
-    $('calSuperintModeLabel').textContent=state.superintView?'Gerais + Superint':'Somente Gerais';
-  }
+  panel.querySelectorAll('[data-cal-visibility]').forEach(b=>{
+    const active=b.dataset.calVisibility===state.visibility;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
+  const indicator=$('calSuperintModeLabel');
+  if(indicator)indicator.textContent=state.visibility==='todos'?'Geral + Superint':state.visibility==='superint'?'Superint':'Geral';
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
   submenu.querySelectorAll('.cal-sidebar-child').forEach(item=>item.classList.toggle('active',item.dataset.view==='calendario-'+state.tab));
@@ -194,7 +196,7 @@ export async function mountCalendar({db,perfil,navegar}){
  }
  const field=(name,title,type='text',value='',more='')=>'<div class="cal-field"><label for="calF_'+name+'">'+esc(title)+'</label><input id="calF_'+name+'" name="'+name+'" type="'+type+'" value="'+esc(value||'')+'" '+more+'></div>';
  const select=(name,title,items,value)=>'<div class="cal-field"><label>'+title+'</label><select name="'+name+'">'+items.map(x=>'<option value="'+esc(x)+'" '+(value===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></div>';
- const check=(name,title,yes)=>'<div class="cal-field"><label><input type="checkbox" name="'+name+'" '+(yes?'checked':'')+'> '+title+'</label></div>';
+ const check=(name,title,yes)=>'<div class="cal-field cal-check-field"><label class="cal-check-row"><input type="checkbox" name="'+name+'" '+(yes?'checked':'')+'><span>'+title+'</span></label></div>';
  function close(){ $('calModal').innerHTML='';document.body.style.overflow='';state.edit=null }
  function open(record=null,due='',template=null){
   if(!admin)return;
@@ -290,16 +292,13 @@ export async function mountCalendar({db,perfil,navegar}){
  function print(){document.body.classList.add('cal-print');const end=()=>document.body.classList.remove('cal-print');window.addEventListener('afterprint',end,{once:true});window.print();setTimeout(end,1800)}
  panel.addEventListener('click',e=>{
   const day=e.target.closest('[data-cal-day]');if(day){state.day=day.dataset.calDay;render();return}
+  const vis=e.target.closest('[data-cal-visibility]');
+  if(vis&&canSeeSuperint){state.visibility=vis.dataset.calVisibility;render();return}
   const btn=e.target.closest('[data-ca]');if(!btn)return;const act=btn.dataset.ca;
   if(act==='prev'||act==='next'){state.month=advance(state.month,act==='prev'?-1:1);state.day=state.month+'-01';state.week=iso(monday(state.day));render();return}
   if(act==='weekprev'||act==='weeknext'||act==='weeknow'){
     const ref=act==='weeknow'?today:iso(offset(date(state.week),act==='weekprev'?-7:7));
     state.week=iso(monday(ref));if(allowed(ref.slice(0,7)))state.month=ref.slice(0,7);render();return;
-  }
-  if(act==='superint-view'&&canSeeSuperint){
-    state.superintView=!state.superintView;
-    render();
-    return;
   }
   if(act==='print'){print();return}
   if(!admin)return;
