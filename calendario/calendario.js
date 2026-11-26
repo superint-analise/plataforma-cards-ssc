@@ -35,7 +35,7 @@ export async function mountCalendar({db,perfil,navegar}){
  ['Anexo VI','Qualidade','Semanal','Parcial','Entrega de controle periódico.'],
  ['Plano de Horas Extras','Gestão','Semanal','Parcial','Acompanhamento semanal de horas extras.'],
  ['Gestão Financeira | OPEX / CAPEX','Orçamento','Mensal','Parcial','Aderência financeira, realizado e projeções.']];
- const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false,visibility:'geral'};
+ const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false,visibility:canSeeSuperint?'todos':'geral'};
  const nav=document.querySelector('.side-nav'),main=document.querySelector('.main');
  if(!nav||!main)throw Error('A estrutura principal da plataforma não foi encontrada.');
  // O Calendário é um grupo de navegação com CINCO páginas reais (view-section).
@@ -83,7 +83,7 @@ export async function mountCalendar({db,perfil,navegar}){
   '<div class="cal-page-heading"><div><div class="cal-kicker cal-light-kicker">SUPERINTENDÊNCIA DE SERVIÇOS COMERCIAIS</div><h2 id="calPageHeading">Visão mensal</h2><p id="calPageSubtitle">Calendário de entregas, responsáveis e orientações</p></div>'+
   '<div class="cal-bar cal-actions"><span class="cal-role">'+(admin?'Administração · edição habilitada':'Consulta · somente leitura')+'</span><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
   '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select>'+
-  (canSeeSuperint?'<div class="cal-month-visibility"><div class="cal-segments" role="group" aria-label="Visibilidade dos reports"><button type="button" data-cal-visibility="geral" aria-pressed="true">Geral</button><button type="button" data-cal-visibility="todos" aria-pressed="false">Geral + Superint</button><button type="button" data-cal-visibility="superint" aria-pressed="false">Superint</button></div><span id="calSuperintModeLabel" class="cal-mode-label">Geral</span></div>':'<span class="cal-month-visibility cal-general-only">Visão: Geral</span>')+'</div>'+
+  (canSeeSuperint?'<div class="cal-month-visibility"><div class="cal-segments" role="group" aria-label="Visibilidade dos reports"><button type="button" data-cal-visibility="geral" aria-pressed="false">Geral</button><button type="button" data-cal-visibility="todos" aria-pressed="true">Geral + Superint</button><button type="button" data-cal-visibility="superint" aria-pressed="false">Superint</button></div></div>':'<span class="cal-month-visibility cal-general-only">Visão: Geral</span>')+'</div>'+
   '<div class="cal-bar cal-filters"><label class="cal-search-wrap"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar"></label><select id="calCategory" aria-label="Frente de atuação"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
   '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
  pages.get(state.tab).appendChild(panel);
@@ -118,11 +118,11 @@ export async function mountCalendar({db,perfil,navegar}){
  });
  const rows=()=>visibleRows().filter(r=>r.report_month===state.month);
  const audienceBadge=r=>r.atividade_superint
-  ?'<span class="cal-audience cal-audience-superint" title="Atividade restrita à Superintendência"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-8-11V5l8-3Z"/></svg> Superint</span>'
+  ?'<span class="cal-audience cal-audience-superint" title="Atividade restrita à Superintendência">Superint</span>'
   :'<span class="cal-audience cal-audience-general" title="Atividade Geral">Geral</span>';
  const status=r=>r.done?['done','Concluído']:r.publish_due&&r.publish_due<today?['late','Com atraso']:r.recurring?['ongoing','Em andamento']:r.publish_due?['scheduled','Programado']:['unscheduled','A programar'];
  const filtered=()=>rows().filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes,r.category].join(' ').toLowerCase().includes(state.search.toLowerCase()))).sort((a,b)=>(a.publish_due||'9999').localeCompare(b.publish_due||'9999')||a.name.localeCompare(b.name,'pt-BR'));
- const badge=r=>'<span class="cal-state '+status(r)[0]+'">'+status(r)[1]+'</span>'+audienceBadge(r);
+ const badge=r=>'<span class="cal-state '+status(r)[0]+'">'+status(r)[1]+'</span>';
  const edit=r=>admin?'<button class="cal-btn" data-ca="edit" data-id="'+esc(r.id)+'">Editar</button>':'';
  const note=(msg,error=false)=>{
    const el=$('calMessage');if(el){el.textContent=msg;el.style.color=error?'#a94242':'#496f65'}
@@ -188,8 +188,6 @@ export async function mountCalendar({db,perfil,navegar}){
     b.classList.toggle('active',active);
     b.setAttribute('aria-pressed',String(active));
   });
-  const indicator=$('calSuperintModeLabel');
-  if(indicator)indicator.textContent=state.visibility==='todos'?'Geral + Superint':state.visibility==='superint'?'Superint':'Geral';
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
   submenu.querySelectorAll('.cal-sidebar-child').forEach(item=>item.classList.toggle('active',item.dataset.view==='calendario-'+state.tab));
