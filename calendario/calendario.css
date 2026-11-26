@@ -501,3 +501,18 @@ body.v50-dark.ssc-calendar-active #view-calendario .cal-feedback{
  #view-calendario .cal-visibility-bar{align-items:stretch}
  #view-calendario .cal-visibility-bar .cal-btn{width:100%}
 }
+
+#view-calendario .cal-mode-label{
+  font-size:10.5px;font-weight:800;color:#4B7166;
+  background:#E9F4EF;border:1px solid #BBD8CB;border-radius:99px;
+  padding:6px 9px;white-space:nowrap;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-toggle.active{
+  background:#FFF0D9!important;color:#815016!important;border-color:#E4AE60!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-audience-superint{
+  background:#FFF0DA!important;color:#815016!important;border-color:#E8B66F!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-audience-general{
+  background:#E4F5F0!important;color:#006F62!important;border-color:#A9D6C9!important;
+}
