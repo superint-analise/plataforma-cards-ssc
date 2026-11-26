@@ -84,7 +84,7 @@ export async function mountCalendar({db,perfil,navegar}){
   '<div class="cal-bar cal-actions"><span class="cal-role">'+(admin?'Administração · edição habilitada':'Consulta · somente leitura')+'</span><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
   '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small class="cal-month-hint">Dados compartilhados no Supabase · mês atual e próximo</small></div>'+
   '<div class="cal-visibility-bar"><span class="cal-visibility-explain"><span class="cal-general-symbol" aria-hidden="true">●</span> Gerais: disponíveis para todos os perfis aprovados</span>'+
-  (canSeeSuperint?'<button type="button" class="cal-btn cal-superint-toggle" id="calSuperintToggle" data-ca="superint-view" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3Z"/><path d="m8.5 11 2.5 2.5 4.5-5"/></svg><span id="calSuperintToggleText">Visão Superint</span></button>':'')+'</div>'+
+  (canSeeSuperint?'<button type="button" class="cal-btn cal-superint-toggle" id="calSuperintToggle" data-ca="superint-view" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3Z"/><path d="m8.5 11 2.5 2.5 4.5-5"/></svg><span id="calSuperintToggleText">Visão Superint</span></button><span id="calSuperintModeLabel" class="cal-mode-label" aria-live="polite">Somente Gerais</span>':'')+'</div>'+
   '<div class="cal-bar cal-filters"><label class="cal-search-wrap"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar"></label><select id="calCategory" aria-label="Frente de atuação"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
   '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
  pages.get(state.tab).appendChild(panel);
@@ -181,7 +181,8 @@ export async function mountCalendar({db,perfil,navegar}){
   if(switcher){
     switcher.setAttribute('aria-pressed',String(state.superintView));
     switcher.classList.toggle('active',state.superintView);
-    $('calSuperintToggleText').textContent=state.superintView?'Exibir somente Gerais':'Visão Superint';
+    $('calSuperintToggleText').textContent='Visão Superint';
+    $('calSuperintModeLabel').textContent=state.superintView?'Gerais + Superint':'Somente Gerais';
   }
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
