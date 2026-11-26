@@ -2,6 +2,7 @@
 export async function mountCalendar({db,perfil,navegar}){
  if(document.getElementById('view-calendario'))return;
  const admin=perfil?.aprovado===true&&perfil?.perfil==='criador';
+ const canSeeSuperint=perfil?.aprovado===true&&['criador','superint'].includes(perfil?.perfil);
  const $=id=>document.getElementById(id);
  const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
  const pad=n=>String(n).padStart(2,'0');
@@ -34,7 +35,7 @@ export async function mountCalendar({db,perfil,navegar}){
  ['Anexo VI','Qualidade','Semanal','Parcial','Entrega de controle periódico.'],
  ['Plano de Horas Extras','Gestão','Semanal','Parcial','Acompanhamento semanal de horas extras.'],
  ['Gestão Financeira | OPEX / CAPEX','Orçamento','Mensal','Parcial','Aderência financeira, realizado e projeções.']];
- const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false};
+ const state={month:current,day:today,week:iso(monday(today)),tab:'monthly',data:[],category:'',status:'',search:'',edit:null,busy:false,superintView:false};
  const nav=document.querySelector('.side-nav'),main=document.querySelector('.main');
  if(!nav||!main)throw Error('A estrutura principal da plataforma não foi encontrada.');
  // O Calendário é um grupo de navegação com CINCO páginas reais (view-section).
@@ -82,6 +83,8 @@ export async function mountCalendar({db,perfil,navegar}){
   '<div class="cal-page-heading"><div><div class="cal-kicker cal-light-kicker">SUPERINTENDÊNCIA DE SERVIÇOS COMERCIAIS</div><h2 id="calPageHeading">Visão mensal</h2><p id="calPageSubtitle">Calendário de entregas, responsáveis e orientações</p></div>'+
   '<div class="cal-bar cal-actions"><span class="cal-role">'+(admin?'Administração · edição habilitada':'Consulta · somente leitura')+'</span><button class="cal-btn" data-ca="print">Imprimir / PDF</button>'+(admin?'<button class="cal-btn primary" data-ca="new">+ Novo report</button>':'')+'</div></div>'+
   '<div class="cal-month"><button class="cal-btn" data-ca="prev" aria-label="Mês anterior">‹</button><strong id="calMonthTitle"></strong><button class="cal-btn" data-ca="next" aria-label="Próximo mês">›</button><select id="calMonthPicker" aria-label="Selecionar mês"><option value="'+current+'">'+esc(monthText(current))+'</option><option value="'+next+'">'+esc(monthText(next))+'</option></select><small class="cal-month-hint">Dados compartilhados no Supabase · mês atual e próximo</small></div>'+
+  '<div class="cal-visibility-bar"><span class="cal-visibility-explain"><span class="cal-general-symbol" aria-hidden="true">●</span> Gerais: disponíveis para todos os perfis aprovados</span>'+
+  (canSeeSuperint?'<button type="button" class="cal-btn cal-superint-toggle" id="calSuperintToggle" data-ca="superint-view" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3Z"/><path d="m8.5 11 2.5 2.5 4.5-5"/></svg><span id="calSuperintToggleText">Visão Superint</span></button>':'')+'</div>'+
   '<div class="cal-bar cal-filters"><label class="cal-search-wrap"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg><input id="calSearch" type="search" placeholder="Buscar report ou responsável" aria-label="Buscar"></label><select id="calCategory" aria-label="Frente de atuação"><option value="">Todas as frentes</option>'+cats.map(c=>'<option>'+c+'</option>').join('')+'</select><select id="calStatus" aria-label="Situação"><option value="">Todas as situações</option><option value="done">Concluídos</option><option value="late">Atrasados</option><option value="scheduled">Programados</option><option value="ongoing">Em andamento</option><option value="unscheduled">A programar</option></select></div>'+
   '<p id="calMessage" class="cal-feedback" aria-live="polite"></p><div id="calMetrics" class="cal-metrics"></div><div id="calOutput"></div><div id="calModal"></div>';
  pages.get(state.tab).appendChild(panel);
@@ -110,16 +113,20 @@ export async function mountCalendar({db,perfil,navegar}){
  document.querySelectorAll('.side-nav > .nav-item').forEach(item=>{
    item.addEventListener('click',()=>group.classList.remove('cal-current'));
  });
- const rows=()=>state.data.filter(r=>r.report_month===state.month);
+ const visibleRows=()=>state.data.filter(r=>canSeeSuperint&&state.superintView || !r.atividade_superint);
+ const rows=()=>visibleRows().filter(r=>r.report_month===state.month);
+ const audienceBadge=r=>r.atividade_superint
+  ?'<span class="cal-audience cal-audience-superint" title="Atividade restrita à Superintendência"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 20 5v6c0 5-3.5 8-8 11-4.5-3-8-8-11V5l8-3Z"/></svg> Superint</span>'
+  :'<span class="cal-audience cal-audience-general" title="Atividade Geral">Geral</span>';
  const status=r=>r.done?['done','Concluído']:r.publish_due&&r.publish_due<today?['late','Com atraso']:r.recurring?['ongoing','Em andamento']:r.publish_due?['scheduled','Programado']:['unscheduled','A programar'];
  const filtered=()=>rows().filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes,r.category].join(' ').toLowerCase().includes(state.search.toLowerCase()))).sort((a,b)=>(a.publish_due||'9999').localeCompare(b.publish_due||'9999')||a.name.localeCompare(b.name,'pt-BR'));
- const badge=r=>'<span class="cal-state '+status(r)[0]+'">'+status(r)[1]+'</span>';
+ const badge=r=>'<span class="cal-state '+status(r)[0]+'">'+status(r)[1]+'</span>'+audienceBadge(r);
  const edit=r=>admin?'<button class="cal-btn" data-ca="edit" data-id="'+esc(r.id)+'">Editar</button>':'';
  const note=(msg,error=false)=>{const el=$('calMessage');el.textContent=msg;el.style.color=error?'#a94242':'#496f65'};
  async function load(){
    if(state.busy)return;state.busy=true;note('Carregando dados compartilhados do Supabase…');
    try{
-     const {data,error}=await db.from('ssc_agenda_reports').select('id,report_month,name,category,frequency,info_type,period_start,period_end,info_owner,publish_due,recurring,done,notes,updated_at').in('report_month',[current,next]).order('publish_due',{ascending:true,nullsFirst:false}).limit(3000);
+     const {data,error}=await db.from('ssc_agenda_reports').select('id,report_month,name,category,frequency,info_type,period_start,period_end,info_owner,publish_due,recurring,done,notes,atividade_superint,updated_at').in('report_month',[current,next]).order('publish_due',{ascending:true,nullsFirst:false}).limit(3000);
      if(error)throw error;state.data=data||[];render();note(state.data.length?'Dados sincronizados com o Supabase.':'Nenhum report cadastrado na janela atual.');
    }catch(e){note('Erro ao consultar Agenda: '+(e.message||e),true)}
    finally{state.busy=false}
@@ -151,25 +158,31 @@ export async function mountCalendar({db,perfil,navegar}){
   const d=date(state.month+'-01'),off=(d.getDay()+6)%7,n=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),cells=Math.ceil((off+n)/7)*7;
   const head='<div class="cal-day-head">'+['SEG','TER','QUA','QUI','SEX','SÁB','DOM'].map(t=>'<span>'+t+'</span>').join('')+'</div>';
   const days=Array.from({length:cells},(_,i)=>{const x=offset(d,i-off),ds=iso(x),ev=filtered().filter(r=>r.publish_due===ds);
-   return '<button class="cal-day '+(ds.slice(0,7)!==state.month?'dim ':'')+(ds===today?'today ':'')+(ds===state.day?'chosen':'')+'" data-cal-day="'+ds+'"><span class="cal-day-num">'+x.getDate()+'</span>'+ev.slice(0,3).map(r=>'<span class="cal-event '+status(r)[0]+'" title="'+esc(status(r)[1]+' · '+r.name)+'">'+(r.done?'✓ ':'')+esc(r.name)+(r.recurring?' ↻':'')+'</span>').join('')+(ev.length>3?'<small>+'+(ev.length-3)+' entregas</small>':'')+'</button>'
+   return '<button class="cal-day '+(ds.slice(0,7)!==state.month?'dim ':'')+(ds===today?'today ':'')+(ds===state.day?'chosen':'')+'" data-cal-day="'+ds+'"><span class="cal-day-num">'+x.getDate()+'</span>'+ev.slice(0,3).map(r=>'<span class="cal-event '+status(r)[0]+(r.atividade_superint?' superint':'')+'" title="'+esc((r.atividade_superint?'Superint · ':'Geral · ')+status(r)[1]+' · '+r.name)+'">'+(r.done?'✓ ':'')+esc(r.name)+(r.recurring?' ↻':'')+(r.atividade_superint?' ◆':'')+'</span>').join('')+(ev.length>3?'<small>+'+(ev.length-3)+' entregas</small>':'')+'</button>'
   }).join('');
   const selected=filtered().filter(r=>r.publish_due===state.day);
-  return '<div class="cal-month-layout"><div class="cal-panel"><div class="cal-panel-title"><div><h3>Mapa mensal de entregas</h3><p>Selecione uma data para visualizar os reports.</p></div></div><div style="overflow-x:auto"><div style="min-width:590px">'+head+'<div class="cal-grid">'+days+'</div></div></div></div><aside class="cal-panel cal-side"><h3>'+fmt(state.day)+'</h3><p style="font-size:11px">'+selected.length+' report(s) para o dia</p>'+(selected.length?selected.map(r=>'<div class="cal-item"><strong>'+esc(r.name)+'</strong><small>'+esc(r.info_owner||'Responsável a definir')+'</small><br>'+badge(r)+' '+edit(r)+'</div>').join(''):'<div class="cal-empty">Sem entregas nesta data.</div>')+(admin?'<button class="cal-btn primary" data-ca="newday">+ Agendar neste dia</button>':'')+'</aside></div>';
+  return '<div class="cal-month-layout"><div class="cal-panel"><div class="cal-panel-title"><div><h3>Mapa mensal de entregas</h3><p>Selecione uma data para visualizar os reports.</p></div></div><div style="overflow-x:auto"><div style="min-width:590px">'+head+'<div class="cal-grid">'+days+'</div></div></div></div><aside class="cal-panel cal-side"><h3>'+fmt(state.day)+'</h3><p style="font-size:11px">'+selected.length+' report(s) para o dia</p>'+(selected.length?selected.map(r=>'<div class="cal-item"><strong>'+esc(r.name)+'</strong>'+audienceBadge(r)+'<small>'+esc(r.info_owner||'Responsável a definir')+'</small><br>'+badge(r)+' '+edit(r)+'</div>').join(''):'<div class="cal-empty">Sem entregas nesta data.</div>')+(admin?'<button class="cal-btn primary" data-ca="newday">+ Agendar neste dia</button>':'')+'</aside></div>';
  }
  function weekly(){
   const start=monday(state.week),end=offset(start,6);
-  const days=Array.from({length:7},(_,i)=>{const d=offset(start,i),key=iso(d),rs=state.data.filter(r=>r.publish_due===key).filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes].join(' ').toLowerCase().includes(state.search.toLowerCase())));
-   return '<div class="cal-week-day'+(key===today?' cal-week-today':'')+'"><h4>'+esc(d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' <span class="cal-week-count">'+rs.length+'</span></h4>'+(i===0?'<div class="cal-week-entry">Lembrete · Report semanal</div>':'')+(rs.length?rs.map(r=>'<div class="cal-week-entry '+status(r)[0]+'"><strong>'+esc(r.name)+'</strong>'+(r.recurring?' <span class="cal-recurring-tag">↻ Recorrente</span>':'')+'<br>'+esc(r.info_owner||'A definir')+'<br>'+badge(r)+(r.notes?'<p>'+esc(r.notes)+'</p>':'')+edit(r)+'</div>').join(''):'<small>Sem entregas</small>')+(admin&&allowed(key.slice(0,7))?'<button class="cal-btn" data-ca="newday" data-date="'+key+'">+ Report</button>':'')+'</div>'
+  const days=Array.from({length:7},(_,i)=>{const d=offset(start,i),key=iso(d),rs=visibleRows().filter(r=>r.publish_due===key).filter(r=>(!state.category||r.category===state.category)&&(!state.status||status(r)[0]===state.status)&&(!state.search||[r.name,r.info_owner,r.notes].join(' ').toLowerCase().includes(state.search.toLowerCase())));
+   return '<div class="cal-week-day'+(key===today?' cal-week-today':'')+'"><h4>'+esc(d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' <span class="cal-week-count">'+rs.length+'</span></h4>'+(i===0?'<div class="cal-week-entry">Lembrete · Report semanal</div>':'')+(rs.length?rs.map(r=>'<div class="cal-week-entry '+status(r)[0]+(r.atividade_superint?' superint':'')+'"><strong>'+esc(r.name)+'</strong>'+audienceBadge(r)+(r.recurring?' <span class="cal-recurring-tag">↻ Recorrente</span>':'')+'<br>'+esc(r.info_owner||'A definir')+'<br>'+badge(r)+(r.notes?'<p>'+esc(r.notes)+'</p>':'')+edit(r)+'</div>').join(''):'<small>Sem entregas</small>')+(admin&&allowed(key.slice(0,7))?'<button class="cal-btn" data-ca="newday" data-date="'+key+'">+ Report</button>':'')+'</div>'
   }).join('');
   return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Visão semanal</h3><p>'+fmt(iso(start))+' a '+fmt(iso(end))+'</p></div><div class="cal-bar"><button class="cal-btn" data-ca="weekprev">Anterior</button><button class="cal-btn" data-ca="weeknow">Atual</button><button class="cal-btn" data-ca="weeknext">Próxima</button><button class="cal-btn" data-ca="print">PDF / Imprimir</button></div></div><div class="cal-week-scroll"><div class="cal-week">'+days+'</div></div></div>';
  }
  function schedule(){
   const rs=filtered();
-  return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Cronograma detalhado</h3><p>Dados de reporte, responsáveis, status e observações.</p></div><div class="cal-bar">'+(admin?'<button class="cal-btn" data-ca="copy">Copiar para próximo mês</button><button class="cal-btn primary" data-ca="new">+ Report</button>':'')+'</div></div><div class="cal-table-scroll"><table><thead><tr><th>REPORT / MATERIAL</th><th>TIPO / PERÍODO</th><th>DATA DO REPORT</th><th>RESPONSÁVEL</th><th>CONCLUÍDO</th><th>OBSERVAÇÕES / ORIENTAÇÕES</th>'+(admin?'<th>AÇÕES</th>':'')+'</tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td><strong>'+esc(r.name)+'</strong><small>'+esc(r.category)+' · '+esc(r.frequency)+'</small></td><td>'+esc(r.info_type)+'<small>'+esc(r.period_start?fmt(r.period_start):'')+(r.period_end?' até '+fmt(r.period_end):'')+'</small></td><td>'+fmt(r.publish_due)+'</td><td>'+esc(r.info_owner||'A definir')+'</td><td>'+badge(r)+(admin?'<div><label style="font-size:10px"><input type="checkbox" data-cal-done="'+r.id+'" '+(r.done?'checked':'')+'> Feito</label></div>':'')+'</td><td style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:260px">'+esc(r.notes||'—')+'</td>'+(admin?'<td>'+edit(r)+'</td>':'')+'</tr>').join(''):'<tr><td colspan="7" style="text-align:center;padding:30px">Nenhum report encontrado.</td></tr>')+'</tbody></table></div></div>';
+  return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Cronograma detalhado</h3><p>Dados de reporte, responsáveis, status e observações.</p></div><div class="cal-bar">'+(admin?'<button class="cal-btn" data-ca="copy">Copiar para próximo mês</button><button class="cal-btn primary" data-ca="new">+ Report</button>':'')+'</div></div><div class="cal-table-scroll"><table><thead><tr><th>REPORT / MATERIAL</th><th>TIPO / PERÍODO</th><th>DATA DO REPORT</th><th>RESPONSÁVEL</th><th>CONCLUÍDO</th><th>OBSERVAÇÕES / ORIENTAÇÕES</th>'+(admin?'<th>AÇÕES</th>':'')+'</tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td><strong>'+esc(r.name)+'</strong>'+audienceBadge(r)+'<small>'+esc(r.category)+' · '+esc(r.frequency)+'</small></td><td>'+esc(r.info_type)+'<small>'+esc(r.period_start?fmt(r.period_start):'')+(r.period_end?' até '+fmt(r.period_end):'')+'</small></td><td>'+fmt(r.publish_due)+'</td><td>'+esc(r.info_owner||'A definir')+'</td><td>'+badge(r)+(admin?'<div><label style="font-size:10px"><input type="checkbox" data-cal-done="'+r.id+'" '+(r.done?'checked':'')+'> Feito</label></div>':'')+'</td><td style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:260px">'+esc(r.notes||'—')+'</td>'+(admin?'<td>'+edit(r)+'</td>':'')+'</tr>').join(''):'<tr><td colspan="7" style="text-align:center;padding:30px">Nenhum report encontrado.</td></tr>')+'</tbody></table></div></div>';
  }
- function onepage(){const rs=filtered();return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>One Page da Agenda</h3><p>Visão executiva para impressão / PDF.</p></div><button class="cal-btn primary" data-ca="print">Gerar PDF</button></div><div class="cal-one-scroll"><div class="cal-onepage"><small>SSC · AGENDA EXECUTIVA</small><h2>'+esc(monthText(state.month))+'</h2><p>'+rs.length+' entregas · '+rs.filter(r=>r.done).length+' concluídas</p><table><thead><tr><th>DATA</th><th>REPORT</th><th>RESPONSÁVEL</th><th>OBSERVAÇÕES</th><th>STATUS</th></tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td>'+fmt(r.publish_due)+'</td><td><strong>'+esc(r.name)+'</strong><small>'+esc(r.category)+'</small></td><td>'+esc(r.info_owner||'A definir')+'</td><td style="white-space:pre-wrap">'+esc(r.notes||'—')+'</td><td>'+esc(status(r)[1])+'</td></tr>').join(''):'<tr><td colspan="5">Sem entregas no período.</td></tr>')+'</tbody></table></div></div></div>'}
+ function onepage(){const rs=filtered();return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>One Page da Agenda</h3><p>Visão executiva para impressão / PDF.</p></div><button class="cal-btn primary" data-ca="print">Gerar PDF</button></div><div class="cal-one-scroll"><div class="cal-onepage"><small>SSC · AGENDA EXECUTIVA</small><h2>'+esc(monthText(state.month))+'</h2><p>'+rs.length+' entregas · '+rs.filter(r=>r.done).length+' concluídas</p><table><thead><tr><th>DATA</th><th>REPORT</th><th>RESPONSÁVEL</th><th>OBSERVAÇÕES</th><th>STATUS</th></tr></thead><tbody>'+(rs.length?rs.map(r=>'<tr><td>'+fmt(r.publish_due)+'</td><td><strong>'+esc(r.name)+'</strong>'+audienceBadge(r)+'<small>'+esc(r.category)+'</small></td><td>'+esc(r.info_owner||'A definir')+'</td><td style="white-space:pre-wrap">'+esc(r.notes||'—')+'</td><td>'+esc(status(r)[1])+'</td></tr>').join(''):'<tr><td colspan="5">Sem entregas no período.</td></tr>')+'</tbody></table></div></div></div>'}
  function catalog(){return '<div class="cal-panel"><div class="cal-panel-title"><div><h3>Catálogo de Reports</h3><p>Modelos de entregas recorrentes.</p></div>'+(admin?'<button class="cal-btn primary" data-ca="loadmodels">Carregar modelos no mês</button>':'')+'</div><div class="cal-catalog">'+models.map((m,i)=>'<div class="cal-catalog-card"><div class="cal-catalog-icon" aria-hidden="true">'+(m[1]==='Indicadores'?'▥':m[1]==='Operação'?'⚡':m[1]==='Orçamento'?'▤':m[1]==='Qualidade'?'✓':'▣')+'</div><strong>'+esc(m[0])+'</strong><p>'+esc(m[4])+'</p><small>'+esc(m[1])+' · '+esc(m[2])+'</small>'+(admin?'<button class="cal-btn" data-ca="template" data-index="'+i+'">+ Adicionar</button>':'')+'</div>').join('')+'</div></div>'}
  function render(){
+  const switcher=$('calSuperintToggle');
+  if(switcher){
+    switcher.setAttribute('aria-pressed',String(state.superintView));
+    switcher.classList.toggle('active',state.superintView);
+    $('calSuperintToggleText').textContent=state.superintView?'Exibir somente Gerais':'Visão Superint';
+  }
   $('calMonthTitle').textContent=monthText(state.month);$('calMonthPicker').value=state.month;
   panel.querySelector('[data-ca="prev"]').disabled=state.month===current;panel.querySelector('[data-ca="next"]').disabled=state.month===next;
   submenu.querySelectorAll('.cal-sidebar-child').forEach(item=>item.classList.toggle('active',item.dataset.view==='calendario-'+state.tab));
@@ -184,7 +197,7 @@ export async function mountCalendar({db,perfil,navegar}){
  function close(){ $('calModal').innerHTML='';document.body.style.overflow='';state.edit=null }
  function open(record=null,due='',template=null){
   if(!admin)return;
-  const r=record||{report_month:state.month,name:template?.[0]||'',category:template?.[1]||'Gestão',frequency:template?.[2]||'Mensal',info_type:template?.[3]||'Parcial',period_start:'',period_end:'',publish_due:due,info_owner:'',notes:template?.[4]||'',recurring:false,done:false};
+  const r=record||{atividade_superint:false,report_month:state.month,name:template?.[0]||'',category:template?.[1]||'Gestão',frequency:template?.[2]||'Mensal',info_type:template?.[3]||'Parcial',period_start:'',period_end:'',publish_due:due,info_owner:'',notes:template?.[4]||'',recurring:false,done:false};
   if(!allowed(r.report_month))return note('Mês fora da janela operacional.',true);
   state.edit=record?.id||null;
   $('calModal').innerHTML='<div class="cal-overlay"><form id="calForm" class="cal-dialog"><header><h3>'+(record?'Editar report':'Novo report')+'</h3><button type="button" class="cal-btn" data-ca="close">Fechar</button></header><div class="cal-fields">'+
@@ -195,6 +208,7 @@ export async function mountCalendar({db,perfil,navegar}){
    select('info_type','Tipo de informação',['Parcial','Fechamento mensal','Fechamento acumulado'],r.info_type)+
    field('period_start','Referência início','date',r.period_start)+field('period_end','Referência fim','date',r.period_end)+
    field('publish_due','Data do report','date',r.publish_due)+field('info_owner','Responsável','text',r.info_owner,'maxlength="100"')+
+   '<div class="cal-field wide cal-audience-field"><label class="cal-superint-check"><input type="checkbox" name="atividade_superint" '+(r.atividade_superint?'checked':'')+'><span><strong>Atividade Superint</strong><small>Quando marcada, só Criador e Superintendência podem consultar esta atividade. Desmarcada, a atividade é Geral.</small></span></label></div>'+
    check('recurring','Recorrente',r.recurring)+check('done','Concluído',r.done)+
    (!record?'<div class="cal-field wide" id="calDailyExtra" hidden><label>Datas sem expediente (opcional, DD/MM/AAAA separadas por vírgula)</label><input name="excluded_days" type="text" placeholder="Ex.: 02/11/2026, 25/12/2026"><small>Diário: gera uma ocorrência por dia útil entre as datas de referência.</small></div>':'')+
    '<div class="cal-field wide"><label>Observações e orientações</label><textarea name="notes" rows="4" maxlength="1800">'+esc(r.notes)+'</textarea></div></div>'+
@@ -220,7 +234,7 @@ export async function mountCalendar({db,perfil,navegar}){
   if(v.period_start&&v.period_end&&v.period_end<v.period_start)return note('O período final não pode preceder o início.',true);
   const data={report_month:v.report_month,name:(v.name||'').trim(),category:v.category,frequency:v.frequency,info_type:v.info_type,
     period_start:v.period_start||null,period_end:v.period_end||null,publish_due:v.publish_due||null,info_owner:(v.info_owner||'').trim(),
-    recurring:f.has('recurring'),done:f.has('done'),notes:(v.notes||'').trim(),updated_at:new Date().toISOString()};
+    recurring:f.has('recurring'),done:f.has('done'),atividade_superint:f.has('atividade_superint'),notes:(v.notes||'').trim(),updated_at:new Date().toISOString()};
   if(!data.name)return note('Informe o nome do report.',true);
   if(!state.edit && data.frequency!=='Diário' && data.publish_due && data.publish_due.slice(0,7)!==data.report_month){
     return note('A data do report deve pertencer ao mês selecionado.',true);
@@ -257,19 +271,19 @@ export async function mountCalendar({db,perfil,navegar}){
  async function done(id,checked){if(!admin)return;const {error}=await db.from('ssc_agenda_reports').update({done:checked,updated_at:new Date().toISOString()}).eq('id',id);if(error)return note('Erro ao atualizar: '+error.message,true);await load();}
  async function loadModels(){
    if(!admin)return;
-   const registered=new Set(rows().map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
+   const registered=new Set(rows().filter(r=>!r.atividade_superint).map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
    const pending=models.filter(m=>!registered.has(m[0].toLocaleLowerCase('pt-BR').trim()));
    if(!pending.length)return note('Todos os modelos do catálogo já estão cadastrados neste mês.');
    if(!confirm('Adicionar '+pending.length+' modelos a '+monthText(state.month)+'? Os prazos ficarão em branco.'))return;
-   const data=pending.map(m=>({report_month:state.month,name:m[0],category:m[1],frequency:m[2],info_type:m[3],info_owner:'',period_start:null,period_end:null,publish_due:null,recurring:false,done:false,notes:''}));
+   const data=pending.map(m=>({report_month:state.month,name:m[0],category:m[1],frequency:m[2],info_type:m[3],info_owner:'',period_start:null,period_end:null,publish_due:null,recurring:false,done:false,atividade_superint:false,notes:''}));
    const {error}=await db.from('ssc_agenda_reports').insert(data);
    if(error)return note('Falha ao carregar modelos: '+error.message,true);
    await load();note(data.length+' modelos adicionados sem duplicação.');
  }
  async function copyNext(){if(!admin||state.month!==current)return;const arr=rows();if(!arr.length)return note('Nenhum report para copiar.');
    if(!confirm('Copiar '+arr.length+' reports para '+monthText(next)+'? Datas e checks serão limpos.'))return;
-   const existing=new Set(state.data.filter(r=>r.report_month===next).map(r=>r.name.toLocaleLowerCase('pt-BR').trim()));
-   const data=arr.filter(r=>!existing.has(r.name.toLocaleLowerCase('pt-BR').trim())).map(r=>({report_month:next,name:r.name,category:r.category,frequency:r.frequency,info_type:r.info_type,info_owner:r.info_owner,period_start:null,period_end:null,publish_due:null,recurring:r.recurring,done:false,notes:''}));
+   const existing=new Set(state.data.filter(r=>r.report_month===next).map(r=>r.name.toLocaleLowerCase('pt-BR').trim()+'|'+Boolean(r.atividade_superint)));
+   const data=arr.filter(r=>!existing.has(r.name.toLocaleLowerCase('pt-BR').trim()+'|'+Boolean(r.atividade_superint))).map(r=>({report_month:next,name:r.name,category:r.category,frequency:r.frequency,info_type:r.info_type,info_owner:r.info_owner,period_start:null,period_end:null,publish_due:null,recurring:r.recurring,done:false,atividade_superint:Boolean(r.atividade_superint),notes:''}));
    if(!data.length)return note('Todos os modelos já existem no próximo mês; nenhuma duplicação realizada.');
    const {error}=await db.from('ssc_agenda_reports').insert(data);if(error)return note('Falha na cópia: '+error.message,true);state.month=next;await load();}
  function print(){document.body.classList.add('cal-print');const end=()=>document.body.classList.remove('cal-print');window.addEventListener('afterprint',end,{once:true});window.print();setTimeout(end,1800)}
@@ -280,6 +294,11 @@ export async function mountCalendar({db,perfil,navegar}){
   if(act==='weekprev'||act==='weeknext'||act==='weeknow'){
     const ref=act==='weeknow'?today:iso(offset(date(state.week),act==='weekprev'?-7:7));
     state.week=iso(monday(ref));if(allowed(ref.slice(0,7)))state.month=ref.slice(0,7);render();return;
+  }
+  if(act==='superint-view'&&canSeeSuperint){
+    state.superintView=!state.superintView;
+    render();
+    return;
   }
   if(act==='print'){print();return}
   if(!admin)return;
