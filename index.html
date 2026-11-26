@@ -3064,7 +3064,7 @@ body.v50-dark .eff.ssc-eff-icon.bad{background:#462025;border-color:#8D414A;colo
     </div>
   </nav>
 
-  <div class="v50-theme"><button type="button" onclick="v50ToggleTheme()"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span id="v50ThemeLbl">Tema claro</span></button></div>
+  
 
   <div class="side-message">
     Resultados hoje.<br>
@@ -3079,7 +3079,7 @@ body.v50-dark .eff.ssc-eff-icon.bad{background:#462025;border-color:#8D414A;colo
     <span class="ssc-mobile-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 19V11M9 19V6M15 19V14M21 19V3"/><path d="M2 21h20"/></svg></span>
     <div class="ssc-mobile-name"><strong>Painel de Desempenho</strong><small>Superintendência de Serviços Comerciais</small></div>
   </div>
-  <button type="button" class="ssc-mobile-theme" aria-label="Alternar tema" onclick="v50ToggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.5 12.5A8.5 8.5 0 0 1 11.5 3a8.5 8.5 0 1 0 9 9.5Z"/></svg></button>
+
 </div>
 
 <header class="topbar">
@@ -4656,7 +4656,7 @@ function v41MountCharts(){
   document.querySelectorAll(".v41-lc").forEach(el=>{
     const w=el.clientWidth,spec=V41_CHARTS[+el.dataset.lc];
     if(!w||!spec)return;
-    el.innerHTML=spec.series.length>1
+    el.innerHTML=spec.series.length>2
       ?v41MultiRegionBars(spec.series,spec.formatter,Math.max(340,w),spec.opts)
       :v41LineSVG(spec.series,spec.formatter,Math.max(300,w),spec.opts);
   });
@@ -5196,9 +5196,14 @@ function execVerticalChartCentered(rows,ind,compact){
   const valid=rows.filter(x=>Number.isFinite(x.planned)&&Number.isFinite(x.real)&&Math.abs(x.planned)>1e-12);
   if(!valid.length)return `<div class="exec-empty">Sem dados para o período</div>`;
   const dev=x=>x.real/x.planned-1;
-  const maxAbs=Math.max(.02,...valid.map(x=>Math.abs(dev(x))));
-  const step=v41NiceStep(maxAbs,2),lim=Math.ceil(maxAbs*1.1/step)*step;
-  const pp=v=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:lim<.1?1:0})+" p.p.";
+  const maxAbs=Math.max(0,...valid.map(x=>Math.abs(dev(x))));
+  // Escala centralizada ajustada aos extremos reais, com 12% de margem.
+  const rawLim=Math.max(maxAbs*1.12,1e-6);
+  const magnitude=Math.pow(10,Math.floor(Math.log10(rawLim)));
+  const candidates=[1,1.25,1.5,2,2.5,3,4,5,7.5,10];
+  const lim=(candidates.find(v=>v*magnitude>=rawLim-1e-12)||10)*magnitude;
+  const decimals=lim<.0001?4:lim<.001?3:lim<.01?2:lim<.1?1:0;
+  const pp=v=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})+" p.p.";
   const lower=v41LowerBetter(ind);
   const ordenadas=[...valid].sort((x,y)=>{
     const a=execGeneralAttainment(x.planned,x.real,ind),b=execGeneralAttainment(y.planned,y.real,ind);
@@ -6098,17 +6103,8 @@ function switchView(view){
 
 
 /* ================== V50 — tema e cockpit da Visão Geral ================== */
-(function v50ThemeInit(){
-  let t="dark";
-  try{t=localStorage.getItem("v50-theme")||"dark"}catch(e){}
-  document.body.classList.toggle("v50-dark",t==="dark");
-})();
-function v50ToggleTheme(){
-  const dark=!document.body.classList.contains("v50-dark");
-  document.body.classList.toggle("v50-dark",dark);
-  try{localStorage.setItem("v50-theme",dark?"dark":"light")}catch(e){}
-  const el=document.getElementById("v50ThemeLbl");if(el)el.textContent=dark?"Tema claro":"Tema escuro";
-}
+(function sscFixedDarkTheme(){document.body.classList.add("v50-dark");})();
+function v50ToggleTheme(){document.body.classList.add("v50-dark");}
 const V50_CAN_RANK=()=>["criador","superint"].includes(window.__SSC_ROLE);
 function v50MonthPeriods(){
   const m=(typeof SSC_MONTH_PERIODOS!=="undefined"&&SSC_MONTH_PERIODOS.length)?SSC_MONTH_PERIODOS.slice():[PREVIOUS_PERIOD,CURRENT_PERIOD];
@@ -6400,7 +6396,7 @@ function inicializarPainel(){
 }
 
 // Atualizar a tela ativa após a troca de competência, sem recarregar a página.
-try{document.getElementById("v50ThemeLbl").textContent=document.body.classList.contains("v50-dark")?"Tema claro":"Tema escuro"}catch(e){}
+
 window.__SSC_RENDER_TABLES=()=>renderAllRegionTables();
 window.__SSC_RENDER_COMPARISON_VISUAL=()=>renderComparisonAll();
 window.__SSC_RENDER_COMPARISON_HISTORICAL=records=>{
