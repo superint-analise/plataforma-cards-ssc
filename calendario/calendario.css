@@ -286,3 +286,218 @@
 #view-calendario .cal-onepage th{background:#ffffff17;color:#A7ECDD;border-bottom:1px solid #ffffff46}
 #view-calendario .cal-onepage td{border-color:#ffffff27;vertical-align:top}
 #view-calendario .cal-onepage tbody tr:hover td{background:#ffffff0d}
+
+
+/* ===========================================================
+   CALENDÁRIO: CONTRASTE CLARO FIXO.
+   Sobrescreve o tema escuro global APENAS dentro do módulo,
+   preservando cabeçalho escuro, One Page e sidebar.
+   =========================================================== */
+body.v50-dark.ssc-calendar-active #view-calendario{
+  color-scheme:light;
+  --ink:#142C29;--ink-2:#2D4A46;--muted:#5E7A75;
+  --surface:#FFFFFF;--surface-2:#F7FAF9;--surface-solid:#FFFFFF;
+  --line:#D6E5DF;--line-2:#BFD4CD;--input:#FFFFFF;
+  --cal-ink:#142C29;--cal-muted:#5E7A75;
+  color:#142C29!important;
+  background:transparent!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-page-heading,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-month,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-filters,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-visibility-bar,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-panel,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-metric,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-catalog-card,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-dialog{
+  color:#142C29!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-month,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-panel,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-metric,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-catalog-card,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-dialog{
+  background:#FFFFFF!important;
+  border-color:#D6E5DF!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-page-heading h2,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-month strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-metric-info .cal-num,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-metric-info strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-panel-title h3,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-side h3,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-item strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-catalog-card strong,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-dialog h3,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-field label{
+  color:#193A33!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-page-heading p,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-role,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-month-hint,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-panel-title p,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-metric-info span,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-catalog-card p,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-catalog-card small,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-item small,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-day>small,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry p,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-field small,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-feedback{
+  color:#546F68!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario input:not([type="checkbox"]):not([type="radio"]),
+body.v50-dark.ssc-calendar-active #view-calendario select,
+body.v50-dark.ssc-calendar-active #view-calendario textarea{
+  background:#FFFFFF!important;
+  background-color:#FFFFFF!important;
+  color:#183D35!important;
+  border:1px solid #BFD4CD!important;
+  -webkit-text-fill-color:#183D35;
+  color-scheme:light;
+}
+body.v50-dark.ssc-calendar-active #view-calendario input::placeholder,
+body.v50-dark.ssc-calendar-active #view-calendario textarea::placeholder{
+  color:#71877F!important;opacity:1;
+}
+body.v50-dark.ssc-calendar-active #view-calendario input:focus,
+body.v50-dark.ssc-calendar-active #view-calendario select:focus,
+body.v50-dark.ssc-calendar-active #view-calendario textarea:focus{
+  border-color:#009B91!important;outline:2px solid #009B9140;outline-offset:0;
+}
+body.v50-dark.ssc-calendar-active #view-calendario select option{
+  background:#FFFFFF!important;color:#142C29!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-btn:not(.primary):not(.danger){
+  color:#24574C!important;background:#FFFFFF!important;
+  border:1px solid #BCD5CC!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-btn.primary{
+  color:#FFFFFF!important;background:linear-gradient(135deg,#00877E,#009B91)!important;
+  border-color:#00877E!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-btn.danger{
+  color:#A73530!important;background:#FFFFFF!important;border-color:#D8A6A0!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-day{
+  background:#F7FAF9!important;color:#142C29!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-day.dim{
+  background:#E7EFEC!important;color:#657B74!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-day.today{
+  background:#E3F4F1!important;color:#142C29!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-day.today .cal-day-num{
+  background:#009B91!important;color:#FFFFFF!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-day{
+  background:#F7FAF9!important;color:#142C29!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-day:nth-child(6),
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-day:nth-child(7){
+  background:#E9EFED!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry{
+  background:#FFFFFF!important;color:#284C43!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry.done{background:#E3F4EC!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry.late{background:#FFF1DB!important}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-week-entry.ongoing{background:#E2F1F7!important}
+body.v50-dark.ssc-calendar-active #view-calendario table:not(.cal-onepage table) thead th,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-table-scroll table th{
+  color:#145449!important;background:#E1F1EC!important;
+  border-color:#B9D6CB!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-table-scroll table tbody td{
+  background:#FFFFFF!important;color:#274B42!important;
+  border-color:#DCE9E4!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-table-scroll table tbody tr:hover td{
+  background:#EEF7F3!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-table-scroll table tbody td strong{
+  color:#173F36!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-table-scroll table tbody td small{
+  color:#59776E!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-onepage{
+  background:linear-gradient(135deg,#031412,#0B3B37 45%,#00645D)!important;
+  color:#FFFFFF!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-onepage table thead th{
+  background:#ffffff18!important;color:#BBF2E7!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-onepage table tbody td,
+body.v50-dark.ssc-calendar-active #view-calendario .cal-onepage table tbody td strong{
+  background:transparent!important;color:#FFFFFF!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-onepage table tbody tr:hover td{
+  background:#ffffff09!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-dialog{
+  color-scheme:light;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-field input[type="checkbox"]{
+  background:#FFFFFF!important;accent-color:#009B91!important;
+  color-scheme:light!important;
+  border-color:#86AFA2!important;
+}
+body.v50-dark.ssc-calendar-active #view-calendario .cal-feedback{
+  opacity:1;
+}
+/* Tipos de agenda: geral verde-petróleo; Superintendência laranja. */
+#view-calendario .cal-visibility-bar{
+  display:flex;align-items:center;gap:12px;justify-content:space-between;
+  flex-wrap:wrap;margin:0 0 13px;padding:10px 13px;
+  background:#FFFFFF;border:1px solid #D6E5DF;border-radius:12px;
+}
+#view-calendario .cal-visibility-explain{font-size:11px;color:#426B5D;font-weight:700}
+#view-calendario .cal-general-symbol{display:inline-flex;color:#009B91;font-size:13px;margin-right:6px}
+#view-calendario .cal-superint-toggle{display:inline-flex;align-items:center;gap:7px}
+#view-calendario .cal-superint-toggle.active{
+  background:#FFF0D9!important;border-color:#EAA94D!important;color:#875315!important;
+}
+#view-calendario .cal-audience{
+  display:inline-flex;align-items:center;gap:3px;border:1px solid;
+  border-radius:99px;padding:2px 6px;font-size:9px;font-weight:800;
+  margin:2px 5px 3px 0;vertical-align:middle;white-space:nowrap;
+}
+#view-calendario .cal-audience-general{
+  background:#E4F5F0;border-color:#A9D6C9;color:#006F62;
+}
+#view-calendario .cal-audience-superint{
+  background:#FFF0DA;border-color:#E8B66F;color:#905E1B;
+}
+#view-calendario .cal-event.superint{
+  border-left:4px solid #F5AA41!important;
+  background:#FFF0D7!important;color:#654318!important;
+}
+#view-calendario .cal-week-entry.superint{
+  border-left-color:#F5AA41!important;background:#FFF5E7!important;
+}
+#view-calendario .cal-audience-field{
+  border:1px solid #E5CDA5;border-radius:11px;
+  background:#FFF8ED;padding:12px 14px;
+}
+#view-calendario .cal-superint-check{
+  display:flex;align-items:center;gap:11px;cursor:pointer;
+}
+#view-calendario .cal-superint-check input{
+  width:19px!important;height:19px!important;flex:0 0 19px;
+  margin:0;accent-color:#D38E28!important;
+}
+#view-calendario .cal-superint-check strong{
+  display:block;color:#603D12;font-size:12px;
+}
+#view-calendario .cal-superint-check small{
+  display:block;color:#856B43;font-size:10.5px;line-height:1.45;
+  margin-top:3px;
+}
+@media(max-width:600px){
+ #view-calendario .cal-visibility-bar{align-items:stretch}
+ #view-calendario .cal-visibility-bar .cal-btn{width:100%}
+}
