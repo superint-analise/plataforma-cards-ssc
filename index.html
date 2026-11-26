@@ -3010,58 +3010,6 @@ body.v50-dark.ssc-calendar-active .cal-page select,
 body.v50-dark.ssc-calendar-active .cal-page textarea{color:#142C29;background:#fff}
 .v50-theme,.ssc-mobile-theme{display:none!important}
 
-/* Fullscreen centrado e interativo: mantém os nós DOM originais, sem snapshot */
-#view-evolution .chart-box:fullscreen,
-#view-comparison .exec-indicator.v41-ind:fullscreen,
-#view-evolution .chart-box.ssc-chart-fullscreen-fallback,
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback{
- display:flex!important;flex-direction:column!important;align-items:stretch!important;
- justify-content:center!important;overflow:auto!important;gap:12px!important;
- min-height:100vh!important;height:100vh!important;padding:56px max(26px,4vw) 35px!important;
-}
-#view-evolution .chart-box:fullscreen>div:not(.ssc-chart-fullscreen),
-#view-evolution .chart-box.ssc-chart-fullscreen-fallback>div:not(.ssc-chart-fullscreen){
- display:flex!important;flex-direction:column!important;align-items:stretch!important;
- justify-content:center!important;flex:1!important;min-height:0!important;width:100%!important;
-}
-#view-evolution .chart-box:fullscreen .v41-lc,
-#view-evolution .chart-box.ssc-chart-fullscreen-fallback .v41-lc{
- width:100%!important;flex:0 1 auto!important;min-height:0!important;
-}
-#view-evolution .chart-box:fullscreen svg.ssc-multi-bars,
-#view-evolution .chart-box.ssc-chart-fullscreen-fallback svg.ssc-multi-bars,
-#view-evolution .chart-box:fullscreen .v41-lc svg,
-#view-evolution .chart-box.ssc-chart-fullscreen-fallback .v41-lc svg{
- max-height:min(68vh,680px)!important;max-width:100%!important;
- width:100%!important;height:auto!important;object-fit:contain;
-}
-#view-comparison .exec-indicator.v41-ind:fullscreen>*:not(.ssc-chart-fullscreen),
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback>*:not(.ssc-chart-fullscreen){
- flex-shrink:0;
-}
-#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev,
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-dev,
-#view-comparison .exec-indicator.v41-ind:fullscreen .v41-irl,
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-irl{
- flex:0 1 auto!important;min-height:0!important;
-}
-#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev-row,
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-dev-row{
- min-height:50px!important;
-}
-#view-comparison .exec-indicator.v41-ind:fullscreen svg,
-#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback svg{
- max-height:70vh;
-}
-/* Tooltip permanece acima do gráfico, no mesmo elemento fullscreen. */
-#view-evolution .chart-box:fullscreen #chartTooltip,
-#view-comparison .exec-indicator.v41-ind:fullscreen #chartTooltip,
-.ssc-chart-fullscreen-fallback #chartTooltip{
- position:fixed!important;z-index:2147483647!important;max-width:340px!important;
- background:#173E38!important;color:#fff!important;border:1px solid #6FB6A8!important;
- white-space:pre-line!important;pointer-events:none!important;
-}
-
 /* Maximização individual em ambas as páginas */
 #view-evolution .chart-box,
 #view-comparison .exec-indicator.v41-ind{position:relative}
@@ -5827,7 +5775,59 @@ function buildRegionExportHTML(region,type,scope){
     .irl-aceitavel{background:#e7f7f5;color:#278d85;border:1px solid #b9e3df}
     .irl-toleravel{background:#fff1dc;color:#a5690b;border:1px solid #f3cf95}
     .irl-critico,.irl-zero{background:#fde6e6;color:#c83f3a;border:1px solid #f3aaaa}
-  </style></head><body>
+  /* Fullscreen centrado e interativo: mantém os nós DOM originais, sem snapshot */
+#view-evolution .chart-box:fullscreen,
+#view-comparison .exec-indicator.v41-ind:fullscreen,
+#view-evolution .chart-box.ssc-chart-fullscreen-fallback,
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ justify-content:center!important;overflow:auto!important;gap:12px!important;
+ min-height:100vh!important;height:100vh!important;padding:56px max(26px,4vw) 35px!important;
+}
+#view-evolution .chart-box:fullscreen>div:not(.ssc-chart-fullscreen),
+#view-evolution .chart-box.ssc-chart-fullscreen-fallback>div:not(.ssc-chart-fullscreen){
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ justify-content:center!important;flex:1!important;min-height:0!important;width:100%!important;
+}
+#view-evolution .chart-box:fullscreen .v41-lc,
+#view-evolution .chart-box.ssc-chart-fullscreen-fallback .v41-lc{
+ width:100%!important;flex:0 1 auto!important;min-height:0!important;
+}
+#view-evolution .chart-box:fullscreen svg.ssc-multi-bars,
+#view-evolution .chart-box.ssc-chart-fullscreen-fallback svg.ssc-multi-bars,
+#view-evolution .chart-box:fullscreen .v41-lc svg,
+#view-evolution .chart-box.ssc-chart-fullscreen-fallback .v41-lc svg{
+ max-height:min(68vh,680px)!important;max-width:100%!important;
+ width:100%!important;height:auto!important;object-fit:contain;
+}
+#view-comparison .exec-indicator.v41-ind:fullscreen>*:not(.ssc-chart-fullscreen),
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback>*:not(.ssc-chart-fullscreen){
+ flex-shrink:0;
+}
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev,
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-dev,
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-irl,
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-irl{
+ flex:0 1 auto!important;min-height:0!important;
+}
+#view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev-row,
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback .v41-dev-row{
+ min-height:50px!important;
+}
+#view-comparison .exec-indicator.v41-ind:fullscreen svg,
+#view-comparison .exec-indicator.v41-ind.ssc-chart-fullscreen-fallback svg{
+ max-height:70vh;
+}
+/* Tooltip permanece acima do gráfico, no mesmo elemento fullscreen. */
+#view-evolution .chart-box:fullscreen #chartTooltip,
+#view-comparison .exec-indicator.v41-ind:fullscreen #chartTooltip,
+.ssc-chart-fullscreen-fallback #chartTooltip{
+ position:fixed!important;z-index:2147483647!important;max-width:340px!important;
+ background:#173E38!important;color:#fff!important;border:1px solid #6FB6A8!important;
+ white-space:pre-line!important;pointer-events:none!important;
+}
+
+</style></head><body>
   <h1>Exportação ${type==="cards"?"Cards":"Email"}</h1>
   <p>Regional selecionada: <strong>${region}</strong> · Conteúdo: <strong>${scope==="cards"?"Cards":"Regional"}</strong> · Período: <strong>${CURRENT_PERIOD}</strong></p>
   ${sections}
