@@ -3133,6 +3133,50 @@ body.ssc-chart-modal-open{overflow:hidden}
 #view-superintendencia .ssc-sup-footnote{font-size:10.5px;color:var(--v-muted,#708783);margin:14px 0 2px;line-height:1.5}
 @media(max-width:980px){#view-superintendencia .ssc-sup-readings .v50-ins{grid-template-columns:1fr}#view-superintendencia .ssc-sup-impact-grid{grid-template-columns:1fr}}
 @media(max-width:650px){#view-superintendencia{padding:8px}#view-superintendencia .ssc-sup-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#view-superintendencia .ssc-sup-impact-card header{display:block}#view-superintendencia .ssc-sup-section-head{flex-wrap:wrap}}
+
+/* Quatro módulos: Superintendência, RR, Comitê e Calendário. */
+.sidebar .ssc-rr-sidebar-group,.sidebar .ssc-committee-sidebar-group{display:block;width:100%;min-width:0;border:0;margin:0 0 8px;padding:0;background:transparent}
+.sidebar .ssc-rr-sidebar-parent,.sidebar .ssc-committee-sidebar-parent{display:flex;align-items:center;width:100%;font:inherit;text-align:left;letter-spacing:normal;text-transform:none}
+.sidebar .ssc-rr-sidebar-group .cal-sidebar-children[hidden]{display:none!important}
+.sidebar .ssc-rr-sidebar-group.expanded .cal-sidebar-chevron{transform:rotate(180deg)}
+.sidebar .ssc-rr-sidebar-group .cal-sidebar-child{display:flex;align-items:center;gap:9px;min-height:37px;padding:9px 10px 9px 13px;text-align:left}
+.sidebar .ssc-rr-sidebar-group.cal-current>.ssc-rr-sidebar-parent,.sidebar .ssc-rr-sidebar-group.expanded>.ssc-rr-sidebar-parent{background:rgba(80,235,225,.15);color:#fff;border-left-color:#50ebe1}
+.ssc-coming-soon{display:block;font-size:9px;font-weight:600;color:#F5AA41;letter-spacing:0;margin-top:3px}
+.ssc-committee-placeholder{padding:32px;border-top:4px solid #F5AA41;text-align:center;min-height:210px}
+.ssc-committee-placeholder h2{font-size:22px;color:var(--v-ink,#173d39);margin:10px 0}
+.ssc-committee-placeholder p{font-size:13px;color:var(--v-muted,#6f8982)}
+/* Dois botões lado a lado somente na tela inicial, idênticos e sem sobreposição. */
+.auth-screen .auth-box:has(#su-form:not([hidden])){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
+.auth-screen .auth-box:has(#su-form:not([hidden]))>h2,.auth-screen .auth-box:has(#su-form:not([hidden]))>p,.auth-screen .auth-box:has(#su-form:not([hidden]))>#su-form,.auth-screen .auth-box:has(#su-form:not([hidden]))>#su-msg{grid-column:1/-1;min-width:0}
+.auth-screen #su-recuperar,.auth-screen #su-cadastrar{width:100%;position:static!important;float:none!important;transform:none!important;margin:10px 0 0!important;min-height:44px!important;padding:9px 5px!important;border-radius:10px!important;background:#009B91!important;color:#fff!important;border:1px solid #009B91!important;font-size:13px!important}
+.auth-screen:has(#su-solicitacao:not([hidden])) #su-recuperar,.auth-screen:has(#su-reset-form:not([hidden])) #su-recuperar{display:none!important}
+.auth-screen:has(#su-solicitacao:not([hidden])) #su-cadastrar,.auth-screen:has(#su-reset-form:not([hidden])) #su-cadastrar{display:none!important}
+/* Expansão da linha da tabela de indicadores, preservando a aparência existente. */
+#view-superintendencia .ssc-sup-lower-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:13px;align-items:stretch}
+#view-superintendencia .ssc-sup-lower-grid>.card{margin:0;min-width:0}
+#view-superintendencia .ssc-sup-table td:first-child{max-width:none}
+#view-superintendencia .ssc-sup-table td:first-child strong{font-weight:800}
+#view-superintendencia .ssc-sup-status.success{background:#d9f7e9;color:#007858}
+#view-superintendencia .ssc-sup-status.neutral{background:#edf2f0;color:#647e78}
+#view-superintendencia .ssc-sup-row.expanded{background:rgba(0,155,145,.11)!important}
+#view-superintendencia .ssc-sup-diagnostic-trigger{cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:10px;max-width:100%;min-width:92px;padding:6px 9px;border-radius:8px;border:1px solid #a7d9d2;font-size:10.5px;font-weight:800;color:#00766d;background:#e0f5f1}
+#view-superintendencia .ssc-sup-diagnostic-trigger.attention{background:#fff0df;border-color:#f5c98d;color:#b56813}
+#view-superintendencia .ssc-sup-diagnostic-trigger[aria-expanded=true] span{transform:rotate(180deg)}
+#view-superintendencia .ssc-sup-detail-row[hidden]{display:none!important}
+#view-superintendencia .ssc-sup-detail-row>td{padding:9px!important;background:rgba(0,155,145,.035);border-bottom:2px solid #9fd8d0!important}
+#view-superintendencia .ssc-sup-detail-panel{border:1px solid #bdded8;border-radius:10px;padding:14px;background:var(--v-surface,#fff)}
+#view-superintendencia .ssc-sup-detail-panel>p{font-size:12px;margin:0 0 12px;color:var(--v-ink,#173d39)}
+#view-superintendencia .ssc-sup-detail-panel>small{display:block;margin:9px 0 0;font-size:10px;color:var(--v-muted,#637d76)}
+#view-superintendencia .ssc-sup-diagnostic-table{width:100%;border-collapse:collapse;font-size:11px}
+#view-superintendencia .ssc-sup-diagnostic-table th{background:rgba(0,155,145,.085);padding:8px 10px}
+#view-superintendencia .ssc-sup-diagnostic-table td{padding:8px 10px}
+#view-superintendencia .ssc-sup-negative{font-weight:850;color:#D47818}
+#view-superintendencia .ssc-sup-empty{padding:9px;background:rgba(0,155,145,.045);font-size:11px}
+#view-superintendencia .ssc-sup-kpi{background:var(--v-surface,#fff)!important}
+#view-superintendencia .ssc-sup-kpi small,#view-superintendencia .ssc-sup-kpi span{opacity:1!important;color:var(--v-muted,#54736c)!important}
+#view-superintendencia .ssc-sup-kpi strong{color:var(--v-ink,#173d39);opacity:1}
+@media(max-width:980px){#view-superintendencia .ssc-sup-lower-grid{grid-template-columns:1fr}}
+@media(max-width:800px){.sidebar .ssc-rr-sidebar-group,.sidebar .ssc-committee-sidebar-group{flex:1 0 84px;min-width:84px;max-width:112px;position:static}.sidebar .ssc-rr-sidebar-group .cal-sidebar-children{position:fixed;left:10px;right:10px;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:710;display:grid;grid-template-columns:1fr;padding:12px;background:#06483f;border-radius:12px}}
 </style>
 <link rel="stylesheet" href="./calendario/calendario.css?v=20261127-sup-menu-v9">
 </head>
@@ -6812,6 +6856,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261127-superintendent-layout-v15"></script>
+<script type="module" src="./plataforma.js?v=20261127-rr-comite-oct-v16"></script>
 </body>
 </html>
