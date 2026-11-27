@@ -2204,6 +2204,16 @@ button.v41-stat.v42-st.on{box-shadow:0 0 0 3px #fff,0 8px 18px rgba(0,0,0,.2)}
 .v42-meta-sw{display:inline-block;width:16px;height:0;border-top:2px dashed #8C9A97;vertical-align:middle;margin-right:6px}
 .v42-leg-note{color:#8A9A97;font-weight:500}
 
+/* Login: botões em fluxo vertical real e recuperação APENAS na tela inicial. */
+.auth-screen .auth-box{overflow-y:auto;max-height:calc(100dvh - 32px)}
+.auth-screen #su-form{display:grid!important;grid-template-columns:minmax(0,1fr);gap:12px}
+.auth-screen #su-form[hidden]{display:none!important}
+.auth-screen #su-form button[type="submit"]{display:block;width:100%;position:static!important;transform:none!important;margin:4px 0 0!important;min-height:48px}
+.auth-screen #su-recuperar{display:block;position:static!important;transform:none!important;float:none!important;clear:both!important;width:100%;min-height:42px;margin:10px 0 0!important;background:transparent!important;color:#006d65!important;border:1px solid #b5d7d0!important}
+.auth-screen:has(#su-solicitacao:not([hidden])) #su-recuperar,
+.auth-screen:has(#su-reset-form:not([hidden])) #su-recuperar{display:none!important}
+.auth-screen:has(#su-solicitacao:not([hidden])) #su-cadastrar,
+.auth-screen:has(#su-reset-form:not([hidden])) #su-cadastrar{display:none!important}
 /* SSC: autenticação sobre a v43 (não altera os cartões originais). */
 body:not(.auth-ok) .app,body:not(.auth-ok) #execJustModalBg{visibility:hidden!important}
 .auth-screen{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:linear-gradient(135deg,#eaf5f3,#f7faf9);padding:16px}
@@ -4727,6 +4737,14 @@ function v41MultiRegionBars(series,formatter,W,opts){
   // Evitar duplicação da legenda e da explicação sob cada gráfico.
   return '<div class="ssc-multi-chart">'+svg+'</div>';
 }
+// Renderizador compartilhado: preserva o mesmo SVG, eixos, tooltips e padrões da Evolução Temporal.
+window.__SSC_RENDER_SUPER_TREND=(el,history)=>{
+  if(!el||!Array.isArray(history)||!history.length)return;
+  const w=Math.max(460,el.clientWidth||760);
+  const points=history.map(r=>({label:r.competencia,value:Number.isFinite(Number(r.score))?Number(r.score):null}));
+  el.innerHTML=v41LineSVG([{name:"Superintendência",points}],"score",w,{ref:10,refLbl:"referência 10"});
+  const svg=el.querySelector("svg");if(svg){svg.removeAttribute("width");svg.removeAttribute("height");svg.style.width="100%";svg.style.height="auto";svg.style.display="block"}
+};
 function v41MountCharts(){
   document.querySelectorAll(".v41-lc").forEach(el=>{
     const w=el.clientWidth,spec=V41_CHARTS[+el.dataset.lc];
@@ -6704,7 +6722,7 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
 <div id="chartTooltip" class="chart-tooltip"></div>
 
 <div class="auth-screen" id="su-auth"><div class="auth-box">
-  <h2>Painel de Desempenho - Superintendência de Serviços Comerciais</h2><p>Acesso individual. Cadastros novos dependem de aprovação do Criador.</p>
+  <h2>Painel de Desempenho - Superintendência de Serviços Comerciais</h2><p>Acesso individual por e-mail corporativo autorizado.</p>
   <form id="su-form">
     <input type="email" id="su-email" placeholder="E-mail" autocomplete="username" required>
     <input type="password" id="su-pass" placeholder="Senha" autocomplete="current-password" required>
@@ -6716,7 +6734,7 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
     <input type="password" id="su-reset-pass" minlength="8" autocomplete="new-password" required>
     <button type="submit">Salvar nova senha</button>
   </form>
-  <button type="button" id="su-recuperar">Esqueci a senha</button>
+  <button type="button" id="su-recuperar" aria-label="Recuperar senha">Recuperar senha</button>
   <button type="button" id="su-cadastrar">Cadastrar acesso</button>
   <form id="su-solicitacao" hidden>
     <h3>Cadastro de acesso</h3>
@@ -6734,6 +6752,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261127-signup-existing-v13"></script>
+<script type="module" src="./plataforma.js?v=20261127-superintendent-layout-v14"></script>
 </body>
 </html>
