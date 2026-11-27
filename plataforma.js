@@ -284,33 +284,101 @@ async function renderComparacaoHistorica(){
     }
   }
 }
-function montarSuperintendencia(comps){
-  if(!['criador','superint'].includes(perfil.perfil))return;
-  if(!$('view-superintendencia')){
-    addSection('superintendencia','Superintendência',`<div class="page-head"><div class="page-title"><h1>Resultados da Superintendência</h1><p>Visão exclusiva para Criadores e Superintendência.</p></div><div class="filters"><div class="filter"><label>Período</label><select id="sscSuperPeriodo" aria-label="Período da Superintendência"></select></div></div></div><div class="card" id="sscSuperResultados"></div>`);
-  }
-  const select=$('sscSuperPeriodo');
-  const permitted=notasMensais.filter(x=>x.nivel==='Superintendência').map(x=>x.competencia);
-  const options=[...new Set(permitted)].sort().reverse();
-  select.innerHTML=options.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(competenciaLabel(c))+'</option>').join('');
-  select.addEventListener('change',()=>renderSuperintendencia());
-  renderSuperintendencia();
+// Superintendência: módulo independente, primeiro na navegação, com página Cards.
+// A nota oficial permanece como registrada no Supabase; as contribuições são diagnósticas.
+let sscSupRequest=0;
+const supNormalize=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+const SUPER_LINKS=[
+ {match:/PMSO/,label:'OPEX',find:/OPEX/,lower:true,threshold:1},
+ {match:/UNITIZACAO/,label:'AIS% Realizado',find:/AIS% REALIZADO/,lower:false,threshold:1},
+ {match:/CAPEX/,label:'CAPEX',find:/CAPEX/,lower:false,threshold:.9},
+ {match:/ERRO DE LEITURA/,label:'Erro de Leitura',find:/ERRO DE LEITURA/,lower:true,threshold:1},
+ {match:/NAO LIDOS/,label:'Clientes Não Lidos',find:/CLIENTES NAO LIDOS|NAO LIDOS TELEMEDIDO/,lower:true,threshold:1},
+ {match:/ARRECADACAO/,label:'Arrecadação',find:/ARRECADACAO/,lower:false,threshold:1},
+ {match:/PERDAS NAO TECNICAS/,label:null,find:null}
+];
+function sscSupTrend(rows,chosen){
+ const vals=rows.map(r=>Number(r.score)),finite=vals.filter(Number.isFinite);
+ if(!finite.length)return '<p>Sem notas históricas disponíveis.</p>';
+ const W=840,H=220,L=32,R=822,T=20,B=176,lo=Math.min(...finite)-.5,hi=Math.max(...finite)+.5;
+ const x=i=>L+i*(R-L)/Math.max(1,rows.length-1),y=v=>B-(v-lo)/(hi-lo)*(B-T);
+ const poly=rows.map((r,i)=>Number.isFinite(Number(r.score))?x(i)+','+y(Number(r.score)):null).filter(Boolean).join(' ');
+ let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Evolução oficial mensal da nota da Superintendência" style="width:100%;height:auto;max-height:290px">';
+ svg+='<line x1="'+L+'" x2="'+R+'" y1="'+B+'" y2="'+B+'" stroke="#a9c9c2"/>';
+ svg+='<polyline points="'+poly+'" fill="none" stroke="#009B91" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>';
+ rows.forEach((r,i)=>{const v=Number(r.score);if(!Number.isFinite(v))return;const px=x(i),py=y(v);
+  svg+='<circle cx="'+px+'" cy="'+py+'" r="'+(r.competencia===chosen?7:5)+'" fill="'+(r.competencia===chosen?'#F5AA41':'#009B91')+'" stroke="#fff" stroke-width="2"><title>'+escapeHTML(competenciaLabel(r.competencia))+' — '+fmt(v)+'</title></circle>';
+  svg+='<text x="'+px+'" y="'+(B+20)+'" text-anchor="middle" font-size="11" fill="#476b63">'+escapeHTML(r.competencia.slice(5))+'/'+escapeHTML(r.competencia.slice(2,4))+'</text>';
+  svg+='<text x="'+px+'" y="'+(py-12)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#173d39">'+fmt(v)+'</text>';
+ });
+ return svg+'</svg>';
 }
-function renderSuperintendencia(){
-  const box=$('sscSuperResultados'),select=$('sscSuperPeriodo');
-  if(!box||!select||!['criador','superint'].includes(perfil.perfil))return;
-  const comp=select.value;
-  const rows=notasMensais.filter(x=>x.nivel==='Superintendência').sort((a,b)=>a.competencia.localeCompare(b.competencia));
-  const current=rows.find(x=>x.competencia===comp),past=rows.filter(x=>x.competencia<comp).at(-1);
-  const currentScore=current?Number(current.score):null,prevScore=past?Number(past.score):null;
-  const variation=Number.isFinite(currentScore)&&Number.isFinite(prevScore)?currentScore-prevScore:null;
-  const chartRows=rows.map(r=>'<tr'+(r.competencia===comp?' class="self"':'')+'><td>'+escapeHTML(competenciaLabel(r.competencia))+'</td><td>'+fmt(Number(r.score))+'</td></tr>').join('');
-  const indicadores=superIndicadores.filter(x=>x.competencia===comp && x.indicador!=='SCORE DO CARD');
-  const indicadoresRows=indicadores.map(x=>{
-    const dados=x.dados||{};
-    return '<tr><td>'+escapeHTML(x.indicador)+'</td><td>'+escapeHTML(fmt(dados.Planejado))+'</td><td>'+escapeHTML(fmt(dados.Realizado))+'</td><td>'+escapeHTML(fmt(dados['Avanço']))+'</td></tr>';
-  }).join('');
-  box.innerHTML='<h2>Superintendência · '+escapeHTML(competenciaLabel(comp))+'</h2><div class="ssc-sup-grid"><div><small>Resultado oficial</small><div class="ssc-sup-score">'+(Number.isFinite(currentScore)?fmt(currentScore):'—')+'</div></div><div><small>Mês anterior com resultado</small><div class="ssc-sup-score">'+(Number.isFinite(prevScore)?fmt(prevScore):'—')+'</div></div><div><small>Variação</small><div class="ssc-sup-score">'+(variation===null?'—':(variation>0?'+':'')+fmt(variation))+'</div></div></div><h3>Indicadores da Superintendência</h3>'+(indicadoresRows?'<table class="ssc-comp-table"><thead><tr><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Avanço</th></tr></thead><tbody>'+indicadoresRows+'</tbody></table>':'<p>Não há indicadores importados para esta competência.</p>')+'<h3>Histórico oficial</h3><table class="ssc-comp-table"><thead><tr><th>Competência</th><th>Resultado</th></tr></thead><tbody>'+chartRows+'</tbody></table><p class="ssc-comp-note">Valores oficiais da Superintendência, preservados como registrados. Não são recalculados a partir das notas das regionais.</p>';
+function sscSupMapImpact(rows,official){
+ const link=SUPER_LINKS.find(m=>m.match.test(supNormalize(official.indicador)));
+ if(!link||!link.find)return {link:null,ranked:[]};
+ const matched=rows.filter(r=>link.find.test(supNormalize(r.indicador))&&r.regiao!=='Superintendência');
+ const detailed=matched.filter(r=>r.coordenacao!=='Gerência');
+ const source=detailed.length?detailed:matched;
+ const ranked=source.map(r=>{
+  const real=Number(r.dados?.Realizado),plan=Number(r.dados?.Planejado);
+  if(!Number.isFinite(real)||!Number.isFinite(plan)||plan===0)return null;
+  const ratio=real/plan;
+  const bad=link.lower?Math.max(0,ratio-link.threshold):Math.max(0,link.threshold-ratio);
+  return {reg:r.regiao,coord:r.coordenacao,indicador:r.indicador,ratio,loss:bad*100,real,plan};
+ }).filter(Boolean).sort((a,b)=>b.loss-a.loss);
+ return {link,ranked};
+}
+function montarSuperintendencia(comps){
+ if(!acessoCompleto())return;
+ if(!$('view-superintendencia')){
+  addSection('superintendencia','Cards',`<div class="page-head"><div class="page-title"><h1>Superintendência · Cards</h1><p>Nota oficial, evolução e diagnóstico das regionais e coordenações relacionadas aos indicadores.</p></div><div class="filters"><div class="filter"><label>Período</label><select id="sscSuperPeriodo" aria-label="Período da Superintendência"></select></div></div></div><div id="sscSuperResultados"></div>`);
+  const nav=document.querySelector('.side-nav'),entry=nav.querySelector('[data-view="superintendencia"]');
+  const group=document.createElement('div');group.className='ssc-sup-sidebar-group';
+  group.innerHTML='<div class="ssc-sup-sidebar-title">Superintendência</div>';
+  entry.classList.add('ssc-sup-child');entry.querySelector('.ssc-nav-label').textContent='Cards';
+  group.appendChild(entry);nav.insertBefore(group,nav.firstChild);
+ }
+ const select=$('sscSuperPeriodo');
+ const options=[...new Set(notasMensais.filter(x=>x.nivel==='Superintendência').map(x=>x.competencia))].sort().reverse();
+ select.innerHTML=options.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(competenciaLabel(c))+'</option>').join('');
+ select.addEventListener('change',renderSuperintendencia);
+ renderSuperintendencia();
+}
+async function renderSuperintendencia(){
+ const box=$('sscSuperResultados'),select=$('sscSuperPeriodo');
+ if(!box||!select||!acessoCompleto())return;
+ const seq=++sscSupRequest,comp=select.value;
+ const rows=notasMensais.filter(x=>x.nivel==='Superintendência').sort((a,b)=>a.competencia.localeCompare(b.competencia));
+ const current=rows.find(x=>x.competencia===comp),prev=rows.filter(x=>x.competencia<comp).at(-1);
+ const score=current?Number(current.score):null,old=prev?Number(prev.score):null;
+ const variation=Number.isFinite(score)&&Number.isFinite(old)?score-old:null;
+ const official=superIndicadores.filter(x=>x.competencia===comp&&x.indicador!=='SCORE DO CARD');
+ box.innerHTML='<div class="card">Carregando diagnóstico da Superintendência…</div>';
+ let regionRows=[];
+ try{regionRows=await getAll('indicadores_mensais','regiao,coordenacao,indicador,dados',q=>q.eq('competencia',comp).neq('regiao','Superintendência'));}catch(e){if(seq!==sscSupRequest)return;box.innerHTML='<div class="card">Não foi possível carregar o detalhamento: '+escapeHTML(e.message)+'</div>';return;}
+ if(seq!==sscSupRequest)return;
+ const cards='<div class="ssc-sup-kpis">'+[
+ ['Resultado oficial',Number.isFinite(score)?fmt(score):'—'],
+ ['Mês anterior',Number.isFinite(old)?fmt(old):'—'],
+ ['Variação',variation===null?'—':(variation>0?'+':'')+fmt(variation)],
+ ['Indicadores da Superintendência',official.length]
+ ].map(([title,val])=>'<div class="ssc-sup-kpi"><small>'+title+'</small><strong>'+val+'</strong></div>').join('')+'</div>';
+ const indicators=official.map(o=>{
+  const d=o.dados||{},impact=sscSupMapImpact(regionRows,o);
+  const norm=supNormalize(o.indicador),noMatch=/PERDAS NAO TECNICAS/.test(norm);
+  let content='';
+  if(noMatch)content='<p class="ssc-sup-unmapped">Indicador acompanhado exclusivamente na Superintendência. Não existe correspondência direta nos Cards regionais.</p>';
+  else if(!impact.link)content='<p class="ssc-sup-unmapped">Sem correspondência regional validada para este indicador.</p>';
+  else {
+   const bad=impact.ranked.filter(x=>x.loss>0).slice(0,5);
+   content='<p class="ssc-sup-assoc">Correspondência operacional: <b>'+escapeHTML(impact.link.label)+'</b> · ranking por desvio proporcional da meta (não equivale à perda de pontos na nota oficial).</p>'+
+    (bad.length?'<ol class="ssc-sup-impacts">'+bad.map(x=>'<li><span><strong>'+escapeHTML(x.reg)+'</strong> / '+escapeHTML(x.coord)+'<small>Realizado '+fmt(x.real)+' · meta '+fmt(x.plan)+'</small></span><b>Desvio '+fmt(x.loss)+' p.p.</b></li>').join('')+'</ol>':'<p class="ssc-sup-unmapped">Nenhuma coordenação regional fora da referência neste período.</p>');
+  }
+  return '<article class="ssc-sup-ind"><div class="ssc-sup-ind-head"><h3>'+escapeHTML(o.indicador)+'</h3><span>Realizado '+fmt(d.Realizado)+' · Meta '+fmt(d.Planejado)+'</span></div>'+content+'</article>';
+ }).join('');
+ box.innerHTML=cards+
+  '<div class="card ssc-sup-trend"><h2>Evolução das notas da Superintendência</h2><p>Notas oficiais mensais, sem recálculo a partir dos Cards regionais.</p>'+sscSupTrend(rows,comp)+'</div>'+
+  '<div class="card ssc-sup-impact-panel"><h2>Indicadores e maiores impactos negativos</h2><p>Identificação dos desvios de desempenho regional relacionados a cada indicador oficial.</p>'+ (indicators||'<p>Não há indicadores da Superintendência para este mês.</p>')+'</div>';
 }
 function montarSecoes(comps){
   montarSuperintendencia(comps);
