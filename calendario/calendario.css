@@ -542,3 +542,22 @@ body.v50-dark.ssc-calendar-active #view-calendario .cal-check-row{background:#F2
 body.v50-dark.ssc-calendar-active #view-calendario .cal-superint-check{display:flex!important;flex-direction:row!important;align-items:center!important;gap:11px!important}
 @media(max-width:940px){#view-calendario .cal-month-visibility{margin-left:0;width:100%;justify-content:flex-end}}
 @media(max-width:580px){#view-calendario .cal-segments{overflow-x:auto;max-width:100%}#view-calendario .cal-segments button{font-size:10px;padding:6px}#view-calendario .cal-month-visibility{justify-content:flex-start}}
+
+/* Superintendência: mesma navegação expansível usada no Calendário. */
+.sidebar .ssc-sup-sidebar-group{display:block;width:100%;min-width:0;margin:0 0 9px;padding:0;border:0;border-radius:0;background:transparent}
+.sidebar .ssc-sup-sidebar-parent{display:flex;align-items:center;width:100%;border-radius:8px;text-align:left;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:normal;text-transform:none}
+.sidebar .ssc-sup-sidebar-parent .ssc-nav-label{font:inherit;font-weight:inherit;letter-spacing:normal;text-transform:none}
+.sidebar .ssc-sup-sidebar-group.expanded .cal-sidebar-chevron{transform:rotate(180deg)}
+.sidebar .ssc-sup-sidebar-group .cal-sidebar-children[hidden]{display:none!important}
+.sidebar .ssc-sup-sidebar-group .cal-sidebar-child{display:flex;align-items:center;gap:9px;min-height:37px;padding:9px 10px 9px 13px;text-align:left}
+.sidebar .ssc-sup-sidebar-group.cal-current>.ssc-sup-sidebar-parent,
+.sidebar .ssc-sup-sidebar-group.expanded>.ssc-sup-sidebar-parent{background:rgba(80,235,225,.15);color:#fff;border-left-color:#50ebe1}
+@media(max-width:1100px){
+ .app.ssc-sidebar-collapsed .sidebar .ssc-sup-sidebar-group{position:relative}
+ .app.ssc-sidebar-collapsed .sidebar .ssc-sup-sidebar-group .cal-sidebar-children{position:fixed;left:77px;top:170px;z-index:1000;width:238px;border:1px solid rgba(80,235,225,.26);border-radius:12px;padding:9px;background:#064c44;box-shadow:0 10px 34px rgba(0,0,0,.25)}
+}
+@media(max-width:800px){
+ .sidebar .ssc-sup-sidebar-group{flex:1 0 84px;min-width:84px;max-width:112px;position:static}
+ .sidebar .ssc-sup-sidebar-group .cal-sidebar-children{position:fixed;left:10px;right:10px;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:710;grid-template-columns:1fr;padding:12px;background:#06483f;border-radius:12px}
+ .sidebar .ssc-sup-sidebar-group .cal-sidebar-child{width:100%;justify-content:flex-start}
+}
