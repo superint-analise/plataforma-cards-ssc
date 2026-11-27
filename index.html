@@ -6682,6 +6682,12 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
     <input type="password" id="su-pass" placeholder="Senha" autocomplete="current-password" required>
     <button type="submit">Entrar</button>
   </form>
+  <form id="su-reset-form" hidden>
+    <h3>Redefinir senha</h3>
+    <label for="su-reset-pass">Nova senha</label>
+    <input type="password" id="su-reset-pass" minlength="8" autocomplete="new-password" required>
+    <button type="submit">Salvar nova senha</button>
+  </form>
   <button type="button" id="su-recuperar">Esqueci a senha</button>
   <button type="button" id="su-cadastrar">Cadastrar acesso</button>
   <form id="su-solicitacao" hidden>
