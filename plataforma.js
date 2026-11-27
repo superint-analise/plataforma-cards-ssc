@@ -421,10 +421,27 @@ async function renderSuperintendencia(){
    '<p>'+escapeHTML(text)+'</p>'+
    (impactList?'<ol>'+impactList+'</ol>':'<div class="ssc-sup-impact-clear">'+(special?'Sem comparação regional direta':'Sem resultados negativos relacionados')+'</div>')+'</article>';
  }).join('');
+ const biggest=dataRows.flatMap(item=>item.top.map(x=>({...x,indicator:item.o.indicador}))).sort((a,b)=>b.loss-a.loss);
+ const movements=[
+  {kind:variation===null?'target':variation>=0?'up':'down',
+   text:variation===null?'Ainda não existe nota anterior para comparar.':'A nota oficial '+(variation>=0?'avançou':'recuou')+' <b>'+fmt(Math.abs(variation))+' ponto(s)</b> em relação ao resultado anterior.'},
+  {kind:biggest.length?'warn':'up',
+   text:biggest.length?'Maior desvio relacionado: <b>'+escapeHTML(biggest[0].indicator)+'</b>, com <b>'+escapeHTML(biggest[0].reg)+'</b> / '+escapeHTML(biggest[0].coord)+' ('+fmt(biggest[0].loss)+' p.p. da referência).':'Não foram encontrados desvios negativos nas correspondências regionais disponíveis.'},
+  {kind:current!==null&&current>=10?'up':'target',
+   text:current===null?'Ainda não existe nota oficial selecionada.':current>=10?'A nota oficial está <b>'+fmt(current-10)+' ponto(s)</b> acima da referência 10.':'A nota oficial está <b>'+fmt(10-current)+' ponto(s)</b> abaixo da referência 10.'}
+ ];
+ const readIcon={
+  up:'<path d="m4 16 6-6 4 4 6-7"/><path d="M15 7h5v5"/>',
+  down:'<path d="m4 8 6 6 4-4 6 7"/><path d="M15 17h5v-5"/>',
+  warn:'<path d="M12 4 2.8 19h18.4z"/><path d="M12 10v4M12 17h.01"/>',
+  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>'
+ };
+ const readings='<section class="card ssc-sup-readings"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">VISÃO GERENCIAL</span><h2>Leituras do mês</h2><p>Principais pontos que merecem atenção, no padrão da Visão Geral.</p></div></div>'+
+  '<ul class="v50-ins">'+movements.map(v=>'<li class="'+v.kind+'"><svg viewBox="0 0 24 24">'+readIcon[v.kind]+'</svg><span>'+v.text+'</span></li>').join('')+'</ul><div class="v50-ins-note">Leituras calculadas a partir dos registros disponíveis, sem atribuir relação causal não comprovada.</div></section>';
  const trends='<section class="card ssc-sup-trend"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">EVOLUÇÃO TEMPORAL</span><h2>Histórico da nota oficial</h2><p>Gráfico interativo no mesmo padrão visual da Evolução Temporal, com valores oficiais por mês.</p></div></div><div class="ssc-sup-trend-legend"><span><i></i>Nota oficial</span><span><em></em>Referência 10</span></div><div id="sscSupTrendChart" class="ssc-sup-trend-chart"></div></section>';
  const diagnosis='<section class="card ssc-sup-diagnosis"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">LEITURA GERENCIAL</span><h2>Principais fatores de atenção</h2><p>No padrão das análises de impacto da Visão Geral: veja as regionais e coordenações que mais se afastaram da referência de cada indicador.</p></div></div><div class="ssc-sup-impact-grid">'+
  (impacted||'<p>Nenhum diagnóstico disponível para o mês selecionado.</p>')+'</div><p class="ssc-sup-footnote">Desvios em pontos percentuais da razão realizado/meta; são referências operacionais, não descontos calculados na nota oficial. PMSO/OPEX e Unitização/AIS possuem correspondência temática, não identidade de valores.</p></section>';
- box.innerHTML=kpiHTML+table+trends+diagnosis;
+ box.innerHTML=kpiHTML+readings+table+trends+diagnosis;
  const graph=$('sscSupTrendChart');
  if(graph&&window.__SSC_RENDER_SUPER_TREND){
   window.__SSC_RENDER_SUPER_TREND(graph,history.map(r=>({competencia:r.competencia,score:asNum(r.score)})));
