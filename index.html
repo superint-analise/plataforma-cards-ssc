@@ -3058,6 +3058,11 @@ body.ssc-chart-modal-open{overflow:hidden}
 #view-comparison .exec-indicator.v41-ind:fullscreen .v41-dev-row,
 #view-comparison .exec-indicator.v41-ind:fullscreen .v41-irl-row{min-height:52px}
 
+
+/* Campos preenchidos a partir do diretório autorizado: somente leitura visual e funcional. */
+#su-solicitacao .su-locked-fields{display:grid;gap:5px}
+#su-solicitacao .su-locked-fields input:disabled{background:#E6E9EC!important;color:#59646D!important;border:1px solid #CBD2D8!important;box-shadow:none!important;cursor:not-allowed!important;opacity:1!important;pointer-events:none;user-select:none;-webkit-user-select:none}
+#su-solicitacao .su-locked-fields label{color:#75818A;font-weight:650}
 </style>
 <link rel="stylesheet" href="./calendario/calendario.css?v=20261126-calendar-controls-v8">
 </head>
@@ -6718,16 +6723,17 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
     <p style="font-size:12px;line-height:1.5">Informe seu e-mail corporativo. Seus dados serão preenchidos automaticamente com base na lista autorizada. Após o cadastro, confirme o e-mail em até 10 minutos. Sem confirmação, o cadastro expira e será necessário refazê-lo.</p>
     <label for="su-email-novo">E-mail corporativo</label><input id="su-email-novo" type="email" autocomplete="email" required>
     <p id="su-email-identificado" aria-live="polite" style="font-size:12px"></p>
-    <label for="su-nome">Nome</label><input id="su-nome" autocomplete="name" maxlength="120" required readonly>
-    <label for="su-funcao">Cargo</label><input id="su-funcao" required readonly>
-    <label for="su-regional">Regional</label><input id="su-regional" readonly>
-    <label for="su-coordenacao">Coordenação</label><input id="su-coordenacao" readonly>
+    <div class="su-locked-fields"><label for="su-nome">Nome</label><input id="su-nome" autocomplete="name" maxlength="120" required disabled tabindex="-1" aria-disabled="true">
+    <label for="su-funcao">Cargo</label><input id="su-funcao" required disabled tabindex="-1" aria-disabled="true">
+    <label for="su-regional">Regional</label><input id="su-regional" disabled tabindex="-1" aria-disabled="true">
+    <label for="su-coordenacao">Coordenação</label><input id="su-coordenacao" disabled tabindex="-1" aria-disabled="true">
+    </div>
     <label for="su-pass-novo">Criar senha (mínimo 8 caracteres)</label><input id="su-pass-novo" type="password" minlength="8" autocomplete="new-password" required>
     <button type="submit">Confirmar e enviar e-mail</button>
     <button id="su-voltar" type="button">Voltar ao login</button>
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261127-supaccess-v12"></script>
+<script type="module" src="./plataforma.js?v=20261127-signup-existing-v13"></script>
 </body>
 </html>
