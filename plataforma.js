@@ -556,12 +556,13 @@ async function sscIdentificarEmail(){
  if(!email||!$('su-email-novo').checkValidity()){sscMsgCadastro('');return null}
  sscMsgCadastro('Consultando e-mail autorizado…');
  try{
-  const {data,error}=await db.rpc('consultar_cadastro_ssc',{p_email:email});
+  const {data,error}=await db.rpc('consultar_cadastro_ssc_v2',{p_email:email});
   if(error)throw error;
   // Evitar que uma resposta antiga preencha dados de outro e-mail.
   if(email!==$('su-email-novo').value.trim().toLowerCase())return null;
-  const person=data?.[0];
+  const person=data;
   if(!person){sscMsgCadastro('Email não identificado');return null}
+  if(person.ja_cadastrado){sscMsgCadastro('Email já cadastrado. Caso tenha esquecido as credenciais, volte à página inicial e clique em recuperar senha.');msg.textContent='';return null}
   sscCadastroEncontrado={...person,email};
   $('su-nome').value=person.nome||'';
   $('su-funcao').value=person.cargo||'';
@@ -620,7 +621,7 @@ $('su-solicitacao').addEventListener('submit',async e=>{
  const email=$('su-email-novo').value.trim().toLowerCase();
  if(!sscCadastroEncontrado||sscCadastroEncontrado.email!==email){
   const checked=await sscIdentificarEmail();
-  if(!checked){msg.textContent='Email não identificado';return}
+  if(!checked){return}
  }
  button.disabled=true;
  msg.textContent='Criando conta e enviando e-mail de confirmação…';
@@ -631,7 +632,7 @@ $('su-solicitacao').addEventListener('submit',async e=>{
   });
   if(response.error)throw response.error;
   if(response.data?.user&&Array.isArray(response.data.user.identities)&&response.data.user.identities.length===0){
-   msg.textContent='Este e-mail já possui cadastro. Utilize Entrar ou Esqueci a senha.';return;
+   msg.textContent='Email já cadastrado. Caso tenha esquecido as credenciais, volte à página inicial e clique em recuperar senha.';return;
   }
   if(response.data?.session){
    await db.auth.signOut();
@@ -642,7 +643,7 @@ $('su-solicitacao').addEventListener('submit',async e=>{
   form.reset();sscLimparCadastro();sscMsgCadastro('');
  }catch(ex){
   const errorText=String(ex?.message||ex);
-  msg.textContent=/Email não identificado/i.test(errorText)?'Email não identificado':'Não foi possível concluir o cadastro: '+errorText;
+  msg.textContent=/Email não identificado/i.test(errorText)?'Email não identificado':/already registered|already exists|user already|already been registered/i.test(errorText)?'Email já cadastrado. Caso tenha esquecido as credenciais, volte à página inicial e clique em recuperar senha.':'Não foi possível concluir o cadastro: '+errorText;
  }finally{button.disabled=false}
 });
 $('su-sair').addEventListener('click',async()=>{await db.auth.signOut();document.body.classList.remove('auth-ok');auth.style.display='grid';location.reload()});
