@@ -31,7 +31,7 @@ async function loadProfile(){
   if(error || !user)throw error||Error('Sem sessão');
   const {data,error:pe}=await db.from('perfis').select('*').eq('usuario_id',user.id).single();
   if(pe)throw pe;
-  if(!data?.aprovado)throw Error('Cadastro recebido. Aguarde a aprovação do criador.');
+  if(!data?.aprovado)throw Error('Acesso ainda não habilitado. Confirme seu e-mail de cadastro ou procure o suporte da plataforma.');
   perfil=data;
   $('su-quem').textContent=`${data.nome || data.email} · ${nomes[data.perfil] || data.perfil}`;
 }
@@ -112,6 +112,7 @@ function navegar(view){
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   const sec=$('view-'+view);if(sec)sec.classList.add('active');
   if(view==='comparison')renderComparacaoHistorica();
+  window.__SSC_SUP_SIDEBAR_SYNC?.(view);
   if(view==='superintendencia')renderSuperintendencia();
   document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
 }
@@ -333,10 +334,20 @@ function montarSuperintendencia(comps){
  if(!$('view-superintendencia')){
   addSection('superintendencia','Cards',`<div class="page-head"><div class="page-title"><h1>Superintendência · Cards</h1><p>Nota oficial, evolução e diagnóstico das regionais e coordenações relacionadas aos indicadores.</p></div><div class="filters"><div class="filter"><label>Período</label><select id="sscSuperPeriodo" aria-label="Período da Superintendência"></select></div></div></div><div id="sscSuperResultados"></div>`);
   const nav=document.querySelector('.side-nav'),entry=nav.querySelector('[data-view="superintendencia"]');
-  const group=document.createElement('div');group.className='ssc-sup-sidebar-group';
-  group.innerHTML='<div class="ssc-sup-sidebar-title">Superintendência</div>';
-  entry.classList.add('ssc-sup-child');entry.querySelector('.ssc-nav-label').textContent='Cards';
-  group.appendChild(entry);nav.insertBefore(group,nav.firstChild);
+  // Menu expansível no mesmo padrão de Calendário.
+  const group=document.createElement('div');group.className='cal-sidebar-group ssc-sup-sidebar-group';
+  const parent=document.createElement('button');parent.type='button';parent.className='nav-item cal-sidebar-parent ssc-sup-sidebar-parent';
+  parent.title='Expandir ou recolher páginas da Superintendência';parent.setAttribute('aria-controls','sscSupSidebarChildren');parent.setAttribute('aria-expanded','false');
+  parent.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 20V9l6-5 6 5v11M9 12h6M9 16h6"/></svg></span><span class="ssc-nav-label">Superintendência</span><svg class="cal-sidebar-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const children=document.createElement('div');children.id='sscSupSidebarChildren';children.className='cal-sidebar-children';children.hidden=true;
+  entry.className='nav-item cal-sidebar-child ssc-sup-child';entry.innerHTML='<span class="cal-child-dot" aria-hidden="true"></span><span class="ssc-nav-label">Cards</span>';
+  entry.title='Cards da Superintendência';
+  children.appendChild(entry);group.append(parent,children);nav.insertBefore(group,nav.firstChild);
+  const expand=open=>{group.classList.toggle('expanded',Boolean(open));parent.setAttribute('aria-expanded',String(Boolean(open)));children.hidden=!open};
+  parent.addEventListener('click',()=>expand(!group.classList.contains('expanded')));
+  entry.addEventListener('click',()=>{expand(true);group.classList.add('cal-current')});
+  window.__SSC_SUP_SIDEBAR_SYNC=view=>{group.classList.toggle('cal-current',view==='superintendencia');if(view==='superintendencia')expand(true)};
+
  }
  const select=$('sscSuperPeriodo');
  const options=[...new Set(notasMensais.filter(x=>x.nivel==='Superintendência').map(x=>x.competencia))].sort().reverse();
@@ -538,10 +549,10 @@ $('su-form').addEventListener('submit',async e=>{
 });
 
 $('su-cadastrar').addEventListener('click',()=>{
-  $('su-form').hidden=true;$('su-cadastrar').hidden=true;$('su-solicitacao').hidden=false;msg.textContent='';
+  $('su-form').hidden=true;$('su-cadastrar').hidden=true;$('su-recuperar').hidden=true;$('su-solicitacao').hidden=false;msg.textContent='';
 });
 $('su-voltar').addEventListener('click',()=>{
-  $('su-form').hidden=false;$('su-cadastrar').hidden=false;$('su-solicitacao').hidden=true;msg.textContent='';
+  $('su-form').hidden=false;$('su-cadastrar').hidden=false;$('su-recuperar').hidden=false;$('su-solicitacao').hidden=true;msg.textContent='';
 });
 
 let sscCadastroEncontrado=null;
@@ -592,6 +603,7 @@ db.auth.onAuthStateChange(event=>{
    $('su-form').hidden=true;
    $('su-cadastrar').hidden=true;
    $('su-solicitacao').hidden=true;
+   $('su-recuperar').hidden=true;
    $('su-reset-form').hidden=false;
    msg.textContent='Informe e confirme a nova senha.';
   },0);
@@ -610,6 +622,7 @@ $('su-reset-form').addEventListener('submit',async e=>{
   $('su-reset-form').hidden=true;
   $('su-form').hidden=false;
   $('su-cadastrar').hidden=false;
+  $('su-recuperar').hidden=false;
   await db.auth.signOut();
  }catch(ex){msg.textContent='Falha ao redefinir senha: '+(ex.message||ex)}
  finally{button.disabled=false}
