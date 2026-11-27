@@ -1667,6 +1667,7 @@ body.access-operacional #view-general,body.access-operacional #view-comparison,b
 .conf-range{border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;color:var(--muted);white-space:nowrap;background:#fff}
 .conf-range.hit{border-color:var(--primary);background:var(--primary);color:#fff;font-weight:700}
 .conf-range.hit.zero{border-color:var(--red);background:var(--red)}
+.conf-range.hit.partial{border-color:#F5AA41;background:#F5AA41;color:#422800;font-weight:800}
 .conf-diff{color:var(--red);font-weight:800}
 .conf-same{color:var(--muted)}
 .conf-nocrit{color:var(--muted);font-style:italic}
@@ -2637,6 +2638,7 @@ body.v50-dark .v42-ci.part .t{background:rgba(248,203,126,.16);color:#FFD99A}
 body.v50-dark .conf-range{background:rgba(255,255,255,.04);border-color:rgba(80,235,225,.18);color:#BFD9D5}
 body.v50-dark .conf-range.hit{background:#009B91;border-color:#50EBE1;color:#fff;box-shadow:0 0 10px rgba(80,235,225,.45)}
 body.v50-dark .conf-range.hit.zero{background:rgba(245,170,65,.2);border-color:#F5AA41;color:#FFC56E;box-shadow:0 0 10px rgba(245,170,65,.35)}
+body.v50-dark .conf-range.hit.partial{background:rgba(245,170,65,.24);border-color:#F5AA41;color:#FFD99A;box-shadow:0 0 10px rgba(245,170,65,.35)}
 body.v50-dark .conf-region-title{border-bottom-color:rgba(80,235,225,.14)!important}
 /* barra de usuário */
 body.v50-dark .su-toolbar{background:rgba(9,42,39,.9);border-color:rgba(80,235,225,.25);color:#E8F6F4}
@@ -6328,7 +6330,7 @@ function confFormatRanges(row){
   const pts=number(row["Pontos"]);
   return `<div class="conf-ranges">${faixas.map(([label,p])=>{
     const hit=pts!==null&&Math.abs(pts-p)<1e-9;
-    return `<span class="conf-range${hit?" hit":""}${hit&&p===0?" zero":""}">${confEsc(label)} → ${formatNumber(p,2)}</span>`;
+    return `<span class="conf-range${hit?" hit":""}${hit&&p===0?" zero":""}${hit&&p>0&&p<1?" partial":""}">${confEsc(label)} → ${formatNumber(p,2)}</span>`;
   }).join("")}</div>`;
 }
 
