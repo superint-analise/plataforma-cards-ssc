@@ -391,14 +391,15 @@ async function renderSuperintendencia(){
   return {o,d,mapping,bad,badOwn};
  });
  const risk=rows.filter(x=>x.badOwn).length;
+ const goodCount=rows.length-risk;
  const kpis=[
-  ['Nota oficial',score===null?'—':two(score),score===null?'Aguardando resultado oficial':score>=12?'Meta atingida':'Abaixo da meta'],
-  ['Mês anterior',prevScore===null?'—':two(prevScore),previous?competenciaLabel(previous.competencia):'Sem histórico'],
-  ['Variação',delta===null?'—':(delta>0?'+':'')+two(delta),delta===null?'Sem nota para comparação':delta>=0?'Evolução positiva':'Queda na pontuação'],
-  ['Eficiência',rows.length?two((rows.length-risk)/rows.length*100)+'%':'—',rows.length?(risk?risk+' indicador(es) sinalizado(s)':'Sem alertas oficiais'):'Sem indicadores']
+  ['Nota oficial',score===null?'—':two(score),score===null?'Aguardando resultado oficial':score>=12?'Meta 12 atingida':'Abaixo da Meta 12'],
+  ['Mês anterior',prevScore===null?'—':two(prevScore),previous?competenciaLabel(previous.competencia)+(delta===null?'':' · '+(delta>0?'+':'')+two(delta)):'Sem histórico'],
+  ['Desempenho',score===null?'—':two(score/12*100)+'%',score===null?'Sem nota oficial':score>=12?'Dentro da meta':'Fora da meta'],
+  ['Eficiência',rows.length?goodCount+' / '+rows.length:'—',rows.length?'Indicadores sem alerta oficial':'Sem indicadores']
  ];
  const kpiHTML='<div class="ssc-sup-kpis">'+kpis.map((k,i)=>
-   '<div class="ssc-sup-kpi"><small>'+escapeHTML(k[0])+'</small><strong style="color:'+(i===0&&score!==null?score>=12?'#009B91':'#F5AA41':i===2&&delta!==null?delta>=0?'#009B91':'#F5AA41':'var(--v-ink,#183b37)')+'">'+escapeHTML(k[1])+'</strong><span>'+escapeHTML(k[2])+'</span></div>').join('')+'</div>';
+   '<div class="ssc-sup-kpi"><small>'+escapeHTML(k[0])+'</small><strong style="color:'+(i===0||i===2?score===null?'var(--v-ink,#183b37)':score>=12?'#009B91':'#F5AA41':i===3&&risk?'#F5AA41':'var(--v-ink,#183b37)')+'">'+escapeHTML(k[1])+'</strong><span>'+escapeHTML(k[2])+'</span></div>').join('')+'</div>';
  const details=(item,index)=>{
   const {o,d,mapping,bad}=item;
   const label=mapping.link?mapping.link.label:null;
