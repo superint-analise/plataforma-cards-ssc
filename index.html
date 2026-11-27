@@ -3073,6 +3073,66 @@ body.ssc-chart-modal-open{overflow:hidden}
 #su-solicitacao .su-locked-fields{display:grid;gap:5px}
 #su-solicitacao .su-locked-fields input:disabled{background:#E6E9EC!important;color:#59646D!important;border:1px solid #CBD2D8!important;box-shadow:none!important;cursor:not-allowed!important;opacity:1!important;pointer-events:none;user-select:none;-webkit-user-select:none}
 #su-solicitacao .su-locked-fields label{color:#75818A;font-weight:650}
+
+/* Superintendência — reaproveita linguagem visual dos Indicadores, Visão Geral e Evolução Temporal. */
+#view-superintendencia{padding:14px 18px}
+#view-superintendencia .page-head{margin-bottom:14px}
+#view-superintendencia .ssc-sup-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 16px}
+#view-superintendencia .ssc-sup-kpi{border:1px solid #d7e9e4;border-top:3px solid #009B91;background:var(--v-surface,#fff);border-radius:12px;padding:16px 17px;gap:6px;min-width:0}
+#view-superintendencia .ssc-sup-kpi small{color:var(--v-muted,#64827b);font-size:12px;font-weight:700}
+#view-superintendencia .ssc-sup-kpi strong{font-size:clamp(23px,2.6vw,34px);letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.15}
+#view-superintendencia .ssc-sup-kpi span{font-size:10.5px;color:var(--v-muted,#6e8580)}
+#view-superintendencia .ssc-sup-readings,
+#view-superintendencia .ssc-sup-table-card,
+#view-superintendencia .ssc-sup-trend,
+#view-superintendencia .ssc-sup-diagnosis{padding:17px 19px;margin:13px 0;background:var(--v-surface,#fff);border:1px solid var(--v-line,#dbe9e5);border-radius:13px;box-shadow:0 4px 22px rgba(0,60,53,.045)}
+#view-superintendencia .ssc-sup-readings{border-top:4px solid #009B91}
+#view-superintendencia .ssc-sup-table-card{border-top:4px solid #009B91}
+#view-superintendencia .ssc-sup-trend{border-top:4px solid #009B91}
+#view-superintendencia .ssc-sup-diagnosis{border-top:4px solid #F5AA41}
+#view-superintendencia .ssc-sup-section-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:13px}
+#view-superintendencia .ssc-sup-section-head h2{font-size:18px;line-height:1.25;font-weight:850;color:var(--v-ink,#173d39);margin:2px 0 4px}
+#view-superintendencia .ssc-sup-section-head p{font-size:11.5px;color:var(--v-muted,#6e8580);margin:0;line-height:1.5}
+#view-superintendencia .ssc-sup-eyebrow{font-size:10px;letter-spacing:.09em;font-weight:900;color:#009B91}
+#view-superintendencia .ssc-sup-count{font-size:11px;white-space:nowrap;color:#007e75;background:#e5f7f2;padding:5px 9px;border-radius:99px;font-weight:800}
+#view-superintendencia .ssc-sup-readings .v50-ins{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#view-superintendencia .ssc-sup-readings .v50-ins li{background:rgba(0,155,145,.045);border:1px solid var(--v-line,#e0ece8);border-radius:11px;padding:12px;min-width:0}
+#view-superintendencia .ssc-sup-readings .v50-ins-note{padding:10px 0 0;font-size:10px;opacity:.7}
+#view-superintendencia .ssc-sup-table-scroll{max-width:100%;overflow-x:auto}
+#view-superintendencia .ssc-sup-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;min-width:690px}
+#view-superintendencia .ssc-sup-table th{text-align:left;padding:11px 12px;background:rgba(0,155,145,.10);color:var(--v-ink,#173d39);font-size:10.5px;font-weight:850;border-bottom:1px solid var(--v-line,#dbe9e5);white-space:nowrap}
+#view-superintendencia .ssc-sup-table td{padding:11px 12px;color:var(--v-ink,#173d39);vertical-align:middle;border-bottom:1px solid var(--v-line,#e0ebe7)}
+#view-superintendencia .ssc-sup-table tbody tr:hover{background:rgba(0,155,145,.055)}
+#view-superintendencia .ssc-sup-table td:first-child{max-width:280px}
+#view-superintendencia .ssc-sup-table td:first-child strong{font-size:11.5px;display:block;line-height:1.35}
+#view-superintendencia .ssc-sup-table td:first-child small{font-size:10px;display:block;opacity:.6;margin-top:3px}
+#view-superintendencia .ssc-sup-num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+#view-superintendencia .ssc-sup-status{display:inline-block;font-size:10px;font-weight:750;border-radius:7px;padding:5px 8px;white-space:nowrap;background:#e5f7f2;color:#00776e}
+#view-superintendencia .ssc-sup-status.attention{background:#fff0da;color:#ac671b}
+#view-superintendencia .ssc-sup-trend-chart{width:100%;min-height:245px}
+#view-superintendencia .ssc-sup-trend-chart svg{display:block;width:100%!important;max-width:100%!important;height:auto!important;overflow:visible}
+#view-superintendencia .ssc-sup-trend-legend{display:flex;align-items:center;gap:17px;font-size:11px;font-weight:700;color:var(--v-muted,#62827b);margin:6px 0 9px}
+#view-superintendencia .ssc-sup-trend-legend span{display:inline-flex;align-items:center;gap:6px}
+#view-superintendencia .ssc-sup-trend-legend i{display:inline-block;width:13px;height:5px;border-radius:2px;background:#009B91}
+#view-superintendencia .ssc-sup-trend-legend em{display:inline-block;width:16px;border-top:2px dashed #94a3a0}
+#view-superintendencia .ssc-sup-impact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+#view-superintendencia .ssc-sup-impact-card{background:var(--v-surface,#fff);border:1px solid var(--v-line,#e0ebe8);border-radius:11px;overflow:hidden;padding:13px 14px;min-width:0}
+#view-superintendencia .ssc-sup-impact-card header{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}
+#view-superintendencia .ssc-sup-impact-card h3{font-size:13px;line-height:1.4;font-weight:850;color:var(--v-ink,#173d39);margin:3px 0}
+#view-superintendencia .ssc-sup-impact-card header small{font-size:9px;letter-spacing:.07em;font-weight:800;color:#009B91}
+#view-superintendencia .ssc-sup-impact-card p{font-size:11px;line-height:1.5;color:var(--v-muted,#6c827e);margin:8px 0}
+#view-superintendencia .ssc-sup-map-pill{display:inline-block;background:rgba(0,155,145,.11);color:#00857a;font-size:10px;font-weight:800;padding:5px 8px;border-radius:6px}
+#view-superintendencia .ssc-sup-impact-card ol{list-style:none;padding:0;margin:9px 0 0}
+#view-superintendencia .ssc-sup-impact-card li{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--v-line,#e1eae7);align-items:center}
+#view-superintendencia .ssc-sup-impact-rank{width:23px;height:23px;display:grid;place-items:center;background:#fff0dd;border-radius:7px;color:#be7b31;font-weight:850;font-size:11px;flex-shrink:0}
+#view-superintendencia .ssc-sup-impact-name{min-width:0;flex:1;font-size:11px;color:var(--v-ink,#203b37)}
+#view-superintendencia .ssc-sup-impact-name small{display:block;color:var(--v-muted,#6f8880);font-size:10px;margin-top:3px}
+#view-superintendencia .ssc-sup-impact-values{text-align:right;font-size:11px;color:#ce7a22;white-space:nowrap}
+#view-superintendencia .ssc-sup-impact-values small{display:block;font-size:9px;color:var(--v-muted,#739087);margin-top:3px}
+#view-superintendencia .ssc-sup-impact-clear{font-size:11px;padding:11px;background:rgba(0,155,145,.055);color:var(--v-muted,#567871);border-radius:7px}
+#view-superintendencia .ssc-sup-footnote{font-size:10.5px;color:var(--v-muted,#708783);margin:14px 0 2px;line-height:1.5}
+@media(max-width:980px){#view-superintendencia .ssc-sup-readings .v50-ins{grid-template-columns:1fr}#view-superintendencia .ssc-sup-impact-grid{grid-template-columns:1fr}}
+@media(max-width:650px){#view-superintendencia{padding:8px}#view-superintendencia .ssc-sup-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#view-superintendencia .ssc-sup-impact-card header{display:block}#view-superintendencia .ssc-sup-section-head{flex-wrap:wrap}}
 </style>
 <link rel="stylesheet" href="./calendario/calendario.css?v=20261126-calendar-controls-v8">
 </head>
