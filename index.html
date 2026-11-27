@@ -3262,6 +3262,7 @@ body.ssc-chart-modal-open{overflow:hidden}
 
 
 
+    <div class="ssc-ind-coord-filter"><strong>Coordenações exibidas</strong><div id="sscTableCoordChecks" class="ssc-ind-coord-checks"></div></div>
     <div id="allRegionTables"></div>
   </section>
 
@@ -5097,21 +5098,43 @@ function sscTableBindFilters(){
     }
   });
 }
+// Filtro horizontal de Coordenações na página Indicadores do Mês.
+let sscTableCoordSelected=null;
+function sscTableCoordinateChecks(){
+ const box=document.getElementById("sscTableCoordChecks");
+ if(!box)return;
+ const available=COORD_ORDER.filter(c=>REGION_ORDER.some(r=>rowsFor(r,c).length));
+ if(sscTableCoordSelected===null)sscTableCoordSelected=new Set(available);
+ box.innerHTML=available.map(c=>{
+  const n=COORD_ORDER.indexOf(c),label=c==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":c;
+  return '<label><input type="checkbox" value="'+n+'" '+(sscTableCoordSelected.has(c)?"checked":"")+'>'+svgTextEscape(label)+'</label>';
+ }).join("");
+ if(box.dataset.bound)return;
+ box.dataset.bound="1";
+ box.addEventListener("change",event=>{
+  if(!event.target.matches('input[type="checkbox"]'))return;
+  const coord=COORD_ORDER[Number(event.target.value)];
+  if(event.target.checked)sscTableCoordSelected.add(coord);
+  else sscTableCoordSelected.delete(coord);
+  renderAllRegionTables();
+ });
+}
 function renderAllRegionTables(){
   if(!allRegionTables)return;
   sscTableBindFilters();
   sscTableSyncFilters();
+  sscTableCoordinateChecks();
   const selected=sscTableSelectedRegions();
   const groups=[];
   const orientation=document.getElementById("sscTablesOrganization")?.value||"padrao";
   if(orientation==="posicao"){
-    for(const coord of COORD_ORDER){
+    for(const coord of COORD_ORDER.filter(c=>sscTableCoordSelected.has(c))){
       const entries=selected.filter(reg=>rowsFor(reg,coord).length).map(reg=>({region:reg,coord}));
       if(entries.length)groups.push({title:coord==="Gerência"?"Gerências":coord==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":coord,entries});
     }
   }else{
     for(const region of selected){
-      const entries=COORD_ORDER.filter(coord=>rowsFor(region,coord).length).map(coord=>({region,coord}));
+      const entries=COORD_ORDER.filter(coord=>sscTableCoordSelected.has(coord)&&rowsFor(region,coord).length).map(coord=>({region,coord}));
       if(entries.length)groups.push({title:region,entries});
     }
   }
