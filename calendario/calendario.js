@@ -73,8 +73,11 @@ export async function mountCalendar({db,perfil,navegar}){
  }
  group.append(navButton,submenu);
  // Posição fixa: logo depois de Memória de Cálculo, antes dos itens adicionais.
+ const committee=nav.querySelector('.ssc-committee-sidebar-group');
+ const rr=nav.querySelector('.ssc-rr-sidebar-group');
  const memoryItem=nav.querySelector('[data-view="conference"]');
- nav.insertBefore(group,memoryItem?memoryItem.nextSibling:null);
+ const afterItem=committee||rr;
+ nav.insertBefore(group,afterItem?afterItem.nextSibling:(memoryItem?.parentElement===nav?memoryItem.nextSibling:null));
  const panel=document.createElement('div');panel.id='view-calendario';panel.className='cal-module';
  panel.innerHTML='<div class="cal-headline">'+
   '<div class="cal-headline-art" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="#9FF2E4" stroke-width="1.4" opacity=".21"><path d="M0 160 Q180 126 360 146 T720 125 T1100 145"/><path d="M0 180 Q180 145 360 165 T720 145 T1100 162"/><path d="M520 250 548 38h35l28 212M541 75h47M532 126h65M527 184h77M548 38l63 212M583 38l-63 212"/></g><circle cx="720" cy="125" r="5" fill="#F5AA41"/></svg></div>'+
