@@ -543,71 +543,85 @@ $('su-cadastrar').addEventListener('click',()=>{
 $('su-voltar').addEventListener('click',()=>{
   $('su-form').hidden=false;$('su-cadastrar').hidden=false;$('su-solicitacao').hidden=true;msg.textContent='';
 });
-function ajustarSolicitacao(){
- const f=$('su-funcao').value,r=$('su-regional').value;
- $('su-regional-grupo').hidden=!f||f==='superint';
- $('su-coordenacao-grupo').hidden=f!=='coordenador';
- $('su-coordenacao').innerHTML=selectOpts(coordsDaRegional(r),'');
+
+let sscCadastroEncontrado=null;
+const sscMsgCadastro=(text)=>{const el=$('su-email-identificado');if(el)el.textContent=text};
+function sscLimparCadastro(){
+ sscCadastroEncontrado=null;
+ for(const id of ['su-nome','su-funcao','su-regional','su-coordenacao'])$(id).value='';
 }
-$('su-funcao').addEventListener('change',ajustarSolicitacao);
-$('su-regional').addEventListener('change',ajustarSolicitacao);
-ajustarSolicitacao();
+async function sscIdentificarEmail(){
+ sscLimparCadastro();
+ const email=$('su-email-novo').value.trim().toLowerCase();
+ if(!email||!$('su-email-novo').checkValidity()){sscMsgCadastro('');return null}
+ sscMsgCadastro('Consultando e-mail autorizado…');
+ try{
+  const {data,error}=await db.rpc('consultar_cadastro_ssc',{p_email:email});
+  if(error)throw error;
+  // Evitar que uma resposta antiga preencha dados de outro e-mail.
+  if(email!==$('su-email-novo').value.trim().toLowerCase())return null;
+  const person=data?.[0];
+  if(!person){sscMsgCadastro('Email não identificado');return null}
+  sscCadastroEncontrado={...person,email};
+  $('su-nome').value=person.nome||'';
+  $('su-funcao').value=person.cargo||'';
+  $('su-regional').value=person.regiao||'';
+  $('su-coordenacao').value=person.coordenacao||'';
+  sscMsgCadastro('E-mail identificado. Confira os dados preenchidos e crie sua senha.');
+  return sscCadastroEncontrado;
+ }catch(e){sscMsgCadastro('Não foi possível verificar este e-mail. Tente novamente.');console.error('Cadastro SSC',e);return null}
+}
+$('su-email-novo').addEventListener('input',()=>{sscLimparCadastro();sscMsgCadastro('')});
+$('su-email-novo').addEventListener('blur',sscIdentificarEmail);
+$('su-recuperar').addEventListener('click',async()=>{
+ const email=$('su-email').value.trim().toLowerCase();
+ if(!email||!$('su-email').checkValidity()){msg.textContent='Informe seu e-mail na tela de login para recuperar a senha.';return}
+ msg.textContent='Enviando instruções de recuperação de senha…';
+ try{
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error)throw error;
+  msg.textContent='Se a conta estiver cadastrada, você receberá um e-mail com instruções para redefinir a senha.';
+ }catch(e){msg.textContent='Não foi possível enviar a recuperação: '+(e.message||e)}
+});
+db.auth.onAuthStateChange(async(event)=>{
+ if(event!=='PASSWORD_RECOVERY')return;
+ const nova=prompt('Digite sua nova senha (mínimo 8 caracteres):');
+ if(!nova)return;
+ if(nova.length<8){msg.textContent='A senha deve conter pelo menos 8 caracteres.';return}
+ const {error}=await db.auth.updateUser({password:nova});
+ msg.textContent=error?'Não foi possível redefinir a senha: '+error.message:'Senha redefinida. Faça login com a nova senha.';
+});
 $('su-solicitacao').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const form=e.currentTarget, button=form.querySelector('button[type="submit"]');
-  if(button.disabled)return;
-  const f=$('su-funcao').value, r=$('su-regional').value, c=$('su-coordenacao').value;
-  if(!['gerente','coordenador','superint'].includes(f)||
-    (f!=='superint'&&!REGIONAIS.includes(r))||
-    (f==='coordenador'&&!coordsDaRegional(r).includes(c))){
-    msg.textContent='Confira a função, a regional e a coordenação.';return;
+ e.preventDefault();
+ const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
+ if(button.disabled)return;
+ const email=$('su-email-novo').value.trim().toLowerCase();
+ if(!sscCadastroEncontrado||sscCadastroEncontrado.email!==email){
+  const checked=await sscIdentificarEmail();
+  if(!checked){msg.textContent='Email não identificado';return}
+ }
+ button.disabled=true;
+ msg.textContent='Criando conta e enviando e-mail de confirmação…';
+ try{
+  const response=await db.auth.signUp({
+   email,password:$('su-pass-novo').value,
+   options:{emailRedirectTo:location.origin+location.pathname}
+  });
+  if(response.error)throw response.error;
+  if(response.data?.user&&Array.isArray(response.data.user.identities)&&response.data.user.identities.length===0){
+   msg.textContent='Este e-mail já possui cadastro. Utilize Entrar ou Esqueci a senha.';return;
   }
-  const email=$('su-email-novo').value.trim();
-  button.disabled=true;
-  msg.textContent='Verificando solicitação...';
-  let timerId;
-  try {
-    const timeout=new Promise((_,reject)=>{
-      timerId=setTimeout(()=>reject(new Error('Não foi possível concluir a verificação. Confira sua conexão e tente entrar, caso já possua cadastro.')),15000);
-    });
-    const response=await Promise.race([
-      db.auth.signUp({
-        email,password:$('su-pass-novo').value,
-        options:{data:{
-          nome:$('su-nome').value.trim(),
-          funcao:f,
-          regional:f==='superint'?null:r,
-          coordenacao:f==='coordenador'?c:null
-        }}
-      }),
-      timeout
-    ]);
-    if(response.error) {
-      const reason=String(response.error.message||'');
-      if(response.error.status===429 || /email rate limit|over_email_send_rate_limit|rate limit exceeded/i.test(reason)){
-        msg.textContent='Limite temporário de e-mails de confirmação do Supabase atingido. Não reenvie a solicitação agora. Se já possui conta, volte à tela de login e clique em Entrar; caso contrário, tente cadastrar mais tarde.';
-        return;
-      }
-      if(/already registered|already exists|user already/i.test(reason)){
-        msg.textContent='Este e-mail já possui cadastro. Clique em Voltar ao login e utilize Entrar. Se necessário, recupere sua senha.';
-        return;
-      }
-      throw response.error;
-    }
-    if(response.data?.user && Array.isArray(response.data.user.identities) && response.data.user.identities.length===0){
-      msg.textContent='Este e-mail já possui cadastro. Clique em Voltar ao login e utilize Entrar. Não é necessário solicitar acesso novamente.';
-      return;
-    }
-    msg.textContent='Solicitação recebida. Confirme seu e-mail, se solicitado, e aguarde aprovação. Caso já tenha cadastro, utilize Entrar.';
-    form.reset();
-    ajustarSolicitacao();
-  }catch(ex){
-    console.error('Solicitação de acesso:',ex);
-    msg.textContent=ex?.message||'Não foi possível enviar a solicitação. Tente entrar se você já possui cadastro.';
-  }finally{
-    if(timerId!==undefined)clearTimeout(timerId);
-    button.disabled=false;
+  if(response.data?.session){
+   await db.auth.signOut();
+   msg.textContent='Cadastro criado. Consulte seu e-mail e siga as instruções de confirmação.';
+  }else{
+   msg.textContent='Cadastro registrado. Confirme o e-mail em até 10 minutos. Se o prazo expirar, sua conta não será ativada e você precisará se cadastrar novamente.';
   }
+  form.reset();sscLimparCadastro();sscMsgCadastro('');
+ }catch(ex){
+  const errorText=String(ex?.message||ex);
+  msg.textContent=/Email não identificado/i.test(errorText)?'Email não identificado':'Não foi possível concluir o cadastro: '+errorText;
+ }finally{button.disabled=false}
 });
 $('su-sair').addEventListener('click',async()=>{await db.auth.signOut();document.body.classList.remove('auth-ok');auth.style.display='grid';location.reload()});
 const {data:{session}}=await db.auth.getSession();
