@@ -2964,6 +2964,26 @@ body.v50-dark .ssc-comp-zero-target{border-color:#50ebe1}
 #view-evolution #evolutionRegionMenu .region-option input{width:18px;height:18px;flex:0 0 18px;pointer-events:auto!important}
 
 
+.ssc-ind-coord-filter{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;margin:8px 0 16px;border:1px solid #bcded7;border-radius:10px;background:rgba(0,155,145,.065)}
+.ssc-ind-coord-filter>strong{color:#009B91;font-size:12px}
+.ssc-ind-coord-checks{display:flex;gap:7px 16px;flex:1;flex-wrap:wrap;align-items:center}
+.ssc-ind-coord-checks label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:650;white-space:nowrap}
+.ssc-ind-coord-checks input{accent-color:#009B91;width:15px;height:15px}
+.ssc-sup-sidebar-group{display:flex;flex-direction:column;gap:4px;padding:7px 3px;border-radius:10px;border:1px solid rgba(0,155,145,.35);margin-bottom:10px}
+.ssc-sup-sidebar-title{font-size:12px;font-weight:900;color:#009B91;padding:8px 12px;text-transform:uppercase;letter-spacing:.07em}
+.ssc-sup-sidebar-group .nav-item{width:100%;box-sizing:border-box}
+.ssc-sup-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0}
+.ssc-sup-kpi{border:1px solid rgba(0,155,145,.23);background:rgba(0,155,145,.075);border-radius:13px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ssc-sup-kpi small{font-size:12px;opacity:.8}.ssc-sup-kpi strong{font-size:28px;color:#009B91}
+.ssc-sup-trend,.ssc-sup-impact-panel{margin:14px 0;padding:20px}
+.ssc-sup-ind{padding:15px 0;border-top:1px solid rgba(90,150,140,.25)}
+.ssc-sup-ind-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;justify-content:space-between}
+.ssc-sup-ind-head h3{font-size:15px;color:#009B91}.ssc-sup-ind-head span,.ssc-sup-assoc,.ssc-sup-unmapped{font-size:12px;line-height:1.5}
+.ssc-sup-impacts{margin:9px 0;padding-left:20px}.ssc-sup-impacts li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(100,150,140,.16);font-size:12px}
+.ssc-sup-impacts small{display:block;opacity:.75;margin-top:3px}
+.ssc-sup-impacts b{color:#F5AA41;white-space:nowrap}
+@media(max-width:850px){.ssc-sup-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.ssc-sup-kpis{grid-template-columns:1fr}.ssc-sup-impacts li{flex-wrap:wrap}}
 /* Evolução temporal multirregional — barras e variações da paleta oficial */
 .ssc-multi-chart{min-width:0;width:100%}
 .ssc-multi-bars{display:block;width:100%;height:auto;min-height:230px;overflow:visible}
@@ -3356,6 +3376,7 @@ body.ssc-chart-modal-open{overflow:hidden}
       <span class="v42-kind ind"><i></i>Indicadores · avanço em % da meta</span>
       <h2>Avanço dos Indicadores</h2>
       <p class="section-subtitle">Avanço de cada indicador (realizado em relação à meta), por coordenação, para as regiões e meses selecionados.</p>
+      <div class="ssc-ind-coord-filter"><strong>Coordenações exibidas</strong><div id="sscIndCoordChecks" class="ssc-ind-coord-checks"></div></div>
       <div id="indicatorEvolutionSections"></div>
     </section>
   </section>
@@ -6004,6 +6025,24 @@ function sscRenderWeeklySummary(regions){
     '<h3>Indicadores com maior perda de pontos</h3>'+(summary?'<ol class="ssc-week-impact">'+summary+'</ol>':'<p>Não foram identificadas perdas de pontos nesta fotografia.</p>');
 }
 
+// Filtro horizontal da seção Indicadores; não altera a pontuação das coordenações.
+let sscIndCoordSelected=null;
+function sscBuildIndicatorCoordFilters(){
+ const target=document.getElementById("sscIndCoordChecks");
+ if(!target)return;
+ const all=COORD_ORDER.filter(c=>DATA.some(r=>r["Coordenação"]===c));
+ if(sscIndCoordSelected===null)sscIndCoordSelected=new Set(all);
+ target.innerHTML=all.map(c=>{
+  const id="sscCoord_"+COORD_ORDER.indexOf(c),label=c==="Projetos Especiais e Grandes Clientes"?"Grandes Clientes":c;
+  return '<label for="'+id+'"><input type="checkbox" id="'+id+'" data-ssc-ind-coord="'+COORD_ORDER.indexOf(c)+'" '+(sscIndCoordSelected.has(c)?"checked":"")+'>'+svgTextEscape(label)+'</label>';
+ }).join("");
+ if(!target.dataset.bound){target.dataset.bound="1";target.addEventListener("change",e=>{
+  if(!e.target.matches("[data-ssc-ind-coord]"))return;
+  const c=COORD_ORDER[Number(e.target.dataset.sscIndCoord)];
+  if(e.target.checked)sscIndCoordSelected.add(c);else sscIndCoordSelected.delete(c);
+  updateEvolutionAll();
+ });}
+}
 function updateEvolutionAll(){
   V41_CHARTS.length=0;
   const regions=selectedEvolutionRegions();
@@ -6028,8 +6067,9 @@ function updateEvolutionAll(){
     return `<div class="chart-box">${sectionHeadingHTML(coord,coordLabel)}${multiSeriesBarChart(series,"score")}</div>`;
   }).join("");
 
+  sscBuildIndicatorCoordFilters();
   const mode=document.getElementById("sscIndicatorMode")?.value||"advance";
-  indicatorEvolutionSections.innerHTML=COORD_ORDER.map(coord=>{
+  indicatorEvolutionSections.innerHTML=COORD_ORDER.filter(coord=>sscIndCoordSelected.has(coord)).map(coord=>{
     const indicators=[...new Set(DATA.filter(r=>r["Coordenação"]===coord).map(r=>String(r["Indicador"]??"").trim()).filter(Boolean))];
     if(!indicators.length)return "";
     const charts=indicators.map(ind=>{
@@ -6657,6 +6697,6 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
 <div class="su-toolbar" id="su-toolbar"><span id="su-quem"></span><button class="su-btn" id="su-sair">Sair</button></div>
-<script type="module" src="./plataforma.js?v=20261126-calendar-view-v10"></script>
+<script type="module" src="./plataforma.js?v=20261127-supaccess-v11"></script>
 </body>
 </html>
