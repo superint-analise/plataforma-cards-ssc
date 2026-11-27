@@ -583,13 +583,33 @@ $('su-recuperar').addEventListener('click',async()=>{
   msg.textContent='Se a conta estiver cadastrada, você receberá um e-mail com instruções para redefinir a senha.';
  }catch(e){msg.textContent='Não foi possível enviar a recuperação: '+(e.message||e)}
 });
-db.auth.onAuthStateChange(async(event)=>{
- if(event!=='PASSWORD_RECOVERY')return;
- const nova=prompt('Digite sua nova senha (mínimo 8 caracteres):');
- if(!nova)return;
- if(nova.length<8){msg.textContent='A senha deve conter pelo menos 8 caracteres.';return}
- const {error}=await db.auth.updateUser({password:nova});
- msg.textContent=error?'Não foi possível redefinir a senha: '+error.message:'Senha redefinida. Faça login com a nova senha.';
+db.auth.onAuthStateChange(event=>{
+ if(event==='PASSWORD_RECOVERY'){
+  setTimeout(()=>{
+   $('su-form').hidden=true;
+   $('su-cadastrar').hidden=true;
+   $('su-solicitacao').hidden=true;
+   $('su-reset-form').hidden=false;
+   msg.textContent='Informe e confirme a nova senha.';
+  },0);
+ }
+});
+$('su-reset-form').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const pass=$('su-reset-pass').value;
+ if(pass.length<8){msg.textContent='A senha deve ter pelo menos 8 caracteres.';return}
+ const button=e.currentTarget.querySelector('[type=submit]');
+ button.disabled=true;
+ try{
+  const {error}=await db.auth.updateUser({password:pass});
+  if(error)throw error;
+  msg.textContent='Senha atualizada com sucesso. Entre novamente com a nova senha.';
+  $('su-reset-form').hidden=true;
+  $('su-form').hidden=false;
+  $('su-cadastrar').hidden=false;
+  await db.auth.signOut();
+ }catch(ex){msg.textContent='Falha ao redefinir senha: '+(ex.message||ex)}
+ finally{button.disabled=false}
 });
 $('su-solicitacao').addEventListener('submit',async e=>{
  e.preventDefault();
