@@ -586,6 +586,8 @@ $('su-recuperar').addEventListener('click',async()=>{
 db.auth.onAuthStateChange(event=>{
  if(event==='PASSWORD_RECOVERY'){
   setTimeout(()=>{
+   document.body.classList.remove('auth-ok');
+   auth.style.display='grid';
    $('su-form').hidden=true;
    $('su-cadastrar').hidden=true;
    $('su-solicitacao').hidden=true;
