@@ -359,97 +359,105 @@ function montarSuperintendencia(comps){
 async function renderSuperintendencia(){
  const box=$('sscSuperResultados'),select=$('sscSuperPeriodo');
  if(!box||!select||!acessoCompleto())return;
- const seq=++sscSupRequest,comp=select.value;
+ const req=++sscSupRequest,comp=select.value;
  const history=notasMensais.filter(x=>x.nivel==='Superintendência').sort((a,b)=>a.competencia.localeCompare(b.competencia));
- const thisMonth=history.find(x=>x.competencia===comp),previous=history.filter(x=>x.competencia<comp).at(-1);
- const asNum=value=>value===null||value===undefined||value===''?null:Number.isFinite(Number(value))?Number(value):null;
- const current=asNum(thisMonth?.score),prior=asNum(previous?.score);
- const variation=current===null||prior===null?null:current-prior;
+ const num=v=>v===null||v===undefined||v===''?null:Number.isFinite(Number(v))?Number(v):null;
+ const notes=history.filter(x=>num(x.score)!==null);
+ const entry=history.find(x=>x.competencia===comp);
+ const previous=notes.filter(x=>x.competencia<comp).at(-1);
+ const score=num(entry?.score),prevScore=num(previous?.score),delta=score===null||prevScore===null?null:score-prevScore;
  const official=superIndicadores.filter(x=>x.competencia===comp&&x.indicador!=='SCORE DO CARD');
- box.innerHTML='<div class="card ssc-sup-loading">Carregando indicadores oficiais e contribuições regionais…</div>';
- let regionRows=[];
- try{
-  regionRows=await getAll('indicadores_mensais','regiao,coordenacao,indicador,dados',
-    q=>q.eq('competencia',comp).neq('regiao','Superintendência'));
- }catch(e){
-  if(seq!==sscSupRequest)return;
-  box.innerHTML='<div class="card ssc-sup-loading">Não foi possível consultar os indicadores: '+escapeHTML(e.message)+'</div>';return;
- }
- if(seq!==sscSupRequest)return;
- const scoreColor=v=>v===null?'#728781':v>=10?'#009B91':'#F5AA41';
+ const two=v=>num(v)===null?'—':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const percentRatio=v=>num(v)===null?'—':two(Number(v)*100)+'%';
+ const formatValue=(v,d)=>{
+  const n=num(v);if(n===null)return '—';
+  const unit=String(d.Unidade||'').toLowerCase();
+  if(unit.includes('r$')){
+   const mm=unit.includes('1.000.000')?n/1e6:n;
+   return 'R$ '+two(mm)+' mi';
+  }
+  if(unit==='%'||unit.includes('fração'))return two(unit.includes('fração')?n*100:n)+'%';
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});
+ };
+ box.innerHTML='<div class="card ssc-sup-loading">Carregando a Superintendência…</div>';
+ let regional=[];
+ try{regional=await getAll('indicadores_mensais','regiao,coordenacao,indicador,dados',q=>q.eq('competencia',comp).neq('regiao','Superintendência'));}
+ catch(e){if(req===sscSupRequest)box.innerHTML='<div class="card">Erro ao consultar os indicadores: '+escapeHTML(e.message)+'</div>';return;}
+ if(req!==sscSupRequest)return;
+ const rows=official.map(o=>{
+  const d=o.dados||{},mapping=sscSupMapImpact(regional,o);
+  const bad=mapping.ranked.filter(x=>x.loss>1e-8);
+  const badOwn=String(d['Cor do Avanço']||'').toUpperCase()==='RUIM'||String(d['Eficiência']||'').includes('⚠');
+  return {o,d,mapping,bad,badOwn};
+ });
+ const risk=rows.filter(x=>x.badOwn).length;
  const kpis=[
-  ['Nota oficial',current===null?'—':fmt(current),'Resultado registrado'],
-  ['Nota anterior',prior===null?'—':fmt(prior),'Mês anterior disponível'],
-  ['Variação',variation===null?'—':(variation>0?'+':'')+fmt(variation),variation===null?'Sem comparação':variation>=0?'Evolução positiva':'Redução da nota'],
-  ['Indicadores',official.length,'Indicadores oficiais']
+  ['Nota oficial',score===null?'—':two(score),score===null?'Aguardando resultado oficial':score>=12?'Meta atingida':'Abaixo da meta'],
+  ['Mês anterior',prevScore===null?'—':two(prevScore),previous?competenciaLabel(previous.competencia):'Sem histórico'],
+  ['Variação',delta===null?'—':(delta>0?'+':'')+two(delta),delta===null?'Sem nota para comparação':delta>=0?'Evolução positiva':'Queda na pontuação'],
+  ['Eficiência',rows.length?two((rows.length-risk)/rows.length*100)+'%':'—',rows.length?(risk?risk+' indicador(es) sinalizado(s)':'Sem alertas oficiais'):'Sem indicadores']
  ];
  const kpiHTML='<div class="ssc-sup-kpis">'+kpis.map((k,i)=>
-  '<div class="ssc-sup-kpi"><small>'+k[0]+'</small><strong style="color:'+(i===0?scoreColor(current):i===2&&variation!==null?variation>=0?'#009B91':'#F5AA41':'inherit')+'">'+k[1]+'</strong><span>'+k[2]+'</span></div>'
- ).join('')+'</div>';
- const dataRows=official.map(o=>{
-  const d=o.dados||{},p=asNum(d.Planejado),r=asNum(d.Realizado),av=asNum(d['Avanço']);
-  const points=asNum(d.Pontos);
-  // O avanço oficial é apresentado tal como registrado; nunca substituir por cálculo regional.
-  const match=sscSupMapImpact(regionRows,o);
-  const top=match.ranked.filter(x=>x.loss>1e-8);
-  return {o,d,p,r,av,points,match,top};
- });
- const fmtRatio=n=>n===null?'—':(n*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2})+'%';
- const tableRows=dataRows.map(item=>{
-  const {o,d,p,r,av,points,top}=item;
-  const alert=top.length>0;
-  return '<tr><td><strong>'+escapeHTML(o.indicador)+'</strong><small>'+escapeHTML(d.Blocos||'Superintendência')+'</small></td>'+
-   '<td class="ssc-sup-num">'+(p===null?'—':fmt(p))+'</td>'+
-   '<td class="ssc-sup-num">'+(r===null?'—':fmt(r))+'</td>'+
-   '<td class="ssc-sup-num">'+fmtRatio(av)+'</td>'+
-   '<td class="ssc-sup-num">'+(points===null?'—':fmt(points))+'</td>'+
-   '<td><span class="ssc-sup-status '+(alert?'attention':'neutral')+'">'+(alert?'Atenção regional':item.match.link?'Sem desvio regional':'Sem vínculo direto')+'</span></td></tr>';
- }).join('');
- const table='<section class="card ssc-sup-table-card"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">RESULTADOS OFICIAIS</span><h2>Indicadores da Superintendência</h2><p>Estrutura de leitura alinhada à página Indicadores do Mês. Os valores oficiais não são recalculados.</p></div><span class="ssc-sup-count">'+official.length+' indicadores</span></div>'+
-  '<div class="ssc-sup-table-scroll"><table class="ssc-sup-table"><thead><tr><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Avanço</th><th>Pontos</th><th>Diagnóstico</th></tr></thead><tbody>'+
-  (tableRows||'<tr><td colspan="6">Nenhum indicador oficial publicado para este mês.</td></tr>')+
-  '</tbody></table></div></section>';
- const impacted=dataRows.map(item=>{
-  const {o,d,match,top}=item;
-  const special=supNormalize(o.indicador).includes('PERDAS NAO TECNICAS');
-  const badge=match.link?escapeHTML(match.link.label):'Sem correspondência direta';
-  const impactList=top.slice(0,4).map((x,i)=>
-   '<li><span class="ssc-sup-impact-rank">'+(i+1)+'</span><span class="ssc-sup-impact-name"><b>'+escapeHTML(x.reg)+'</b><small>'+escapeHTML(x.coord)+'</small></span><span class="ssc-sup-impact-values"><b>'+fmt(x.loss)+' p.p.</b><small>Desvio da referência</small></span></li>').join('');
-  const text=special?'Este indicador é acompanhado pela Superintendência e não possui equivalente direto nos Cards regionais.':
-   !match.link?'Não foi encontrada correspondência operacional direta para este indicador.':
-   top.length?top.length+' coordenação(ões) com desvio desfavorável na referência correspondente.':'Nenhum desvio regional negativo identificado na referência correspondente.';
-  return '<article class="ssc-sup-impact-card"><header><div><small>'+escapeHTML(d.Blocos||'INDICADOR')+'</small><h3>'+escapeHTML(o.indicador)+'</h3></div><span class="ssc-sup-map-pill">'+badge+'</span></header>'+
-   '<p>'+escapeHTML(text)+'</p>'+
-   (impactList?'<ol>'+impactList+'</ol>':'<div class="ssc-sup-impact-clear">'+(special?'Sem comparação regional direta':'Sem resultados negativos relacionados')+'</div>')+'</article>';
- }).join('');
- const biggest=dataRows.flatMap(item=>item.top.map(x=>({...x,indicator:item.o.indicador}))).sort((a,b)=>b.loss-a.loss);
- const movements=[
-  {kind:variation===null?'target':variation>=0?'up':'down',
-   text:variation===null?'Ainda não existe nota anterior para comparar.':'A nota oficial '+(variation>=0?'avançou':'recuou')+' <b>'+fmt(Math.abs(variation))+' ponto(s)</b> em relação ao resultado anterior.'},
-  {kind:biggest.length?'warn':'up',
-   text:biggest.length?'Maior desvio relacionado: <b>'+escapeHTML(biggest[0].indicator)+'</b>, com <b>'+escapeHTML(biggest[0].reg)+'</b> / '+escapeHTML(biggest[0].coord)+' ('+fmt(biggest[0].loss)+' p.p. da referência).':'Não foram encontrados desvios negativos nas correspondências regionais disponíveis.'},
-  {kind:current!==null&&current>=10?'up':'target',
-   text:current===null?'Ainda não existe nota oficial selecionada.':current>=10?'A nota oficial está <b>'+fmt(current-10)+' ponto(s)</b> acima da referência 10.':'A nota oficial está <b>'+fmt(10-current)+' ponto(s)</b> abaixo da referência 10.'}
- ];
- const readIcon={
-  up:'<path d="m4 16 6-6 4 4 6-7"/><path d="M15 7h5v5"/>',
-  down:'<path d="m4 8 6 6 4-4 6 7"/><path d="M15 17h5v-5"/>',
-  warn:'<path d="M12 4 2.8 19h18.4z"/><path d="M12 10v4M12 17h.01"/>',
-  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>'
+   '<div class="ssc-sup-kpi"><small>'+escapeHTML(k[0])+'</small><strong style="color:'+(i===0&&score!==null?score>=12?'#009B91':'#F5AA41':i===2&&delta!==null?delta>=0?'#009B91':'#F5AA41':'var(--v-ink,#183b37)')+'">'+escapeHTML(k[1])+'</strong><span>'+escapeHTML(k[2])+'</span></div>').join('')+'</div>';
+ const details=(item,index)=>{
+  const {o,d,mapping,bad}=item;
+  const label=mapping.link?mapping.link.label:null;
+  const intro=label?'Abertura operacional relacionada a '+label+' — '+bad.length+' desvio(s) desfavorável(is).':'Não há vínculo operacional direto validado para este indicador.';
+  const body=bad.length?'<table class="ssc-sup-diagnostic-table"><thead><tr><th>Regional / Coordenação</th><th>Planejado</th><th>Realizado</th><th>Desvio (%)</th></tr></thead><tbody>'+
+    bad.map(x=>'<tr><td><b>'+escapeHTML(x.reg)+'</b> / '+escapeHTML(x.coord)+'</td><td>'+two(x.plan)+'</td><td>'+two(x.real)+'</td><td class="ssc-sup-negative">'+two(x.loss)+'%</td></tr>').join('')+'</tbody></table>':
+    '<p class="ssc-sup-empty">'+(label?'Nenhum desvio negativo encontrado para a correspondência disponível.':'Este indicador é acompanhado no resultado oficial, sem associação regional direta.')+'</p>';
+  return '<tr id="sscSupDetail'+index+'" class="ssc-sup-detail-row" hidden><td colspan="8"><div class="ssc-sup-detail-panel"><p><b>'+escapeHTML(o.indicador)+'</b> · '+escapeHTML(intro)+'</p>'+body+
+   '<small>Desvio (%) é o afastamento percentual desfavorável em relação à meta, calculado a partir de Realizado / Planejado. Valores apresentados com 2 casas decimais. É uma análise operacional, não desconto na nota oficial.</small></div></td></tr>';
  };
- const readings='<section class="card ssc-sup-readings"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">VISÃO GERENCIAL</span><h2>Leituras do mês</h2><p>Principais pontos que merecem atenção, no padrão da Visão Geral.</p></div></div>'+
-  '<ul class="v50-ins">'+movements.map(v=>'<li class="'+v.kind+'"><svg viewBox="0 0 24 24">'+readIcon[v.kind]+'</svg><span>'+v.text+'</span></li>').join('')+'</ul><div class="v50-ins-note">Leituras calculadas a partir dos registros disponíveis, sem atribuir relação causal não comprovada.</div></section>';
- const trends='<section class="card ssc-sup-trend"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">EVOLUÇÃO TEMPORAL</span><h2>Histórico da nota oficial</h2><p>Gráfico interativo no mesmo padrão visual da Evolução Temporal, com valores oficiais por mês.</p></div></div><div class="ssc-sup-trend-legend"><span><i></i>Nota oficial</span><span><em></em>Referência 10</span></div><div id="sscSupTrendChart" class="ssc-sup-trend-chart"></div></section>';
- const diagnosis='<section class="card ssc-sup-diagnosis"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">LEITURA GERENCIAL</span><h2>Principais fatores de atenção</h2><p>No padrão das análises de impacto da Visão Geral: veja as regionais e coordenações que mais se afastaram da referência de cada indicador.</p></div></div><div class="ssc-sup-impact-grid">'+
- (impacted||'<p>Nenhum diagnóstico disponível para o mês selecionado.</p>')+'</div><p class="ssc-sup-footnote">Desvios em pontos percentuais da razão realizado/meta; são referências operacionais, não descontos calculados na nota oficial. PMSO/OPEX e Unitização/AIS possuem correspondência temática, não identidade de valores.</p></section>';
- box.innerHTML=kpiHTML+readings+table+trends+diagnosis;
- const graph=$('sscSupTrendChart');
- if(graph&&window.__SSC_RENDER_SUPER_TREND){
-  window.__SSC_RENDER_SUPER_TREND(graph,history.map(r=>({competencia:r.competencia,score:asNum(r.score)})));
- }else if(graph){
-  graph.innerHTML='<p>Gráfico temporal indisponível.</p>';
+ const tableRows=rows.map((item,i)=>{
+  const {o,d,bad,badOwn,mapping}=item;
+  const cor=String(d['Cor do Avanço']||'').toUpperCase();
+  const out=cor==='RUIM'||badOwn,good=cor==='OK'||!out&&num(d.Pontos)===1;
+  const efficiency=String(d['Eficiência']||'').trim();
+  const performance=String(d['Desempenho']||'').trim();
+  const label=out?'Fora da meta':good?'Dentro da meta':performance||'—';
+  const desc=bad.length?'Atenção':mapping.link?'Sem desvio':'Sem vínculo';
+  return '<tr class="ssc-sup-row" data-sup-index="'+i+'"><td><strong>'+escapeHTML(d.Blocos||'—')+'</strong></td>'+
+   '<td><strong>'+escapeHTML(o.indicador)+'</strong></td>'+
+   '<td class="ssc-sup-num">'+formatValue(d.Planejado,d)+'</td>'+
+   '<td class="ssc-sup-num">'+formatValue(d.Realizado,d)+'</td>'+
+   '<td class="ssc-sup-num">'+percentRatio(d['Mês Anterior'])+'</td>'+
+   '<td><span class="ssc-sup-status '+(out?'attention':good?'success':'neutral')+'">'+escapeHTML(label)+'</span></td>'+
+   '<td><span class="ssc-sup-status '+(efficiency?'attention':good?'success':'neutral')+'">'+(efficiency?'Atenção':good?'Dentro da meta':'—')+'</span></td>'+
+   '<td><button type="button" class="ssc-sup-diagnostic-trigger '+(bad.length||out?'attention':'neutral')+'" data-sup-toggle="'+i+'" aria-expanded="false" aria-controls="sscSupDetail'+i+'">'+desc+' <span aria-hidden="true">⌄</span></button></td></tr>'+details(item,i);
+ }).join('');
+ const table='<section class="card ssc-sup-table-card"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">INDICADORES DO MÊS</span><h2>Indicadores da Superintendência</h2><p>Valores oficiais da competência selecionada. Clique em Diagnóstico para abrir as regionais e coordenações relacionadas.</p></div><span class="ssc-sup-count">'+rows.length+' indicadores</span></div>'+
+ '<div class="ssc-sup-table-scroll"><table class="ssc-sup-table"><thead><tr><th>Bloco</th><th>Indicador</th><th>Planejado</th><th>Realizado</th><th>Mês anterior</th><th>Desempenho</th><th>Eficiência</th><th>Diagnóstico</th></tr></thead><tbody>'+
+ (tableRows||'<tr><td colspan="8">Sem indicadores publicados nesta competência.</td></tr>')+'</tbody></table></div></section>';
+ const noteworthy=rows.flatMap(x=>x.bad.map(y=>({...y,ind:x.o.indicador}))).sort((a,b)=>b.loss-a.loss);
+ const movements=[
+  {kind:delta===null?'target':delta>=0?'up':'down',
+   text:delta===null?'A nota oficial deste mês ainda não foi informada.':('A nota oficial '+(delta>=0?'subiu':'caiu')+' <b>'+two(Math.abs(delta))+'</b> frente ao último registro.')},
+  {kind:noteworthy.length?'warn':'up',
+   text:noteworthy.length?'Maior desvio operacional relacionado a <b>'+escapeHTML(noteworthy[0].ind)+'</b> em '+escapeHTML(noteworthy[0].reg)+' / '+escapeHTML(noteworthy[0].coord)+' (<b>'+two(noteworthy[0].loss)+'%</b>).':'Nenhum desvio negativo foi identificado nas correspondências disponíveis.'},
+  {kind:score===null?'target':score>=12?'up':'warn',text:score===null?'Meta oficial: <b>12</b>. A nota da competência selecionada ainda não foi disponibilizada.':score>=12?'Meta <b>12</b> atingida.':'Faltam <b>'+two(12-score)+'</b> pontos para a Meta 12.'}
+ ];
+ const icons={up:'<path d="m4 16 6-6 4 4 6-7"/><path d="M15 7h5v5"/>',down:'<path d="m4 8 6 6 4-4 6 7"/><path d="M15 17h5v-5"/>',warn:'<path d="M12 4 2.8 19h18.4z"/><path d="M12 10v4M12 17h.01"/>',target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>'};
+ const readings='<section class="card ssc-sup-readings"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">VISÃO GERENCIAL</span><h2>Leituras do mês</h2><p>Resumo gerencial; os detalhes por indicador estão na tabela acima.</p></div></div><ul class="v50-ins">'+movements.map(x=>'<li class="'+x.kind+'"><svg viewBox="0 0 24 24">'+icons[x.kind]+'</svg><span>'+x.text+'</span></li>').join('')+'</ul></section>';
+ const trends='<section class="card ssc-sup-trend"><div class="ssc-sup-section-head"><div><span class="ssc-sup-eyebrow">EVOLUÇÃO TEMPORAL</span><h2>Histórico da nota oficial</h2><p>Notas mensais publicadas · gráfico interativo com Meta 12 e média histórica.</p></div></div><div class="ssc-sup-trend-legend"><span><i></i>Nota oficial</span><span><em></em>Meta 12</span><span>Média histórica</span></div><div id="sscSupTrendChart" class="ssc-sup-trend-chart"></div></section>';
+ box.innerHTML=kpiHTML+table+'<div class="ssc-sup-lower-grid">'+trends+readings+'</div>';
+ if(!box.dataset.supDiagBound){
+  box.addEventListener('click',event=>{
+   const trigger=event.target.closest('[data-sup-toggle]');
+   if(!trigger||!box.contains(trigger))return;
+   const idx=trigger.dataset.supToggle,detail=box.querySelector('#sscSupDetail'+idx);
+   if(!detail)return;
+   const open=detail.hidden;
+   detail.hidden=!open;trigger.setAttribute('aria-expanded',String(open));
+   trigger.closest('tr')?.classList.toggle('expanded',open);
+  });
+  box.dataset.supDiagBound='1';
  }
+ const chart=$('sscSupTrendChart');
+ if(chart&&window.__SSC_RENDER_SUPER_TREND)
+  window.__SSC_RENDER_SUPER_TREND(chart,notes.map(x=>({competencia:x.competencia,score:num(x.score)})));
 }
+
 function montarMenuRRComite(){
  const nav=document.querySelector('.side-nav');
  if(!nav||nav.querySelector('.ssc-rr-sidebar-group'))return;
