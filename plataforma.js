@@ -113,6 +113,7 @@ function navegar(view){
   const sec=$('view-'+view);if(sec)sec.classList.add('active');
   if(view==='comparison')renderComparacaoHistorica();
   window.__SSC_SUP_SIDEBAR_SYNC?.(view);
+  window.__SSC_RR_SIDEBAR_SYNC?.(view);
   if(view==='superintendencia')renderSuperintendencia();
   document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
 }
@@ -449,8 +450,43 @@ async function renderSuperintendencia(){
   graph.innerHTML='<p>Gráfico temporal indisponível.</p>';
  }
 }
+function montarMenuRRComite(){
+ const nav=document.querySelector('.side-nav');
+ if(!nav||nav.querySelector('.ssc-rr-sidebar-group'))return;
+ const keys=[['general','Visão Geral'],['tables','Indicadores do Mês'],['evolution','Evolução Temporal'],['comparison','Comparação'],['conference','Memória de Cálculo']];
+ const group=document.createElement('div');group.className='cal-sidebar-group ssc-rr-sidebar-group';
+ const parent=document.createElement('button');parent.type='button';
+ parent.className='nav-item cal-sidebar-parent ssc-rr-sidebar-parent';
+ parent.setAttribute('aria-expanded','false');parent.setAttribute('aria-controls','sscRRSidebarChildren');
+ parent.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20V13M22 20V8M2 21h22"/></svg></span><span class="ssc-nav-label">RR</span><svg class="cal-sidebar-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+ const children=document.createElement('div');children.className='cal-sidebar-children';children.id='sscRRSidebarChildren';children.hidden=true;
+ keys.forEach(([view,label])=>{
+  const item=nav.querySelector('.nav-item[data-view="'+view+'"]');if(!item)return;
+  item.className='nav-item cal-sidebar-child ssc-rr-child';
+  item.innerHTML='<span class="cal-child-dot" aria-hidden="true"></span><span class="ssc-nav-label">'+label+'</span>';
+  item.title=label;
+  children.appendChild(item);
+ });
+ const expand=on=>{const yes=Boolean(on);group.classList.toggle('expanded',yes);children.hidden=!yes;parent.setAttribute('aria-expanded',String(yes))};
+ parent.addEventListener('click',()=>expand(!group.classList.contains('expanded')));
+ group.append(parent,children);
+ const sup=nav.querySelector('.ssc-sup-sidebar-group');
+ nav.insertBefore(group,sup?sup.nextSibling:nav.firstChild);
+ window.__SSC_RR_SIDEBAR_SYNC=view=>{group.classList.toggle('cal-current',keys.some(x=>x[0]===view));if(keys.some(x=>x[0]===view))expand(true)};
+ const committee=document.createElement('div');committee.className='cal-sidebar-group ssc-committee-sidebar-group';
+ const button=document.createElement('button');button.type='button';button.className='nav-item cal-sidebar-parent ssc-committee-sidebar-parent';
+ button.dataset.view='comite';button.title='Comitê Operacional — Em construção';
+ button.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V7l8-4 8 4v14M8 10h8M8 14h8M8 18h8"/></svg></span><span class="ssc-nav-label">Comitê <small class="ssc-coming-soon">Em construção</small></span>';
+ committee.append(button);nav.insertBefore(committee,group.nextSibling);
+ const main=document.querySelector('.main');
+ const page=document.createElement('section');page.className='view-section';page.id='view-comite';
+ page.innerHTML='<div class="page-head"><div class="page-title"><h1>Comitê Operacional</h1><p>Em construção</p></div></div><section class="card ssc-committee-placeholder"><h2>Em construção</h2><p>Os indicadores mensais do Comitê Operacional serão disponibilizados nesta área.</p></section>';
+ main?.appendChild(page);
+ button.addEventListener('click',()=>navegar('comite'));
+}
 function montarSecoes(comps){
   montarSuperintendencia(comps);
+  montarMenuRRComite();
   if($('view-administracao'))return;
   if(perfil.perfil==='criador')addSection('administracao','Administração',`<h2>Administração de acessos</h2><div id="su-users"></div><hr><h2>Liberação do ranking</h2><p class="su-muted">A liberação não altera a base nem exige nova execução do CMD.</p><div class="su-controls"><select id="su-release">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-release-btn">Liberar competência</button></div><p id="su-release-status"></p><hr><h2>Limpeza do histórico semanal</h2><p class="su-muted">Disponível somente após o ranking divulgado e a carga da competência seguinte.</p><div class="su-controls"><select id="su-clean">${comps.map(c=>`<option value="${c}">${c}</option>`).join('')}</select><button class="su-btn" id="su-clean-btn">Excluir semanas da competência selecionada</button></div><p id="su-clean-status"></p>`);
   if(perfil.perfil==='criador'){
