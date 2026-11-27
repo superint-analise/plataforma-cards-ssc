@@ -6682,17 +6682,19 @@ window.__CARREGAR_DADOS_SEGUROS = (rows, role) => {
     <input type="password" id="su-pass" placeholder="Senha" autocomplete="current-password" required>
     <button type="submit">Entrar</button>
   </form>
-  <button type="button" id="su-cadastrar">Solicitar acesso</button>
+  <button type="button" id="su-recuperar">Esqueci a senha</button>
+  <button type="button" id="su-cadastrar">Cadastrar acesso</button>
   <form id="su-solicitacao" hidden>
-    <h3>Solicitação de acesso</h3>
-    <label for="su-nome">Nome</label><input id="su-nome" autocomplete="name" maxlength="120" required>
-    <label for="su-email-novo">E-mail</label><input id="su-email-novo" type="email" autocomplete="email" required>
-    <label for="su-pass-novo">Senha</label><input id="su-pass-novo" type="password" minlength="8" autocomplete="new-password" required>
-    <label for="su-funcao">Função</label>
-    <select id="su-funcao" required><option value="">Selecione a função</option><option value="gerente">Gerente</option><option value="coordenador">Coordenador</option><option value="superint">Superintendência</option></select>
-    <div id="su-regional-grupo"><label for="su-regional">Regional</label><select id="su-regional"><option value="">Selecione</option><option>Baixada</option><option>Centro Sul</option><option>Leste</option><option>Oeste</option><option>Vale</option></select></div>
-    <div id="su-coordenacao-grupo" hidden><label for="su-coordenacao">Coordenação</label><select id="su-coordenacao"></select></div>
-    <button type="submit">Enviar solicitação</button>
+    <h3>Cadastro de acesso</h3>
+    <p style="font-size:12px;line-height:1.5">Informe seu e-mail corporativo. Seus dados serão preenchidos automaticamente com base na lista autorizada. Após o cadastro, confirme o e-mail em até 10 minutos. Sem confirmação, o cadastro expira e será necessário refazê-lo.</p>
+    <label for="su-email-novo">E-mail corporativo</label><input id="su-email-novo" type="email" autocomplete="email" required>
+    <p id="su-email-identificado" aria-live="polite" style="font-size:12px"></p>
+    <label for="su-nome">Nome</label><input id="su-nome" autocomplete="name" maxlength="120" required readonly>
+    <label for="su-funcao">Cargo</label><input id="su-funcao" required readonly>
+    <label for="su-regional">Regional</label><input id="su-regional" readonly>
+    <label for="su-coordenacao">Coordenação</label><input id="su-coordenacao" readonly>
+    <label for="su-pass-novo">Criar senha (mínimo 8 caracteres)</label><input id="su-pass-novo" type="password" minlength="8" autocomplete="new-password" required>
+    <button type="submit">Confirmar e enviar e-mail</button>
     <button id="su-voltar" type="button">Voltar ao login</button>
   </form><p id="su-msg" aria-live="polite"></p>
 </div></div>
